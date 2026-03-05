@@ -8,6 +8,7 @@ import cors from "cors";
 import healthRouter from "./routes/health.js";
 import dexRouter from "./routes/dex.js";
 import gameRouter from "./routes/game.js";
+import authRouter from "./routes/auth.js";
 
 export function createApp() {
     const app = express();
@@ -22,6 +23,7 @@ export function createApp() {
     app.use(healthRouter);
     app.use(dexRouter);
     app.use(gameRouter);
+    app.use(authRouter); 
 
     // 404 catch-all
     app.use((_req, res) => {
