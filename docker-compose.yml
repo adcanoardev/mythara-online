@@ -1,0 +1,58 @@
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: pokemmo
+      POSTGRES_PASSWORD: pokemmo_secret
+      POSTGRES_DB: pokemmo
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # los datos persisten aunque pares el contenedor
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  server:
+    build:
+      context: .                  # raíz del monorepo
+      dockerfile: apps/server/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: 8080
+      DATABASE_URL: postgresql://pokemmo:pokemmo_secret@postgres:5432/pokemmo
+      REDIS_URL: redis://redis:6379
+      CORS_ORIGIN: http://localhost:5173
+      JWT_SECRET: cambiame_en_produccion
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./apps/server:/app          # hot reload — cambios en código se reflejan al momento
+      - ./packages:/packages        # shared types
+      - /app/node_modules           # evita que el volumen pise los node_modules del contenedor
+
+  client:
+    build:
+      context: apps/client
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: http://localhost:8080
+    depends_on:
+      - server
+    volumes:
+      - ./apps/client:/app          # hot reload
+      - /app/node_modules
+
+volumes:
+  postgres_data:                    # volumen nombrado — Postgres guarda datos aquí

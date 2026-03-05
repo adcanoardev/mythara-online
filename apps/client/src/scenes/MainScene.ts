@@ -27,7 +27,9 @@ export class MainScene extends Phaser.Scene {
         // Systems
         this.hud = new HUD(this);
         this.network = new NetworkManager(this);
-        this.encounter = new EncounterSystem(this, (_id) => { /* future: battle logic */ });
+        this.encounter = new EncounterSystem(this, (_id) => {
+            /* future: battle logic */
+        });
         this.starterSystem = new StarterSystem(this, (starter, gameId) => {
             void this.onStarterPicked(starter, gameId);
         });
@@ -46,12 +48,12 @@ export class MainScene extends Phaser.Scene {
             void this.starterSystem.open();
         });
 
-        this.input.keyboard?.on("keydown-ONE",   () => void this.starterSystem.pick(0));
-        this.input.keyboard?.on("keydown-TWO",   () => void this.starterSystem.pick(1));
+        this.input.keyboard?.on("keydown-ONE", () => void this.starterSystem.pick(0));
+        this.input.keyboard?.on("keydown-TWO", () => void this.starterSystem.pick(1));
         this.input.keyboard?.on("keydown-THREE", () => void this.starterSystem.pick(2));
 
-        // Init async
-        void this.init();
+        // initGame se llama aquí directamente — create() ya garantiza que los sistemas existen
+        void this.initGame();
     }
 
     update() {
@@ -79,27 +81,31 @@ export class MainScene extends Phaser.Scene {
         this.network.destroy();
     }
 
-    // ── Private ──────────────────────────────────────────────────────────────
+    // ── Private ───────────────────────────────────────────────────────────────
 
     private readInput(): { vx: number; vy: number; moving: boolean } {
         let vx = 0;
         let vy = 0;
 
-        if (this.cursors.left?.isDown)  vx -= PLAYER.SPEED;
+        if (this.cursors.left?.isDown) vx -= PLAYER.SPEED;
         if (this.cursors.right?.isDown) vx += PLAYER.SPEED;
-        if (this.cursors.up?.isDown)    vy -= PLAYER.SPEED;
-        if (this.cursors.down?.isDown)  vy += PLAYER.SPEED;
+        if (this.cursors.up?.isDown) vy -= PLAYER.SPEED;
+        if (this.cursors.down?.isDown) vy += PLAYER.SPEED;
 
         return { vx, vy, moving: vx !== 0 || vy !== 0 };
     }
 
-    private async init(): Promise<void> {
-        // API health check
+    /**
+     * Async setup after create(). Named initGame to avoid collision with
+     * Phaser's reserved init() lifecycle method which runs before create().
+     */
+    private async initGame(): Promise<void> {
+        // API health check (fire and forget)
         fetchHealth()
             .then((d) => this.hud.setApiStatus(`OK (${d.service})`))
             .catch(() => this.hud.setApiStatus("ERROR (no conecta)"));
 
-        // Restore saved game
+        // Restore saved game session
         const gid = loadGameId();
         if (!gid) {
             this.hud.setGameId(null);

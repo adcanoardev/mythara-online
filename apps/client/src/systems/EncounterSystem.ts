@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { GRASS_ZONE, POKEMON } from "../constants";
 import { randInt } from "../utils/helpers";
+import { loadImageAsync } from "../utils/helpers.js";
 
 type OnEncounter = (pokemonId: number) => void;
 
@@ -38,12 +39,28 @@ export class EncounterSystem {
         }
     }
 
-    show(pokemonId: number): void {
+    async show(pokemonId: number): Promise<void> {
         this.isActive = true;
         this.panel.setVisible(true);
-        this.text.setText(`¡Encuentro! (demo)\nID: ${pokemonId}\nESPACIO para cerrar`).setVisible(true);
-    }
+        this.text.setText(`¡Encuentro!\nID: ${pokemonId}\nESPACIO para cerrar`).setVisible(true);
 
+        // Cargar sprite desde la API
+        try {
+            const res = await fetch(
+                `${import.meta.env.VITE_API_URL || "http://localhost:8080"}/dex/pokemon/${pokemonId}`,
+            );
+            const data = await res.json();
+
+            if (data.sprite) {
+                const key = `encounter-${pokemonId}`;
+                await loadImageAsync(this.scene, key, data.sprite);
+                this.sprite = this.scene.add.image(250, 225, key).setScale(2).setDepth(5);
+                this.text.setText(`¡Apareció un ${data.name}!\nESPACIO para cerrar`);
+            }
+        } catch {
+            // sprite no crítico, el texto ya informa
+        }
+    }
     hide(): void {
         this.isActive = false;
         this.panel.setVisible(false);
