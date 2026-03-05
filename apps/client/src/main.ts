@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { AuthScene } from "./scenes/AuthScene";
 import { MainScene } from "./scenes/MainScene";
 
 new Phaser.Game({
@@ -7,5 +8,5 @@ new Phaser.Game({
     height: 450,
     parent: "app",
     backgroundColor: "#1e1e1e",
-    scene: [MainScene],
+    scene: [AuthScene, MainScene], // AuthScene arranca primero
 });
