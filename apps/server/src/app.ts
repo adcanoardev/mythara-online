@@ -11,6 +11,7 @@ import gameRouter from "./routes/game.js";
 import authRouter from "./routes/auth.js";
 import trainerRouter from "./routes/trainer.js";
 import battleRouter from "./routes/battle.js";
+import rankingRouter from "./routes/ranking.js";
 
 export function createApp() {
     const app = express();
@@ -30,6 +31,7 @@ export function createApp() {
     app.use(authRouter);
     app.use(trainerRouter);
     app.use(battleRouter);
+    app.use(rankingRouter);
 
     // 404 catch-all
     app.use((_req, res) => {
