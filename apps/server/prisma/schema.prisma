@@ -22,6 +22,7 @@ model User {
   inventory      Inventory[]
   structures     Structure[]
   pokemon        PokemonInstance[]
+  battleLogs BattleLog[]
 }
 
 model Game {
@@ -150,4 +151,40 @@ model PokemonInstance {
 
   caughtAt  DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// ─── Battletag ───────────────────────────────────────
+model BattleLog {
+  id         String      @id @default(cuid())
+  userId     String
+  user       User        @relation(fields: [userId], references: [id])
+
+  type       BattleType
+  result     BattleResult
+  xpGained   Int         @default(0)
+  coinsGained Int        @default(0)
+
+  // Pokémon del jugador usado
+  playerPokemonId  Int   // pokedexId
+  playerPokemonLvl Int
+
+  // Pokémon rival
+  enemyPokemonId   Int
+  enemyPokemonLvl  Int
+
+  // Si capturó un Pokémon
+  capturedPokemonId Int?
+
+  createdAt  DateTime @default(now())
+}
+
+enum BattleType {
+  NPC
+  PVP
+}
+
+enum BattleResult {
+  WIN
+  LOSE
+  DRAW
 }

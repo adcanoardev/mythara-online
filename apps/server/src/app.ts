@@ -10,6 +10,7 @@ import dexRouter from "./routes/dex.js";
 import gameRouter from "./routes/game.js";
 import authRouter from "./routes/auth.js";
 import trainerRouter from "./routes/trainer.js";
+import battleRouter from "./routes/battle.js";
 
 export function createApp() {
     const app = express();
@@ -28,6 +29,7 @@ export function createApp() {
     app.use(gameRouter);
     app.use(authRouter);
     app.use(trainerRouter);
+    app.use(battleRouter);
 
     // 404 catch-all
     app.use((_req, res) => {

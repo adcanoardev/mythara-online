@@ -5,6 +5,8 @@ import { getTokens } from "../services/tokenService.js";
 import { getInventory } from "../services/inventoryService.js";
 import { getMineStatus, collectMine } from "../services/mineService.js";
 
+import { prisma } from "../services/prisma.js";
+
 const router = Router();
 
 router.get("/trainer/me", requireAuth, async (req, res) => {
@@ -50,6 +52,29 @@ router.post("/mine/collect", requireAuth, async (req, res) => {
             return res.status(400).json({ error: "Mine not ready yet" });
         }
         res.json({ collected: result });
+    } catch (e) {
+        res.status(500).json({ error: "Internal error" });
+    }
+});
+
+// Endpoint temporal para añadir Pokémon al equipo (desarrollo)
+router.post("/dev/add-pokemon", requireAuth, async (req, res) => {
+    try {
+        const pokemon = await prisma.pokemonInstance.create({
+            data: {
+                userId: req.user!.userId,
+                pokedexId: 25,
+                level: 10,
+                hp: 60,
+                maxHp: 60,
+                attack: 55,
+                defense: 40,
+                speed: 90,
+                isInParty: true,
+                slot: 0,
+            },
+        });
+        res.json(pokemon);
     } catch (e) {
         res.status(500).json({ error: "Internal error" });
     }
