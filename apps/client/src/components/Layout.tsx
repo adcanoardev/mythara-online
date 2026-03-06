@@ -2,7 +2,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 
 const NAV = [
-    { icon: "🏡", label: "Mi Rancho", path: "/" },
+    { icon: "🏡", label: "Rancho", path: "/" },
     { icon: "⚔️", label: "Combatir", path: "/combate" },
     { icon: "🎒", label: "Inventario", path: "/inventario" },
     { icon: "🏅", label: "Gimnasios", path: "/gimnasios" },
@@ -21,16 +21,16 @@ export default function Layout({ children, sidebar }: Props) {
     const location = useLocation();
 
     return (
-        <div className="min-h-screen bg-bg">
-            {/* Top bar */}
-            <header className="sticky top-0 z-50 bg-bg/90 backdrop-blur border-b border-border px-6 py-3 flex items-center justify-between">
+        <div className="h-screen w-screen overflow-hidden flex flex-col bg-bg">
+            {/* Top bar — altura fija */}
+            <header className="flex-shrink-0 bg-bg/90 backdrop-blur border-b border-border px-6 h-14 flex items-center justify-between">
                 <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/")}>
-                    <svg className="w-7 h-7" viewBox="0 0 60 60" fill="none">
+                    <svg className="w-6 h-6" viewBox="0 0 60 60" fill="none">
                         <circle cx="30" cy="30" r="28" stroke="#ffd60a" strokeWidth="2" />
                         <line x1="2" y1="30" x2="58" y2="30" stroke="#ffd60a" strokeWidth="2" />
                         <circle cx="30" cy="30" r="6" fill="#ffd60a" stroke="#070b14" strokeWidth="2" />
                     </svg>
-                    <span className="font-display font-bold text-xl tracking-widest text-yellow">POKÉMMO</span>
+                    <span className="font-display font-bold text-lg tracking-widest text-yellow">POKÉMMO</span>
                 </div>
                 <div className="flex items-center gap-4">
                     <span className="font-display text-sm text-muted tracking-wider hidden sm:block">
@@ -38,41 +38,44 @@ export default function Layout({ children, sidebar }: Props) {
                     </span>
                     <button
                         onClick={logout}
-                        className="px-4 py-1.5 border border-border rounded-lg text-muted text-xs font-display tracking-widest uppercase hover:border-red hover:text-red transition-all"
+                        className="px-3 py-1 border border-border rounded-lg text-muted text-xs font-display tracking-widest uppercase hover:border-red hover:text-red transition-all"
                     >
                         Salir
                     </button>
                 </div>
             </header>
 
-            <div className="max-w-6xl mx-auto px-6 py-8 grid grid-cols-[260px_1fr] gap-6">
-                {/* Sidebar */}
-                <aside>
-                    {sidebar}
+            {/* Body — ocupa todo lo restante */}
+            <div className="flex-1 flex overflow-hidden">
+                {/* Sidebar — ancho fijo, scroll interno si hace falta */}
+                <aside className="w-56 flex-shrink-0 border-r border-border flex flex-col overflow-hidden">
+                    {/* Info del entrenador */}
+                    {sidebar && <div className="flex-shrink-0 p-3 border-b border-border">{sidebar}</div>}
                     {/* Navegación */}
-                    <nav className="bg-card border border-border rounded-2xl p-3 flex flex-col gap-1">
+                    <nav className="flex-1 p-2 flex flex-col gap-0.5">
                         {NAV.map((item) => {
                             const active = location.pathname === item.path;
                             return (
                                 <div
                                     key={item.path}
                                     onClick={() => navigate(item.path)}
-                                    className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold cursor-pointer transition-all
+                                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-semibold cursor-pointer transition-all
                                         ${
                                             active
-                                                ? "bg-red/10 text-red border-l-2 border-red pl-3"
+                                                ? "bg-red/10 text-red border-l-2 border-red"
                                                 : "text-muted hover:bg-white/5 hover:text-white"
                                         }`}
                                 >
-                                    {item.icon} {item.label}
+                                    <span>{item.icon}</span>
+                                    <span className="font-display tracking-wide">{item.label}</span>
                                 </div>
                             );
                         })}
                     </nav>
                 </aside>
 
-                {/* Contenido */}
-                <main>{children}</main>
+                {/* Contenido principal — ocupa el resto, sin overflow */}
+                <main className="flex-1 overflow-hidden flex flex-col">{children}</main>
             </div>
         </div>
     );

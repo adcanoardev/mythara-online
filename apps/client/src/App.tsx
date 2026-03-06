@@ -4,7 +4,7 @@ import LoginPage from "./pages/LoginPage";
 import RanchoPage from "./pages/RanchoPage";
 import CombatPage from "./pages/CombatPage";
 import InventarioPage from "./pages/InventarioPage";
-import GimansiosPage from "./pages/GimansiosPage";
+import GimansiosPage from "./pages/GimnasiosPage";
 import RankingPage from "./pages/RankingPage";
 import PerfilPage from "./pages/PerfilPage";
 
