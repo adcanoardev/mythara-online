@@ -9,21 +9,25 @@ import healthRouter from "./routes/health.js";
 import dexRouter from "./routes/dex.js";
 import gameRouter from "./routes/game.js";
 import authRouter from "./routes/auth.js";
+import trainerRouter from "./routes/trainer.js";
 
 export function createApp() {
     const app = express();
 
-    app.use(cors({
-        origin: process.env.CORS_ORIGIN || "http://localhost:5173",
-        credentials: true,
-    }));
+    app.use(
+        cors({
+            origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+            credentials: true,
+        }),
+    );
     app.use(express.json());
 
     // Routes
     app.use(healthRouter);
     app.use(dexRouter);
     app.use(gameRouter);
-    app.use(authRouter); 
+    app.use(authRouter);
+    app.use(trainerRouter);
 
     // 404 catch-all
     app.use((_req, res) => {

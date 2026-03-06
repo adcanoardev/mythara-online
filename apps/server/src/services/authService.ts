@@ -1,6 +1,7 @@
 import { prisma } from "./prisma.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { getOrCreateTrainer } from "./trainerService.js";
 
 const SALT_ROUNDS = 12;
 const JWT_SECRET = process.env.JWT_SECRET ?? "dev_secret_change_me";
@@ -21,6 +22,7 @@ export async function registerUser(username: string, email: string, password: st
     const user = await prisma.user.create({
         data: { username, email, passwordHash },
     });
+    await getOrCreateTrainer(user.id);
 
     return { token: signToken(user.id, user.username), username: user.username };
 }

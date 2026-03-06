@@ -6,6 +6,8 @@ datasource db {
   provider = "postgresql"
 }
 
+// ─── Usuarios y partida (existentes) ──────────────────────────
+
 model User {
   id           String   @id @default(cuid())
   username     String   @unique
@@ -14,7 +16,12 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  game         Game?
+  game           Game?
+  trainerProfile TrainerProfile?
+  combatTokens   CombatToken?
+  inventory      Inventory[]
+  structures     Structure[]
+  pokemon        PokemonInstance[]
 }
 
 model Game {
@@ -22,9 +29,125 @@ model Game {
   seed      Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
   userId    String   @unique
   user      User     @relation(fields: [userId], references: [id])
-
   starterId Int
+}
+
+// ─── Perfil del entrenador ─────────────────────────────────────
+
+model TrainerProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  level    Int @default(1) // 1-100
+  xp       Int @default(0)
+  prestige Int @default(0) // PvP only
+  coins    Int @default(0)
+
+  // Medallas desbloqueadas (array de índices 0-7)
+  medals Int[] @default([])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── Fichas de combate ─────────────────────────────────────────
+
+model CombatToken {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  npcTokens Int @default(10) // máx 10
+  pvpTokens Int @default(5) // máx 5
+
+  lastNpcRecharge DateTime @default(now())
+  lastPvpRecharge DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+}
+
+// ─── Estructuras del rancho ────────────────────────────────────
+
+model Structure {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  type          StructureType
+  level         Int           @default(1)
+  lastCollected DateTime      @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, type])
+}
+
+enum StructureType {
+  MINE
+  POKEBALL_FACTORY
+  LAB
+  NURSERY
+}
+
+// ─── Inventario ────────────────────────────────────────────────
+
+model Inventory {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  item     ItemType
+  quantity Int      @default(0)
+
+  @@unique([userId, item])
+}
+
+enum ItemType {
+  POKEBALL
+  SUPERBALL
+  ULTRABALL
+  MASTERBALL
+  POTION
+  SUPER_POTION
+  HYPER_POTION
+  REVIVE
+  MAX_REVIVE
+  FIRE_STONE
+  WATER_STONE
+  THUNDER_STONE
+  LEAF_STONE
+  ICE_STONE
+  LINK_CABLE
+  DRAGON_SCALE
+  METAL_COAT
+  KINGS_ROCK
+  UPGRADE
+}
+
+// ─── Pokémon del jugador ───────────────────────────────────────
+
+model PokemonInstance {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  pokedexId Int // ID de PokéAPI
+  nickname  String?
+  level     Int     @default(1)
+  xp        Int     @default(0)
+  hp        Int // HP actual
+  maxHp     Int // HP máximo
+  attack    Int
+  defense   Int
+  speed     Int
+
+  isInParty Boolean @default(false) // en equipo activo
+  slot      Int? // posición en el equipo (0-5)
+
+  caughtAt  DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
