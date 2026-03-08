@@ -1,13 +1,3 @@
-// ─────────────────────────────────────────────────────────────
-// apps/server/src/constants.ts
-// ─────────────────────────────────────────────────────────────
-
-export const POKEAPI_BASE = "https://pokeapi.co/api/v2";
-
-export const POKEMON = {
-    MAX_ID: 1025,
-} as const;
-
 /** Map bounds — must match client PLAYER clamp values */
 export const MAP_BOUNDS = {
     MIN_X: 10,
@@ -26,8 +16,4 @@ export const GAME_STORE = {
 export const PLAYER_STORE = {
     /** Remove players not seen for this long (ms) — ghost cleanup */
     TTL_MS: 1000 * 30,
-} as const;
-
-export const STARTER_RULES = {
-    MAX_TRIES: 60,
 } as const;

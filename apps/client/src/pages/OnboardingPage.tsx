@@ -95,7 +95,7 @@ export default function OnboardingPage() {
 
                     {/* Barra de progreso */}
                     <div className="flex gap-2 mt-4">
-                        {["Género", "Avatar", "Starter"].map((label, i) => (
+                        {["Género", "Avatar", "Myth inicial"].map((label, i) => (
                             <div key={i} className="flex-1">
                                 <div
                                     className={`h-1 rounded-full transition-all duration-500 mb-1

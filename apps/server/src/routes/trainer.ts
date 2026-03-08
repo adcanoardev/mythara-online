@@ -58,14 +58,15 @@ router.post("/mine/collect", requireAuth, async (req, res) => {
     }
 });
 
-// Endpoint temporal para añadir Pokémon al equipo (desarrollo)
-router.post("/dev/add-pokemon", requireAuth, async (req, res) => {
+// Endpoint temporal para añadir criatura al equipo (desarrollo)
+router.post("/dev/add-creature", requireAuth, async (req, res) => {
     try {
-        const pokemon = await prisma.pokemonInstance.create({
+        const creature = await prisma.creatureInstance.create({
             data: {
                 userId: req.user!.userId,
-                pokedexId: 25,
+                speciesId: "001",
                 level: 10,
+                xp: 0,
                 hp: 60,
                 maxHp: 60,
                 attack: 55,
@@ -75,29 +76,29 @@ router.post("/dev/add-pokemon", requireAuth, async (req, res) => {
                 slot: 0,
             },
         });
-        res.json(pokemon);
+        res.json(creature);
     } catch (e) {
         res.status(500).json({ error: "Internal error" });
     }
 });
 
-// Ver todos los Pokémon del jugador
-router.get("/pokemon/me", requireAuth, async (req, res) => {
+// Ver todas las criaturas del jugador
+router.get("/creatures/me", requireAuth, async (req, res) => {
     try {
-        const pokemon = await prisma.pokemonInstance.findMany({
+        const creatures = await prisma.creatureInstance.findMany({
             where: { userId: req.user!.userId },
             orderBy: [{ isInParty: "desc" }, { slot: "asc" }, { level: "desc" }],
         });
-        res.json(pokemon);
+        res.json(creatures);
     } catch (e) {
         res.status(500).json({ error: "Internal error" });
     }
 });
 
 // Ver solo el equipo activo
-router.get("/pokemon/party", requireAuth, async (req, res) => {
+router.get("/creatures/party", requireAuth, async (req, res) => {
     try {
-        const party = await prisma.pokemonInstance.findMany({
+        const party = await prisma.creatureInstance.findMany({
             where: { userId: req.user!.userId, isInParty: true },
             orderBy: { slot: "asc" },
         });
@@ -107,10 +108,10 @@ router.get("/pokemon/party", requireAuth, async (req, res) => {
     }
 });
 
-// Endpoint temporal para limpiar Pokémon corruptos (desarrollo)
-router.delete("/dev/clean-pokemon", requireAuth, async (req, res) => {
+// Endpoint temporal para limpiar criaturas corruptas (desarrollo)
+router.delete("/dev/clean-creatures", requireAuth, async (req, res) => {
     try {
-        await prisma.pokemonInstance.deleteMany({
+        await prisma.creatureInstance.deleteMany({
             where: {
                 userId: req.user!.userId,
                 id: "",
@@ -122,18 +123,18 @@ router.delete("/dev/clean-pokemon", requireAuth, async (req, res) => {
     }
 });
 
-// Ver evoluciones disponibles por objeto para un Pokémon
-router.get("/pokemon/:id/evolutions", requireAuth, async (req, res) => {
+// Ver evoluciones disponibles por objeto para una criatura
+router.get("/creatures/:id/evolutions", requireAuth, async (req, res) => {
     try {
         const result = await getAvailableItemEvolutions(req.user!.userId, req.params.id);
         res.json(result);
     } catch (e) {
-        res.status(404).json({ error: "Pokemon not found" });
+        res.status(404).json({ error: "Creature not found" });
     }
 });
 
 // Evolucionar con objeto
-router.post("/pokemon/:id/evolve", requireAuth, async (req, res) => {
+router.post("/creatures/:id/evolve", requireAuth, async (req, res) => {
     try {
         const { item } = z.object({ item: z.string() }).parse(req.body);
         const result = await evolveWithItem(req.user!.userId, req.params.id, item as any);

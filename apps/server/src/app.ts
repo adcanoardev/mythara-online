@@ -7,7 +7,6 @@ import express from "express";
 import cors from "cors";
 import healthRouter from "./routes/health.js";
 import dexRouter from "./routes/dex.js";
-import gameRouter from "./routes/game.js";
 import authRouter from "./routes/auth.js";
 import trainerRouter from "./routes/trainer.js";
 import battleRouter from "./routes/battle.js";
@@ -28,7 +27,6 @@ export function createApp() {
     // Routes
     app.use(healthRouter);
     app.use(dexRouter);
-    app.use(gameRouter);
     app.use(authRouter);
     app.use(trainerRouter);
     app.use(battleRouter);

@@ -1,12 +1,25 @@
+// ─────────────────────────────────────────────────────────────
+// apps/server/src/services/battleService.ts
+// Combate NPC por turnos con moves — MVP
+// ─────────────────────────────────────────────────────────────
 import { prisma } from "./prisma.js";
 import { useNpcToken } from "./tokenService.js";
 import { addXp } from "./trainerService.js";
 import { addItem, hasItem, removeItem } from "./inventoryService.js";
 import { getCreature, getAllCreatures } from "./creatureService.js";
+import type { Move } from "./creatureService.js";
 import type { ItemType } from "@prisma/client";
 import { checkLevelEvolution } from "./evolutionService.js";
+import {
+    createBattleSession,
+    getSession,
+    getUserSession,
+    deleteSession,
+    type BattleSession,
+    type BattleCombatant,
+} from "./battleStore.js";
 
-// ── Tabla de encuentros por nivel del Binder ──────────────────
+// ── Encounter pool por nivel ──────────────────────────────────
 
 function getEncounterPool(trainerLevel: number): string[] {
     const all = getAllCreatures();
@@ -42,87 +55,38 @@ function calcHp(base: number, level: number): number {
     return Math.floor((2 * base * level) / 100) + level + 10;
 }
 
-// ── Motor de combate ──────────────────────────────────────────
+// ── Fórmula de daño con moves y STAB ─────────────────────────
 
-interface CombatantStats {
-    hp: number;
-    maxHp: number;
-    attack: number;
-    defense: number;
-    speed: number;
-    level: number;
-    speciesId: string;
-    name: string;
-}
+// Wrapper tipado
+function calcDamageResult(
+    attackerLevel: number,
+    attackStat: number,
+    defenseStat: number,
+    move: Move,
+    attackerAffinities: string[],
+): { damage: number; critical: boolean } {
+    const stab = attackerAffinities.includes(move.affinity) ? 1.5 : 1;
+    const isCritical = Math.random() < 0.0625;
+    const critical = isCritical ? 1.5 : 1;
+    const hit = Math.random() < move.accuracy;
+    if (!hit) return { damage: 0, critical: false };
 
-interface TurnLog {
-    turn: number;
-    attacker: "player" | "enemy";
-    damage: number;
-    critical: boolean;
-    playerHpAfter: number;
-    enemyHpAfter: number;
-}
-
-function simulateBattle(player: CombatantStats, enemy: CombatantStats) {
-    let playerHp = player.hp;
-    let enemyHp = enemy.hp;
-    const turns: TurnLog[] = [];
-    let turn = 0;
-    const playerFirst = player.speed >= enemy.speed;
-
-    while (playerHp > 0 && enemyHp > 0 && turn < 50) {
-        turn++;
-        const order: ("player" | "enemy")[] = playerFirst ? ["player", "enemy"] : ["enemy", "player"];
-
-        for (const attacker of order) {
-            if (playerHp <= 0 || enemyHp <= 0) break;
-            const isCritical = Math.random() < 0.0625;
-            const mult = isCritical ? 1.5 : 1;
-
-            if (attacker === "player") {
-                const dmg =
-                    Math.max(
-                        1,
-                        Math.floor(((((2 * player.level) / 5 + 2) * player.attack) / enemy.defense / 50 + 2) * mult),
-                    ) + randInt(-2, 2);
-                enemyHp = Math.max(0, enemyHp - dmg);
-                turns.push({
-                    turn,
-                    attacker,
-                    damage: dmg,
-                    critical: isCritical,
-                    playerHpAfter: playerHp,
-                    enemyHpAfter: enemyHp,
-                });
-            } else {
-                const dmg =
-                    Math.max(
-                        1,
-                        Math.floor(((((2 * enemy.level) / 5 + 2) * enemy.attack) / player.defense / 50 + 2) * mult),
-                    ) + randInt(-2, 2);
-                playerHp = Math.max(0, playerHp - dmg);
-                turns.push({
-                    turn,
-                    attacker,
-                    damage: dmg,
-                    critical: isCritical,
-                    playerHpAfter: playerHp,
-                    enemyHpAfter: enemyHp,
-                });
-            }
-        }
-    }
-
-    return { winner: playerHp > 0 ? "player" : ("enemy" as "player" | "enemy"), turns };
+    const base = Math.floor((((2 * attackerLevel) / 5 + 2) * move.power * (attackStat / defenseStat)) / 50 + 2);
+    return {
+        damage: Math.max(1, Math.floor(base * stab * critical) + randInt(-2, 2)),
+        critical: isCritical,
+    };
 }
 
 // ── Captura ───────────────────────────────────────────────────
 
 const CATCH_RATES: Record<string, number> = {
-    FRAGMENT: 0.3, SHARD: 0.55, CRYSTAL: 0.8, RUNE: 1.0,
+    FRAGMENT: 0.3,
+    SHARD: 0.55,
+    CRYSTAL: 0.8,
+    RUNE: 1.0,
 };
-const BALL_PRIORITY: ItemType[] = ["RUNE","CRYSTAL","SHARD","FRAGMENT"];
+const BALL_PRIORITY: ItemType[] = ["RUNE", "CRYSTAL", "SHARD", "FRAGMENT"];
 
 async function attemptCapture(userId: string, enemyHpPercent: number, speciesCatchRate: number) {
     let ballUsed: ItemType | null = null;
@@ -154,61 +118,184 @@ function calcCoinsGained(enemyLevel: number, won: boolean): number {
     return randInt(enemyLevel * 2, enemyLevel * 5);
 }
 
-// ── Función principal ─────────────────────────────────────────
+// ── START — Iniciar combate NPC ───────────────────────────────
 
-export async function runNpcBattle(userId: string) {
-    // 1. Ficha NPC
+export async function startNpcBattle(userId: string) {
+    // Verificar que no hay combate activo
+    const existing = getUserSession(userId);
+    if (existing) return { error: "Ya tienes un combate activo" };
+
     const hasToken = await useNpcToken(userId);
-    if (!hasToken) return { error: "No NPC tokens available" };
+    if (!hasToken) return { error: "No tienes fichas de combate NPC" };
 
-    // 2. Perfil del Binder
     const trainer = await prisma.trainerProfile.findUniqueOrThrow({ where: { userId } });
 
-    // 3. Myth del jugador (primero del equipo)
     const playerMyth = await prisma.creatureInstance.findFirst({
         where: { userId, isInParty: true },
         orderBy: { slot: "asc" },
     });
-    if (!playerMyth) return { error: "No Myth in party" };
+    if (!playerMyth) return { error: "No tienes ningún Myth en el equipo" };
 
     const playerSpecies = getCreature(playerMyth.speciesId);
 
-    // 4. Generar Myth enemigo aleatorio según nivel del Binder
+    // Generar enemigo
     const pool = getEncounterPool(trainer.level);
-    const enemyId = randPick(pool);
-    const enemySpecies = getCreature(enemyId);
+    const enemySpecies = getCreature(randPick(pool));
     const { min, max } = getEncounterLevelRange(trainer.level);
     const enemyLevel = randInt(min, max);
 
-    const playerStats: CombatantStats = {
+    const player: BattleCombatant = {
+        speciesId: playerMyth.speciesId,
+        name: playerSpecies.name,
+        level: playerMyth.level,
         hp: playerMyth.hp,
         maxHp: playerMyth.maxHp,
         attack: playerMyth.attack,
         defense: playerMyth.defense,
         speed: playerMyth.speed,
-        level: playerMyth.level,
-        speciesId: playerMyth.speciesId,
-        name: playerSpecies.name,
+        moves: playerSpecies.moves,
+        art: playerSpecies.art,
+        affinities: playerSpecies.affinities,
     };
 
-    const enemyStats: CombatantStats = {
+    const enemy: BattleCombatant = {
+        speciesId: enemySpecies.id,
+        name: enemySpecies.name,
+        level: enemyLevel,
         hp: calcHp(enemySpecies.baseStats.hp, enemyLevel),
         maxHp: calcHp(enemySpecies.baseStats.hp, enemyLevel),
         attack: calcStat(enemySpecies.baseStats.atk, enemyLevel),
         defense: calcStat(enemySpecies.baseStats.def, enemyLevel),
         speed: calcStat(enemySpecies.baseStats.spd, enemyLevel),
-        level: enemyLevel,
-        speciesId: enemySpecies.id,
-        name: enemySpecies.name,
+        moves: enemySpecies.moves,
+        art: enemySpecies.art,
+        affinities: enemySpecies.affinities,
     };
 
-    // 5. Combate
-    const { winner, turns } = simulateBattle(playerStats, enemyStats);
-    const won = winner === "player";
+    const session = createBattleSession({
+        userId,
+        player,
+        enemy,
+        playerInstanceId: playerMyth.id,
+        turn: 0,
+        status: "active",
+        log: [],
+    });
 
-    // 6. XP y monedas
-    const xpGained = calcXpGained(enemyLevel, won);
-    const coinsGained = calcCoinsGained(enemyLevel, won);
+    return {
+        battleId: session.battleId,
+        player: {
+            speciesId: player.speciesId,
+            name: player.name,
+            level: player.level,
+            hp: player.hp,
+            maxHp: player.maxHp,
+            art: player.art,
+            affinities: player.affinities,
+            moves: player.moves,
+        },
+        enemy: {
+            speciesId: enemy.speciesId,
+            name: enemy.name,
+            level: enemy.level,
+            hp: enemy.hp,
+            maxHp: enemy.maxHp,
+            art: enemy.art,
+            affinities: enemy.affinities,
+        },
+        playerFirst: player.speed >= enemy.speed,
+    };
+}
+
+// ── TURN — Ejecutar un turno ──────────────────────────────────
+
+export async function executeTurn(userId: string, battleId: string, moveId: string) {
+    const session = getSession(battleId);
+    if (!session) return { error: "Combate no encontrado" };
+    if (session.userId !== userId) return { error: "No autorizado" };
+    if (session.status !== "active") return { error: "El combate ya ha terminado" };
+
+    // Validar move del jugador
+    const playerMove = session.player.moves.find((m) => m.id === moveId);
+    if (!playerMove) return { error: "Move no válido" };
+
+    // Move del enemigo — aleatorio
+    const enemyMove = randPick(session.enemy.moves);
+
+    let playerHp = session.player.hp;
+    let enemyHp = session.enemy.hp;
+    session.turn++;
+
+    // Orden por velocidad
+    const playerFirst = session.player.speed >= session.enemy.speed;
+
+    let playerDamage = 0;
+    let enemyDamage = 0;
+    let playerCritical = false;
+    let enemyCritical = false;
+
+    const first = playerFirst ? "player" : "enemy";
+    const second = playerFirst ? "enemy" : "player";
+
+    for (const attacker of [first, second]) {
+        if (playerHp <= 0 || enemyHp <= 0) break;
+
+        if (attacker === "player") {
+            const result = calcDamageResult(
+                session.player.level,
+                session.player.attack,
+                session.enemy.defense,
+                playerMove,
+                session.player.affinities,
+            );
+            playerDamage = result.damage;
+            playerCritical = result.critical;
+            enemyHp = Math.max(0, enemyHp - playerDamage);
+        } else {
+            const result = calcDamageResult(
+                session.enemy.level,
+                session.enemy.attack,
+                session.player.defense,
+                enemyMove,
+                session.enemy.affinities,
+            );
+            enemyDamage = result.damage;
+            enemyCritical = result.critical;
+            playerHp = Math.max(0, playerHp - enemyDamage);
+        }
+    }
+
+    // Actualizar HP en sesión
+    session.player.hp = playerHp;
+    session.enemy.hp = enemyHp;
+
+    const turnResult = {
+        turn: session.turn,
+        playerMove: playerMove.id,
+        playerMoveName: playerMove.name,
+        enemyMove: enemyMove.id,
+        enemyMoveName: enemyMove.name,
+        playerDamage,
+        enemyDamage,
+        playerCritical,
+        enemyCritical,
+        playerHpAfter: playerHp,
+        enemyHpAfter: enemyHp,
+    };
+    session.log.push(turnResult);
+
+    // ¿Terminó el combate?
+    const battleOver = playerHp <= 0 || enemyHp <= 0;
+    if (!battleOver) {
+        return { status: "ongoing", turn: turnResult, playerHp, enemyHp };
+    }
+
+    const won = enemyHp <= 0;
+    session.status = won ? "won" : "lost";
+
+    // XP y monedas
+    const xpGained = calcXpGained(session.enemy.level, won);
+    const coinsGained = calcCoinsGained(session.enemy.level, won);
 
     const [updatedTrainer] = await Promise.all([
         addXp(userId, xpGained),
@@ -220,31 +307,39 @@ export async function runNpcBattle(userId: string) {
             : Promise.resolve(),
     ]);
 
-    // 7. Captura si ganó
+    // Captura
     let captured = null;
     if (won) {
-        const enemyHpPercent = turns[turns.length - 1].enemyHpAfter / enemyStats.maxHp;
+        const enemyHpPercent = session.enemy.hp / session.enemy.maxHp;
+        const enemySpecies = getCreature(session.enemy.speciesId);
         const { caught, ballUsed } = await attemptCapture(userId, enemyHpPercent, enemySpecies.catchRate);
 
         if (caught) {
             await prisma.creatureInstance.create({
                 data: {
                     userId,
-                    speciesId: enemySpecies.id,
-                    level: enemyLevel,
-                    hp: enemyStats.hp,
-                    maxHp: enemyStats.maxHp,
-                    attack: enemyStats.attack,
-                    defense: enemyStats.defense,
-                    speed: enemyStats.speed,
+                    speciesId: session.enemy.speciesId,
+                    level: session.enemy.level,
+                    xp: 0,
+                    hp: session.enemy.maxHp,
+                    maxHp: session.enemy.maxHp,
+                    attack: session.enemy.attack,
+                    defense: session.enemy.defense,
+                    speed: session.enemy.speed,
                     isInParty: false,
                 },
             });
-            captured = { speciesId: enemySpecies.id, name: enemySpecies.name, level: enemyLevel, ballUsed };
+            captured = {
+                speciesId: session.enemy.speciesId,
+                name: session.enemy.name,
+                level: session.enemy.level,
+                art: session.enemy.art,
+                ballUsed,
+            };
         }
     }
 
-    // 8. BattleLog
+    // BattleLog
     await prisma.battleLog.create({
         data: {
             userId,
@@ -252,32 +347,60 @@ export async function runNpcBattle(userId: string) {
             result: won ? "WIN" : "LOSE",
             xpGained,
             coinsGained,
-            playerSpeciesId: playerMyth.speciesId,
-            playerLevel: playerMyth.level,
-            enemySpeciesId: enemySpecies.id,
-            enemyLevel,
+            playerSpeciesId: session.player.speciesId,
+            playerLevel: session.player.level,
+            enemySpeciesId: session.enemy.speciesId,
+            enemyLevel: session.enemy.level,
             capturedSpeciesId: captured?.speciesId ?? null,
         },
     });
 
-    // 9. Evolución por nivel
-    const evoResult = await checkLevelEvolution(playerMyth.id);
+    // Evolución
+    const evoResult = await checkLevelEvolution(session.playerInstanceId);
+
+    deleteSession(battleId);
 
     return {
+        status: won ? "won" : "lost",
+        turn: turnResult,
+        playerHp,
+        enemyHp,
         result: won ? "WIN" : "LOSE",
         xpGained,
         coinsGained,
         trainerLevel: updatedTrainer.level,
         trainerXp: updatedTrainer.xp,
-        enemy: {
-            speciesId: enemySpecies.id,
-            name: enemySpecies.name,
-            level: enemyLevel,
-            art: enemySpecies.art,
-            affinities: enemySpecies.affinities,
-        },
         captured,
-        turns,
         evolution: evoResult,
     };
+}
+
+// ── FLEE — Huir del combate ───────────────────────────────────
+
+export async function fleeBattle(userId: string, battleId: string) {
+    const session = getSession(battleId);
+    if (!session) return { error: "Combate no encontrado" };
+    if (session.userId !== userId) return { error: "No autorizado" };
+    if (session.status !== "active") return { error: "El combate ya ha terminado" };
+
+    // XP mínima por huir
+    const xpGained = calcXpGained(session.enemy.level, false);
+    await addXp(userId, xpGained);
+
+    await prisma.battleLog.create({
+        data: {
+            userId,
+            type: "NPC",
+            result: "LOSE",
+            xpGained,
+            coinsGained: 0,
+            playerSpeciesId: session.player.speciesId,
+            playerLevel: session.player.level,
+            enemySpeciesId: session.enemy.speciesId,
+            enemyLevel: session.enemy.level,
+        },
+    });
+
+    deleteSession(battleId);
+    return { status: "fled", xpGained };
 }

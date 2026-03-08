@@ -12,12 +12,12 @@ function msToTime(ms: number) {
 }
 
 const STRUCTURES = [
-    { type: "POKEBALL_FACTORY", icon: "🏭", name: "Fábrica", desc: "Produce Fragmentos de captura" },
-    { type: "LAB", icon: "🏥", name: "Laboratorio", desc: "Produce pociones" },
-    { type: "NURSERY", icon: "🥚", name: "Guardería", desc: "Cría huevos" },
+    { type: "FRAGMENT_FORGE", icon: "🏭", name: "Forja de Fragmentos", desc: "Produce Fragmentos de captura" },
+    { type: "LAB", icon: "🏥", name: "Laboratorio", desc: "Produce Elixires" },
+    { type: "NURSERY", icon: "🥚", name: "Guardería", desc: "Cría huevos de Myths" },
 ];
 
-export default function RanchoPage() {
+export default function PosadaPage() {
     const [mine, setMine] = useState<any>(null);
     const [inventory, setInventory] = useState<any[]>([]);
     const [collecting, setCollecting] = useState(false);
@@ -51,7 +51,7 @@ export default function RanchoPage() {
             {/* Header */}
             <div className="flex-shrink-0 px-6 py-4 border-b border-border flex items-center justify-between">
                 <h1 className="font-display font-bold text-2xl tracking-widest">
-                    Mi <span className="text-red">Rancho</span>
+                    Mi <span className="text-red">Posada</span>
                 </h1>
                 <div className="flex gap-2">
                     {inventory.slice(0, 4).map((item: any) => (

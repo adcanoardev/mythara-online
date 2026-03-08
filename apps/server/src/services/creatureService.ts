@@ -5,7 +5,15 @@ import { fileURLToPath } from "url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export type Affinity = "EMBER" | "TIDE" | "GROVE" | "VOLT" | "STONE" | "FROST" | "VENOM" | "ASTRAL" | "IRON" | "SHADE";
-export type Rarity = "COMMON" | "RARE" | "ELITE" | "MYTHIC";
+export type Rarity = "COMMON" | "RARE" | "ELITE" | "LEGENDARY" | "MYTHIC";
+export interface Move {
+    id: string;
+    name: string;
+    affinity: Affinity;
+    power: number;
+    accuracy: number;
+    description: string;
+}
 
 export interface Creature {
     id: string;
@@ -18,6 +26,7 @@ export interface Creature {
     catchRate: number;
     evolution?: { evolvesTo: string; method: "LEVEL" | "ITEM" | "PRESTIGE"; value: number | string };
     art: { portrait: string; front: string; back: string };
+    moves: Move[];
 }
 
 let _cache: Creature[] | null = null;

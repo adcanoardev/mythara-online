@@ -2,10 +2,10 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 
 const NAV = [
-    { icon: "🏡", label: "Rancho", path: "/" },
+    { icon: "🏡", label: "Posada", path: "/" },
     { icon: "⚔️", label: "Combatir", path: "/combate" },
     { icon: "🎒", label: "Inventario", path: "/inventario" },
-    { icon: "🏅", label: "Gimnasios", path: "/gimnasios" },
+    { icon: "🏅", label: "Santuarios", path: "/santuarios" },
     { icon: "🏆", label: "Ranking", path: "/ranking" },
     { icon: "👤", label: "Perfil", path: "/perfil" },
 ];
@@ -30,7 +30,7 @@ export default function Layout({ children, sidebar }: Props) {
                         <line x1="2" y1="30" x2="58" y2="30" stroke="#ffd60a" strokeWidth="2" />
                         <circle cx="30" cy="30" r="6" fill="#ffd60a" stroke="#070b14" strokeWidth="2" />
                     </svg>
-                    <span className="font-display font-bold text-lg tracking-widest text-yellow">POKÉMMO</span>
+                    <span className="font-display font-bold text-lg tracking-widest text-yellow">MYTHARA</span>
                 </div>
                 <div className="flex items-center gap-4">
                     <span className="font-display text-sm text-muted tracking-wider hidden sm:block">

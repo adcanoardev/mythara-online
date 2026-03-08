@@ -38,10 +38,14 @@ export const api = {
     trainer: () => request<any>("/trainer/me"),
     tokens: () => request<any>("/tokens/me"),
     inventory: () => request<any[]>("/inventory/me"),
-    party: () => request<any[]>("/pokemon/party"),
+    party: () => request<any[]>("/creatures/party"),
     mineStatus: () => request<any>("/mine/me"),
     mineCollect: () => request<any>("/mine/collect", { method: "POST" }),
-    battleNpc: () => request<any>("/battle/npc", { method: "POST" }),
+    battleNpcStart: () => request<any>("/battle/npc/start", { method: "POST" }),
+    battleNpcTurn: (battleId: string, moveId: string) =>
+        request<any>("/battle/npc/turn", { method: "POST", body: JSON.stringify({ battleId, moveId }) }),
+    battleNpcFlee: (battleId: string) =>
+        request<any>("/battle/npc/flee", { method: "POST", body: JSON.stringify({ battleId }) }),
     battlePvp: (defenderUserId: string) =>
         request<any>("/battle/pvp", { method: "POST", body: JSON.stringify({ defenderUserId }) }),
     gyms: () => request<any[]>("/gyms"),

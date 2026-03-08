@@ -1,13 +1,13 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./hooks/useAuth";
 import LoginPage from "./pages/LoginPage";
-import RanchoPage from "./pages/RanchoPage";
 import CombatPage from "./pages/CombatPage";
 import InventarioPage from "./pages/InventarioPage";
-import GimansiosPage from "./pages/GimnasiosPage";
 import RankingPage from "./pages/RankingPage";
 import PerfilPage from "./pages/PerfilPage";
 import OnboardingPage from "./pages/OnboardingPage";
+import PosadaPage from "./pages/PosadaPage";
+import SantuariosPage from "./pages/SantuariosPage";
 
 export default function App() {
     const { user, loading } = useAuth();
@@ -27,7 +27,7 @@ export default function App() {
                 element={
                     user ? (
                         user.onboardingComplete ? (
-                            <RanchoPage />
+                            <PosadaPage />
                         ) : (
                             <Navigate to="/onboarding" />
                         )
@@ -38,7 +38,7 @@ export default function App() {
             />
             <Route path="/combate" element={user ? <CombatPage /> : <Navigate to="/login" />} />
             <Route path="/inventario" element={user ? <InventarioPage /> : <Navigate to="/login" />} />
-            <Route path="/gimnasios" element={user ? <GimansiosPage /> : <Navigate to="/login" />} />
+            <Route path="/santuarios" element={user ? <SantuariosPage /> : <Navigate to="/login" />} />
             <Route path="/ranking" element={user ? <RankingPage /> : <Navigate to="/login" />} />
             <Route path="/perfil" element={user ? <PerfilPage /> : <Navigate to="/login" />} />
             <Route path="/onboarding" element={user ? <OnboardingPage /> : <Navigate to="/login" />} />

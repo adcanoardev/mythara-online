@@ -5,7 +5,7 @@ import { api } from "../lib/api";
 
 const EMBLEM_ICONS = ["🪨", "💧", "⚡", "🌿", "☠️", "✨", "🔥", "🌑"];
 
-export default function GimnasiosPage() {
+export default function SantuariosPage() {
     const [sanctums, setSanctums] = useState<any[]>([]);
     const [result, setResult] = useState<any>(null);
     const [loading, setLoading] = useState<number | null>(null);
