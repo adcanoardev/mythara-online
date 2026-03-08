@@ -26,9 +26,47 @@ export default function Layout({ children, sidebar }: Props) {
             <header className="flex-shrink-0 bg-bg/90 backdrop-blur border-b border-border px-6 h-14 flex items-center justify-between">
                 <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/")}>
                     <svg className="w-6 h-6" viewBox="0 0 60 60" fill="none">
-                        <circle cx="30" cy="30" r="28" stroke="#ffd60a" strokeWidth="2" />
-                        <line x1="2" y1="30" x2="58" y2="30" stroke="#ffd60a" strokeWidth="2" />
-                        <circle cx="30" cy="30" r="6" fill="#ffd60a" stroke="#070b14" strokeWidth="2" />
+                        <defs>
+                            <linearGradient id="navLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stopColor="#7b2fff" />
+                                <stop offset="100%" stopColor="#4cc9f0" />
+                            </linearGradient>
+                        </defs>
+                        <polygon
+                            points="30,3 54,16 54,44 30,57 6,44 6,16"
+                            stroke="url(#navLogoGrad)"
+                            strokeWidth="2"
+                            fill="none"
+                        />
+                        <line
+                            x1="30"
+                            y1="12"
+                            x2="30"
+                            y2="48"
+                            stroke="url(#navLogoGrad)"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                        />
+                        <line
+                            x1="14"
+                            y1="22"
+                            x2="46"
+                            y2="38"
+                            stroke="url(#navLogoGrad)"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                        />
+                        <line
+                            x1="46"
+                            y1="22"
+                            x2="14"
+                            y2="38"
+                            stroke="url(#navLogoGrad)"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                        />
+                        <circle cx="30" cy="30" r="5" fill="url(#navLogoGrad)" opacity="0.9" />
+                        <circle cx="30" cy="30" r="2.5" fill="#070b14" />
                     </svg>
                     <span className="font-display font-bold text-lg tracking-widest text-yellow">MYTHARA</span>
                 </div>
