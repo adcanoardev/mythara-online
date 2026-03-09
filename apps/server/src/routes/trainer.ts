@@ -10,6 +10,7 @@ import { z } from "zod";
 import { getForgeStatus, collectForge, getLabStatus, collectLab } from "../services/mineService.js";
 import { getNurseryStatus, assignToNursery, collectNursery, removeFromNursery } from "../services/nurseryService.js";
 import { openFragment } from "../services/fragmentService.js";
+import { getCreature } from "../services/creatureService.js";
 
 const router = Router();
 
@@ -92,12 +93,19 @@ router.get("/creatures/me", requireAuth, async (req, res) => {
             where: { userId: req.user!.userId },
             orderBy: [{ isInParty: "desc" }, { slot: "asc" }, { level: "desc" }],
         });
-        res.json(creatures);
+        const enriched = creatures.map((c) => {
+            try {
+                const species = getCreature(c.speciesId);
+                return { ...c, name: species.name, affinities: species.affinities, art: species.art, rarity: species.rarity };
+            } catch {
+                return { ...c, name: c.speciesId, affinities: [], art: {}, rarity: "COMMON" };
+            }
+        });
+        res.json(enriched);
     } catch (e) {
         res.status(500).json({ error: "Internal error" });
     }
 });
-
 // Ver solo el equipo activo
 router.get("/creatures/party", requireAuth, async (req, res) => {
     try {

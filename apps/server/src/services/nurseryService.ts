@@ -1,4 +1,5 @@
 import { prisma } from "./prisma.js";
+import { getCreature } from "./creatureService.js";
 
 const NURSERY_COOLDOWN_MS: Record<number, number> = {
     1: 2 * 60 * 60 * 1000,
@@ -19,18 +20,42 @@ function getCooldown(mythLevel: number): number {
 }
 
 function formatMyth(myth: any) {
-    return {
-        id: myth.id,
-        speciesId: myth.speciesId,
-        level: myth.level,
-        hp: myth.hp,
-        maxHp: myth.maxHp,
-    };
+    try {
+        const species = getCreature(myth.speciesId);
+        return {
+            id: myth.id,
+            speciesId: myth.speciesId,
+            name: species.name,
+            art: species.art,
+            affinities: species.affinities,
+            level: myth.level,
+            hp: myth.hp,
+            maxHp: myth.maxHp,
+        };
+    } catch {
+        return {
+            id: myth.id,
+            speciesId: myth.speciesId,
+            name: myth.speciesId,
+            art: { portrait: "❓", front: "❓", back: "❓" },
+            affinities: [],
+            level: myth.level,
+            hp: myth.hp,
+            maxHp: myth.maxHp,
+        };
+    }
 }
 
 export async function getNurseryStatus(userId: string) {
-    const nursery = await prisma.structure.findUniqueOrThrow({
+    const nursery = await prisma.structure.upsert({
         where: { userId_type: { userId, type: "NURSERY" } },
+        update: {},
+        create: {
+            userId,
+            type: "NURSERY",
+            level: 1,
+            lastCollected: new Date(0),
+        },
     });
 
     const myth = await prisma.creatureInstance.findFirst({
@@ -61,9 +86,9 @@ export async function getNurseryStatus(userId: string) {
 
 export async function assignToNursery(userId: string, creatureId: string) {
     const myth = await prisma.creatureInstance.findFirst({
-        where: { id: creatureId, userId, isInParty: true, inNursery: false },
+        where: { id: creatureId, userId, inNursery: false },
     });
-    if (!myth) throw new Error("Myth no encontrado en tu equipo");
+    if (!myth) throw new Error("Myth no encontrado");
     if (myth.level >= MAX_MYTH_LEVEL) throw new Error("Este Myth ya está al nivel máximo");
 
     // Liberar el que ya estaba en guardería
@@ -92,8 +117,10 @@ export async function assignToNursery(userId: string, creatureId: string) {
 }
 
 export async function collectNursery(userId: string) {
-    const nursery = await prisma.structure.findUniqueOrThrow({
+    const nursery = await prisma.structure.upsert({
         where: { userId_type: { userId, type: "NURSERY" } },
+        update: {},
+        create: { userId, type: "NURSERY", level: 1, lastCollected: new Date(0) },
     });
 
     const myth = await prisma.creatureInstance.findFirst({
