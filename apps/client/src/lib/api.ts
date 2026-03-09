@@ -39,6 +39,9 @@ export const api = {
     tokens: () => request<any>("/tokens/me"),
     inventory: () => request<any[]>("/inventory/me"),
     party: () => request<any[]>("/creatures/party"),
+    creatures: () => request<any[]>("/creatures/me"),
+    partyUpdate: (party: { id: string; slot: number }[]) =>
+        request<any>("/creatures/party/update", { method: "POST", body: JSON.stringify({ party }) }),
     mineStatus: () => request<any>("/mine/me"),
     mineCollect: () => request<any>("/mine/collect", { method: "POST" }),
     battleNpcStart: () => request<any>("/battle/npc/start", { method: "POST" }),

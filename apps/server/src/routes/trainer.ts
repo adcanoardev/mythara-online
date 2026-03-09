@@ -220,4 +220,52 @@ router.post("/nursery/remove", requireAuth, async (req, res) => {
     }
 });
 
+// POST /creatures/party/update
+// Body: { party: [{ id: string, slot: number }] } — máximo 3 slots (0,1,2)
+router.post("/creatures/party/update", requireAuth, async (req, res) => {
+    try {
+        const userId = req.user!.userId;
+        const { party } = req.body as { party: { id: string; slot: number }[] };
+
+        if (!Array.isArray(party) || party.length > 3) {
+            return res.status(400).json({ error: "El equipo debe tener entre 0 y 3 Myths" });
+        }
+
+        const slots = party.map((p) => p.slot);
+        if (new Set(slots).size !== slots.length) {
+            return res.status(400).json({ error: "Slots duplicados" });
+        }
+
+        // Verificar que todos los Myths pertenecen al usuario
+        const ids = party.map((p) => p.id);
+        const owned = await prisma.creatureInstance.findMany({
+            where: { id: { in: ids }, userId },
+            select: { id: true },
+        });
+        if (owned.length !== ids.length) {
+            return res.status(403).json({ error: "Myth no encontrado" });
+        }
+
+        // Quitar todo del equipo primero
+        await prisma.creatureInstance.updateMany({
+            where: { userId },
+            data: { isInParty: false, slot: null },
+        });
+
+        // Asignar los nuevos
+        await Promise.all(
+            party.map(({ id, slot }) =>
+                prisma.creatureInstance.update({
+                    where: { id },
+                    data: { isInParty: true, slot },
+                }),
+            ),
+        );
+
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: "Internal error" });
+    }
+});
+
 export default router;

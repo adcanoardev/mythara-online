@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Layout from "../components/Layout";
 import TrainerSidebar from "../components/TrainerSidebar";
 import { api } from "../lib/api";
@@ -60,7 +60,14 @@ interface BattleResult {
     evolution: any;
 }
 
-// ── Tabla de afinidades ───────────────────────────────────────
+interface FloatingDmg {
+    id: number;
+    value: number;
+    critical: boolean;
+    side: "player" | "enemy";
+}
+
+// ── Constantes de afinidad ────────────────────────────────────
 
 const AFFINITY_COLOR: Record<string, string> = {
     EMBER: "#ff6b35",
@@ -88,7 +95,6 @@ const AFFINITY_EMOJI: Record<string, string> = {
     IRON: "⚙️",
 };
 
-// Qué affinities atacan a cuáles con ventaja (x2)
 const SUPER_EFFECTIVE: Record<string, string[]> = {
     EMBER: ["GROVE", "FROST"],
     TIDE: ["EMBER", "STONE"],
@@ -102,7 +108,7 @@ const SUPER_EFFECTIVE: Record<string, string[]> = {
     IRON: ["FROST", "STONE"],
 };
 
-// ── Componentes ───────────────────────────────────────────────
+// ── Componentes pequeños ──────────────────────────────────────
 
 function HpBar({ current, max, color }: { current: number; max: number; color: string }) {
     const pct = Math.max(0, Math.min(100, (current / max) * 100));
@@ -159,17 +165,17 @@ function MoveButton({ move, onClick, disabled }: { move: Move; onClick: () => vo
     );
 }
 
-function AffinityChart({
+// ── Tabla de tipos siempre visible ────────────────────────────
+
+function AffinityTable({
     playerAffinities,
     enemyAffinities,
 }: {
     playerAffinities: string[];
     enemyAffinities: string[];
 }) {
-    const [open, setOpen] = useState(false);
     const allTypes = Object.keys(AFFINITY_COLOR);
 
-    // Calcular ventajas del jugador contra el enemigo
     const playerAdvantages = playerAffinities.flatMap((pa) =>
         (SUPER_EFFECTIVE[pa] ?? []).filter((t) => enemyAffinities.includes(t)).map((t) => ({ from: pa, to: t })),
     );
@@ -178,83 +184,106 @@ function AffinityChart({
     );
 
     return (
-        <div className="flex-shrink-0">
-            <button
-                onClick={() => setOpen((o) => !o)}
-                className="w-full flex items-center justify-between px-3 py-2 rounded-xl border border-border text-xs text-muted font-display tracking-widest uppercase hover:border-blue hover:text-blue transition-all"
-            >
-                <span>📊 Tabla de afinidades</span>
-                <span>{open ? "▲" : "▼"}</span>
-            </button>
+        <div className="bg-card border border-border rounded-2xl p-3 flex flex-col gap-3 overflow-y-auto">
+            <div className="font-display font-bold text-xs tracking-widest text-white uppercase flex-shrink-0">
+                📊 Afinidades
+            </div>
 
-            {open && (
-                <div className="mt-2 bg-card border border-border rounded-xl p-3 flex flex-col gap-3">
-                    {/* Ventajas del jugador */}
-                    {playerAdvantages.length > 0 && (
-                        <div>
-                            <div className="text-xs text-green font-display font-bold mb-1.5">✅ TUS VENTAJAS</div>
-                            <div className="flex flex-wrap gap-1">
-                                {playerAdvantages.map((a, i) => (
-                                    <div
-                                        key={i}
-                                        className="flex items-center gap-1 text-xs bg-green/10 border border-green/20 rounded-lg px-2 py-1"
-                                    >
-                                        <TypeBadge affinity={a.from} />
-                                        <span className="text-green font-bold">→ x2 vs</span>
-                                        <TypeBadge affinity={a.to} />
-                                    </div>
-                                ))}
+            {playerAdvantages.length > 0 && (
+                <div className="flex-shrink-0">
+                    <div className="text-xs font-display font-bold mb-1.5" style={{ color: "#06d6a0" }}>
+                        ✅ Tus ventajas
+                    </div>
+                    <div className="flex flex-col gap-1">
+                        {playerAdvantages.map((a, i) => (
+                            <div
+                                key={i}
+                                className="flex items-center gap-1 flex-wrap text-xs bg-green/10 border border-green/20 rounded-lg px-2 py-1"
+                            >
+                                <TypeBadge affinity={a.from} />
+                                <span className="font-bold" style={{ color: "#06d6a0" }}>
+                                    x2
+                                </span>
+                                <TypeBadge affinity={a.to} />
                             </div>
-                        </div>
-                    )}
-
-                    {/* Ventajas del enemigo */}
-                    {enemyAdvantages.length > 0 && (
-                        <div>
-                            <div className="text-xs text-red font-display font-bold mb-1.5">⚠️ VENTAJAS DEL RIVAL</div>
-                            <div className="flex flex-wrap gap-1">
-                                {enemyAdvantages.map((a, i) => (
-                                    <div
-                                        key={i}
-                                        className="flex items-center gap-1 text-xs bg-red/10 border border-red/20 rounded-lg px-2 py-1"
-                                    >
-                                        <TypeBadge affinity={a.from} />
-                                        <span className="text-red font-bold">→ x2 vs</span>
-                                        <TypeBadge affinity={a.to} />
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {playerAdvantages.length === 0 && enemyAdvantages.length === 0 && (
-                        <div className="text-xs text-muted text-center py-1">Sin ventajas de tipo directas</div>
-                    )}
-
-                    {/* Tabla completa colapsable */}
-                    <details>
-                        <summary className="text-xs text-muted cursor-pointer hover:text-blue transition-colors font-display">
-                            Ver tabla completa
-                        </summary>
-                        <div className="mt-2 grid grid-cols-1 gap-1">
-                            {allTypes.map((atk) => {
-                                const targets = SUPER_EFFECTIVE[atk];
-                                if (!targets?.length) return null;
-                                return (
-                                    <div key={atk} className="flex items-center gap-1 flex-wrap">
-                                        <TypeBadge affinity={atk} />
-                                        <span className="text-muted text-xs">→ x2:</span>
-                                        {targets.map((t) => (
-                                            <TypeBadge key={t} affinity={t} />
-                                        ))}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </details>
+                        ))}
+                    </div>
                 </div>
             )}
+
+            {enemyAdvantages.length > 0 && (
+                <div className="flex-shrink-0">
+                    <div className="text-xs font-display font-bold mb-1.5" style={{ color: "#e63946" }}>
+                        ⚠️ Ventajas rival
+                    </div>
+                    <div className="flex flex-col gap-1">
+                        {enemyAdvantages.map((a, i) => (
+                            <div
+                                key={i}
+                                className="flex items-center gap-1 flex-wrap text-xs bg-red/10 border border-red/20 rounded-lg px-2 py-1"
+                            >
+                                <TypeBadge affinity={a.from} />
+                                <span className="font-bold" style={{ color: "#e63946" }}>
+                                    x2
+                                </span>
+                                <TypeBadge affinity={a.to} />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {playerAdvantages.length === 0 && enemyAdvantages.length === 0 && (
+                <div className="text-xs text-muted text-center py-1 flex-shrink-0">Sin ventajas directas</div>
+            )}
+
+            <div className="border-t border-border/40 pt-2 flex-shrink-0">
+                <div className="text-xs text-muted font-display mb-1.5">Tabla completa</div>
+                <div className="flex flex-col gap-1">
+                    {allTypes.map((atk) => {
+                        const targets = SUPER_EFFECTIVE[atk];
+                        if (!targets?.length) return null;
+                        return (
+                            <div key={atk} className="flex items-center gap-1 flex-wrap">
+                                <TypeBadge affinity={atk} />
+                                <span className="text-muted text-xs">→</span>
+                                {targets.map((t) => (
+                                    <TypeBadge key={t} affinity={t} />
+                                ))}
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
         </div>
+    );
+}
+
+// ── Daño flotante ─────────────────────────────────────────────
+
+function FloatingDamage({ floats }: { floats: FloatingDmg[] }) {
+    return (
+        <>
+            {floats.map((f) => (
+                <div
+                    key={f.id}
+                    className="absolute pointer-events-none font-display font-black animate-bounce"
+                    style={{
+                        top: "20%",
+                        left: f.side === "player" ? "8%" : "auto",
+                        right: f.side === "enemy" ? "8%" : "auto",
+                        fontSize: f.critical ? "2rem" : "1.4rem",
+                        color: f.critical ? "#e63946" : "#ffffff",
+                        textShadow: f.critical ? "0 0 12px #e63946" : "0 0 8px rgba(0,0,0,0.8)",
+                        zIndex: 10,
+                        animation: "floatUp 1.2s ease-out forwards",
+                    }}
+                >
+                    -{f.value}
+                    {f.critical ? " ⚡" : ""}
+                </div>
+            ))}
+        </>
     );
 }
 
@@ -273,8 +302,11 @@ export default function CombatPage() {
     const [loading, setLoading] = useState(false);
     const [lastTurn, setLastTurn] = useState<TurnResult | null>(null);
     const [pvpResult, setPvpResult] = useState<any>(null);
+    const [floats, setFloats] = useState<FloatingDmg[]>([]);
+    const floatCounter = useRef(0);
+    const sidebarRef = useRef<{ reload: () => void }>(null);
 
-    // ── Recuperar sesión activa al montar ─────────────────────
+    // Recuperar sesión activa al montar
     useEffect(() => {
         async function checkActive() {
             try {
@@ -287,13 +319,34 @@ export default function CombatPage() {
                     if (res.log?.length > 0) setLastTurn(res.log[res.log.length - 1]);
                 }
             } catch {
-                // No hay sesión activa — normal
+                /* sin sesión activa */
             }
         }
         checkActive();
     }, []);
 
-    // ── Iniciar combate NPC ───────────────────────────────────
+    // CSS para animación flotante
+    useEffect(() => {
+        const style = document.createElement("style");
+        style.textContent = `
+            @keyframes floatUp {
+                0%   { opacity: 1; transform: translateY(0) scale(1); }
+                60%  { opacity: 1; transform: translateY(-40px) scale(1.1); }
+                100% { opacity: 0; transform: translateY(-70px) scale(0.9); }
+            }
+        `;
+        document.head.appendChild(style);
+        return () => {
+            document.head.removeChild(style);
+        };
+    }, []);
+
+    function spawnFloat(value: number, critical: boolean, side: "player" | "enemy") {
+        const id = floatCounter.current++;
+        setFloats((prev) => [...prev, { id, value, critical, side }]);
+        setTimeout(() => setFloats((prev) => prev.filter((f) => f.id !== id)), 1300);
+    }
+
     async function handleStartNpc() {
         setError("");
         setResult(null);
@@ -313,7 +366,6 @@ export default function CombatPage() {
         }
     }
 
-    // ── Ejecutar turno ────────────────────────────────────────
     async function handleMove(moveId: string) {
         if (!battle) return;
         setLoading(true);
@@ -325,6 +377,10 @@ export default function CombatPage() {
             setPlayerHp(turn.playerHpAfter);
             setEnemyHp(turn.enemyHpAfter);
 
+            // Daño flotante — el jugador recibe daño en la izquierda, el enemigo en la derecha
+            if (turn.enemyDamage > 0) spawnFloat(turn.enemyDamage, turn.enemyCritical, "player");
+            if (turn.playerDamage > 0) spawnFloat(turn.playerDamage, turn.playerCritical, "enemy");
+
             if (res.status !== "ongoing") {
                 setResult({
                     result: res.result,
@@ -335,6 +391,8 @@ export default function CombatPage() {
                     evolution: res.evolution,
                 });
                 setBattle(null);
+                // Refrescar sidebar con nuevos tokens/XP/monedas
+                window.dispatchEvent(new CustomEvent("sidebar:reload"));
             }
         } catch (e: any) {
             setError(e.message);
@@ -343,7 +401,6 @@ export default function CombatPage() {
         }
     }
 
-    // ── Huir ──────────────────────────────────────────────────
     async function handleFlee() {
         if (!battle) return;
         setLoading(true);
@@ -354,6 +411,7 @@ export default function CombatPage() {
             setLog([]);
             setLastTurn(null);
             setError("Has huido del combate.");
+            window.dispatchEvent(new CustomEvent("sidebar:reload"));
         } catch (e: any) {
             setError(e.message);
         } finally {
@@ -370,7 +428,6 @@ export default function CombatPage() {
         setPvpResult(null);
     }
 
-    // ── PvP ───────────────────────────────────────────────────
     async function handlePvp() {
         setError("");
         setPvpResult(null);
@@ -378,6 +435,7 @@ export default function CombatPage() {
         try {
             const res = await api.battlePvp(defId);
             setPvpResult(res);
+            window.dispatchEvent(new CustomEvent("sidebar:reload"));
         } catch (e: any) {
             setError(e.message);
         } finally {
@@ -385,7 +443,6 @@ export default function CombatPage() {
         }
     }
 
-    // ── Helpers de display ────────────────────────────────────
     function typeMultiplierLabel(mult: number) {
         if (mult >= 2) return <span className="text-green font-bold"> ¡SUPER EFECTIVO!</span>;
         if (mult <= 0.5) return <span className="text-muted"> No muy efectivo</span>;
@@ -433,10 +490,10 @@ export default function CombatPage() {
 
             <div className="flex-1 flex overflow-hidden">
                 {/* Columna principal */}
-                <div className="flex-1 flex flex-col p-4 gap-3 overflow-y-auto">
+                <div className="flex-1 flex flex-col overflow-hidden">
                     {error && (
                         <div
-                            className="flex-shrink-0 px-4 py-2 rounded-xl border text-sm font-semibold"
+                            className="flex-shrink-0 mx-4 mt-3 px-4 py-2 rounded-xl border text-sm font-semibold"
                             style={{
                                 background: "rgba(230,57,70,0.1)",
                                 borderColor: "rgba(230,57,70,0.3)",
@@ -447,11 +504,14 @@ export default function CombatPage() {
                         </div>
                     )}
 
-                    {/* Arena */}
+                    {/* Arena — altura fija */}
                     <div
-                        className="flex-shrink-0 bg-card border border-border rounded-2xl overflow-hidden"
-                        style={{ background: "linear-gradient(135deg, #0d1525, #0f1923)" }}
+                        className="flex-shrink-0 mx-4 mt-3 rounded-2xl border border-border overflow-hidden relative"
+                        style={{ height: 200, background: "linear-gradient(135deg, #0d1525, #0f1923)" }}
                     >
+                        {/* Daño flotante */}
+                        <FloatingDamage floats={floats} />
+
                         {isBattleOver && (
                             <div
                                 className={`text-center py-2 font-display font-bold text-2xl tracking-widest border-b
@@ -466,7 +526,7 @@ export default function CombatPage() {
                         )}
 
                         {(isBattleActive || isBattleOver) && (
-                            <div className="flex items-center justify-around px-8 py-4">
+                            <div className="flex items-center justify-around px-8 h-full">
                                 {/* Jugador */}
                                 <div className="text-center w-36">
                                     <div
@@ -515,163 +575,175 @@ export default function CombatPage() {
                             </div>
                         )}
 
-                        {/* Último turno */}
-                        {lastTurn && isBattleActive && (
-                            <div className="px-4 pb-3 flex gap-2 text-xs">
-                                <div className="flex-1 bg-blue/10 border border-blue/20 rounded-lg px-3 py-2">
-                                    <span className="text-blue font-bold">{lastTurn.playerMoveName}</span>
-                                    <span className="text-muted"> → </span>
-                                    <span className="text-white font-bold">{lastTurn.playerDamage} dmg</span>
-                                    {lastTurn.playerCritical && <span className="text-yellow"> ⚡CRÍTICO</span>}
-                                    {typeMultiplierLabel(lastTurn.playerTypeMultiplier)}
+                        {/* Sin combate activo */}
+                        {!isBattleActive && !isBattleOver && (
+                            <div className="flex items-center justify-center h-full">
+                                <div className="text-muted text-sm font-display tracking-widest">
+                                    Sin combate activo
                                 </div>
-                                <div className="flex-1 bg-red/10 border border-red/20 rounded-lg px-3 py-2">
-                                    <span className="text-red font-bold">{lastTurn.enemyMoveName}</span>
-                                    <span className="text-muted"> → </span>
-                                    <span className="text-white font-bold">{lastTurn.enemyDamage} dmg</span>
-                                    {lastTurn.enemyCritical && <span className="text-yellow"> ⚡CRÍTICO</span>}
-                                    {typeMultiplierLabel(lastTurn.enemyTypeMultiplier)}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Recompensas */}
-                        {isBattleOver && (
-                            <div className="flex gap-3 px-4 pb-3 pt-2 border-t border-border/50">
-                                <div className="flex-1 bg-bg3 rounded-xl p-2 text-center">
-                                    <div className="text-yellow font-display font-bold text-lg">
-                                        +{result!.xpGained}
-                                    </div>
-                                    <div className="text-muted text-xs">XP</div>
-                                </div>
-                                <div className="flex-1 bg-bg3 rounded-xl p-2 text-center">
-                                    <div className="text-yellow font-display font-bold text-lg">
-                                        +{result!.coinsGained}
-                                    </div>
-                                    <div className="text-muted text-xs">Monedas</div>
-                                </div>
-                                <div className="flex-1 bg-bg3 rounded-xl p-2 text-center">
-                                    <div className="text-blue font-display font-bold text-lg">{log.length}</div>
-                                    <div className="text-muted text-xs">Turnos</div>
-                                </div>
-                                {result!.captured && (
-                                    <div className="flex-1 bg-green/10 border border-green/30 rounded-xl p-2 text-center">
-                                        <div className="text-2xl">✨</div>
-                                        <div className="text-green text-xs font-display">¡Capturado!</div>
-                                        <div className="text-muted text-xs">{result!.captured.name}</div>
-                                    </div>
-                                )}
-                                {result!.evolution?.evolved && (
-                                    <div className="flex-1 bg-yellow/10 border border-yellow/30 rounded-xl p-2 text-center">
-                                        <div className="text-2xl">⬆️</div>
-                                        <div className="text-yellow text-xs font-display">¡Evolución!</div>
-                                        <div className="text-muted text-xs">{result!.evolution.newName}</div>
-                                    </div>
-                                )}
                             </div>
                         )}
                     </div>
 
-                    {/* Tabla de afinidades — solo en combate activo */}
-                    {isBattleActive && battle && (
-                        <AffinityChart
-                            playerAffinities={battle.player.affinities}
-                            enemyAffinities={battle.enemy.affinities}
-                        />
+                    {/* Último turno */}
+                    {lastTurn && isBattleActive && (
+                        <div className="flex-shrink-0 mx-4 mt-2 flex gap-2 text-xs">
+                            <div className="flex-1 bg-blue/10 border border-blue/20 rounded-lg px-3 py-2">
+                                <span className="text-blue font-bold">{lastTurn.playerMoveName}</span>
+                                <span className="text-muted"> → </span>
+                                <span className="text-white font-bold">{lastTurn.playerDamage} dmg</span>
+                                {lastTurn.playerCritical && <span className="text-yellow"> ⚡CRÍTICO</span>}
+                                {typeMultiplierLabel(lastTurn.playerTypeMultiplier)}
+                            </div>
+                            <div className="flex-1 bg-red/10 border border-red/20 rounded-lg px-3 py-2">
+                                <span className="text-red font-bold">{lastTurn.enemyMoveName}</span>
+                                <span className="text-muted"> → </span>
+                                <span className="text-white font-bold">{lastTurn.enemyDamage} dmg</span>
+                                {lastTurn.enemyCritical && <span className="text-yellow"> ⚡CRÍTICO</span>}
+                                {typeMultiplierLabel(lastTurn.enemyTypeMultiplier)}
+                            </div>
+                        </div>
                     )}
 
-                    {/* Moves / Acciones NPC */}
-                    {mode === "npc" && (
-                        <>
-                            {isBattleActive && (
-                                <div className="flex-shrink-0 grid grid-cols-2 gap-2">
-                                    {battle!.player.moves!.map((move) => (
-                                        <MoveButton
-                                            key={move.id}
-                                            move={move}
-                                            onClick={() => handleMove(move.id)}
-                                            disabled={loading}
-                                        />
-                                    ))}
+                    {/* Recompensas */}
+                    {isBattleOver && (
+                        <div className="flex-shrink-0 mx-4 mt-2 flex gap-3">
+                            <div className="flex-1 bg-bg3 rounded-xl p-2 text-center">
+                                <div className="text-yellow font-display font-bold text-lg">+{result!.xpGained}</div>
+                                <div className="text-muted text-xs">XP</div>
+                            </div>
+                            <div className="flex-1 bg-bg3 rounded-xl p-2 text-center">
+                                <div className="text-yellow font-display font-bold text-lg">+{result!.coinsGained}</div>
+                                <div className="text-muted text-xs">Monedas</div>
+                            </div>
+                            <div className="flex-1 bg-bg3 rounded-xl p-2 text-center">
+                                <div className="text-blue font-display font-bold text-lg">{log.length}</div>
+                                <div className="text-muted text-xs">Turnos</div>
+                            </div>
+                            {result!.captured && (
+                                <div className="flex-1 bg-green/10 border border-green/30 rounded-xl p-2 text-center">
+                                    <div className="text-2xl">✨</div>
+                                    <div className="text-green text-xs font-display">¡Capturado!</div>
                                 </div>
                             )}
-
-                            {isBattleActive && (
-                                <button
-                                    onClick={handleFlee}
-                                    disabled={loading}
-                                    className="flex-shrink-0 py-2 rounded-xl border border-border text-muted font-display font-bold text-xs tracking-widest uppercase hover:border-red hover:text-red transition-all disabled:opacity-40"
-                                >
-                                    🏃 Huir
-                                </button>
+                            {result!.evolution?.evolved && (
+                                <div className="flex-1 bg-yellow/10 border border-yellow/30 rounded-xl p-2 text-center">
+                                    <div className="text-2xl">⬆️</div>
+                                    <div className="text-yellow text-xs font-display">¡Evolución!</div>
+                                </div>
                             )}
-
-                            {!isBattleActive && !isBattleOver && (
-                                <button
-                                    onClick={handleStartNpc}
-                                    disabled={loading}
-                                    className="flex-shrink-0 py-3 rounded-xl font-display font-bold text-lg tracking-widest uppercase disabled:opacity-40 transition-all"
-                                    style={{
-                                        background: "linear-gradient(135deg,#e63946,#c1121f)",
-                                        boxShadow: "0 0 20px rgba(230,57,70,0.4)",
-                                    }}
-                                >
-                                    {loading ? "Buscando rival..." : "⚔️ ¡COMBATIR!"}
-                                </button>
-                            )}
-
-                            {isBattleOver && (
-                                <button
-                                    onClick={handleReset}
-                                    className="flex-shrink-0 py-3 rounded-xl border border-border text-muted font-display font-bold text-sm tracking-widest uppercase hover:border-red hover:text-red transition-all"
-                                >
-                                    Volver a combatir
-                                </button>
-                            )}
-                        </>
+                        </div>
                     )}
 
-                    {/* PvP */}
-                    {mode === "pvp" && (
-                        <>
-                            {!pvpResult && (
-                                <input
-                                    className="flex-shrink-0 bg-white/5 border border-border rounded-lg px-4 py-2 text-sm outline-none focus:border-blue transition-colors"
-                                    placeholder="User ID del rival"
-                                    value={defId}
-                                    onChange={(e) => setDefId(e.target.value)}
-                                />
-                            )}
-                            {!pvpResult ? (
-                                <button
-                                    onClick={handlePvp}
-                                    disabled={loading || !defId}
-                                    className="flex-shrink-0 py-3 rounded-xl font-display font-bold text-lg tracking-widest uppercase disabled:opacity-40 transition-all"
-                                    style={{
-                                        background: "linear-gradient(135deg,#e63946,#c1121f)",
-                                        boxShadow: "0 0 20px rgba(230,57,70,0.4)",
-                                    }}
-                                >
-                                    {loading ? "Combatiendo..." : "🔴 ¡RETAR!"}
-                                </button>
-                            ) : (
-                                <>
-                                    <div
-                                        className={`text-center py-3 rounded-xl font-display font-bold text-xl tracking-widest
-                                        ${pvpResult.result === "WIN" ? "text-green bg-green/10 border border-green/20" : "text-red bg-red/10 border border-red/20"}`}
-                                    >
-                                        {pvpResult.result === "WIN" ? "🏆 VICTORIA PvP" : "💀 DERROTA PvP"}
+                    {/* Zona de acción — posición fija */}
+                    <div className="flex-shrink-0 mx-4 mt-3">
+                        {mode === "npc" && (
+                            <>
+                                {/* Moves + tabla de tipos en fila */}
+                                <div className="flex gap-3">
+                                    {/* 4 moves en grid 2x2 */}
+                                    <div className="flex-1">
+                                        {isBattleActive && (
+                                            <div className="grid grid-cols-2 gap-2">
+                                                {battle!.player.moves!.map((move) => (
+                                                    <MoveButton
+                                                        key={move.id}
+                                                        move={move}
+                                                        onClick={() => handleMove(move.id)}
+                                                        disabled={loading}
+                                                    />
+                                                ))}
+                                            </div>
+                                        )}
+                                        {!isBattleActive && !isBattleOver && (
+                                            <button
+                                                onClick={handleStartNpc}
+                                                disabled={loading}
+                                                className="w-full py-3 rounded-xl font-display font-bold text-lg tracking-widest uppercase disabled:opacity-40 transition-all"
+                                                style={{
+                                                    background: "linear-gradient(135deg,#e63946,#c1121f)",
+                                                    boxShadow: "0 0 20px rgba(230,57,70,0.4)",
+                                                }}
+                                            >
+                                                {loading ? "Buscando rival..." : "⚔️ ¡COMBATIR!"}
+                                            </button>
+                                        )}
+                                        {isBattleOver && (
+                                            <button
+                                                onClick={handleReset}
+                                                className="w-full py-3 rounded-xl border border-border text-muted font-display font-bold text-sm tracking-widest uppercase hover:border-red hover:text-red transition-all"
+                                            >
+                                                Volver a combatir
+                                            </button>
+                                        )}
                                     </div>
+
+                                    {/* Tabla de tipos — siempre visible cuando hay combate */}
+                                    {isBattleActive && battle && (
+                                        <div className="w-48 flex-shrink-0">
+                                            <AffinityTable
+                                                playerAffinities={battle.player.affinities}
+                                                enemyAffinities={battle.enemy.affinities}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Huir — siempre bajo los moves */}
+                                {isBattleActive && (
                                     <button
-                                        onClick={handleReset}
-                                        className="flex-shrink-0 py-3 rounded-xl border border-border text-muted font-display font-bold text-sm tracking-widest uppercase hover:border-red hover:text-red transition-all"
+                                        onClick={handleFlee}
+                                        disabled={loading}
+                                        className="w-full mt-2 py-2 rounded-xl border border-border text-muted font-display font-bold text-xs tracking-widest uppercase hover:border-red hover:text-red transition-all disabled:opacity-40"
                                     >
-                                        Volver a combatir
+                                        🏃 Huir
                                     </button>
-                                </>
-                            )}
-                        </>
-                    )}
+                                )}
+                            </>
+                        )}
+
+                        {/* PvP */}
+                        {mode === "pvp" && (
+                            <>
+                                {!pvpResult && (
+                                    <input
+                                        className="w-full bg-white/5 border border-border rounded-lg px-4 py-2 text-sm outline-none focus:border-blue transition-colors mb-2"
+                                        placeholder="User ID del rival"
+                                        value={defId}
+                                        onChange={(e) => setDefId(e.target.value)}
+                                    />
+                                )}
+                                {!pvpResult ? (
+                                    <button
+                                        onClick={handlePvp}
+                                        disabled={loading || !defId}
+                                        className="w-full py-3 rounded-xl font-display font-bold text-lg tracking-widest uppercase disabled:opacity-40 transition-all"
+                                        style={{
+                                            background: "linear-gradient(135deg,#e63946,#c1121f)",
+                                            boxShadow: "0 0 20px rgba(230,57,70,0.4)",
+                                        }}
+                                    >
+                                        {loading ? "Combatiendo..." : "🔴 ¡RETAR!"}
+                                    </button>
+                                ) : (
+                                    <>
+                                        <div
+                                            className={`text-center py-3 rounded-xl font-display font-bold text-xl tracking-widest
+                                            ${pvpResult.result === "WIN" ? "text-green bg-green/10 border border-green/20" : "text-red bg-red/10 border border-red/20"}`}
+                                        >
+                                            {pvpResult.result === "WIN" ? "🏆 VICTORIA PvP" : "💀 DERROTA PvP"}
+                                        </div>
+                                        <button
+                                            onClick={handleReset}
+                                            className="w-full mt-2 py-3 rounded-xl border border-border text-muted font-display font-bold text-sm tracking-widest uppercase hover:border-red hover:text-red transition-all"
+                                        >
+                                            Volver a combatir
+                                        </button>
+                                    </>
+                                )}
+                            </>
+                        )}
+                    </div>
                 </div>
 
                 {/* Log de turnos */}

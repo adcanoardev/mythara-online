@@ -17,6 +17,10 @@ body {
     min-height: 100vh;
 }
 
+#root {
+    color: #e8f0fe;
+}
+
 ::-webkit-scrollbar {
     width: 6px;
 }

@@ -14,7 +14,7 @@ export default {
                 blue: "#4cc9f0",
                 green: "#06d6a0",
                 purple: "#7b2fff",
-                muted: "#5a6a85",
+                muted: "#ffffff",
                 border: "#1e2d45",
             },
             fontFamily: {

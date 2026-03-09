@@ -3,11 +3,12 @@ import { useAuth } from "../hooks/useAuth";
 
 const NAV = [
     { icon: "🏡", label: "Posada", path: "/" },
+    { icon: "👤", label: "Perfil", path: "/perfil" },
+    { icon: "🐾", label: "Equipo", path: "/equipo" },
     { icon: "⚔️", label: "Combatir", path: "/combate" },
     { icon: "🎒", label: "Inventario", path: "/inventario" },
     { icon: "🏅", label: "Santuarios", path: "/santuarios" },
-    { icon: "🏆", label: "Ranking", path: "/ranking" },
-    { icon: "👤", label: "Perfil", path: "/perfil" },
+    { icon: "🏆", label: "Ranking", path: "/ranking" }
 ];
 
 interface Props {

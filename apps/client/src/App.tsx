@@ -8,6 +8,7 @@ import PerfilPage from "./pages/PerfilPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import PosadaPage from "./pages/PosadaPage";
 import SantuariosPage from "./pages/SantuariosPage";
+import EquipoPage from "./pages/EquipoPage";
 
 export default function App() {
     const { user, loading } = useAuth();
@@ -42,6 +43,7 @@ export default function App() {
             <Route path="/ranking" element={user ? <RankingPage /> : <Navigate to="/login" />} />
             <Route path="/perfil" element={user ? <PerfilPage /> : <Navigate to="/login" />} />
             <Route path="/onboarding" element={user ? <OnboardingPage /> : <Navigate to="/login" />} />
+            <Route path="/equipo" element={user ? <EquipoPage /> : <Navigate to="/login" />} />
         </Routes>
     );
 }
