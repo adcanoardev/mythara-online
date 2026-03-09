@@ -9,6 +9,7 @@ import { checkLevelEvolution, getAvailableItemEvolutions, evolveWithItem } from 
 import { z } from "zod";
 import { getForgeStatus, collectForge, getLabStatus, collectLab } from "../services/mineService.js";
 import { getNurseryStatus, assignToNursery, collectNursery, removeFromNursery } from "../services/nurseryService.js";
+import { openFragment } from "../services/fragmentService.js";
 
 const router = Router();
 
@@ -163,6 +164,16 @@ router.post("/forge/collect", requireAuth, async (req, res) => {
         res.json({ collected: result });
     } catch (e) {
         res.status(500).json({ error: "Internal error" });
+    }
+});
+
+router.post("/forge/open", requireAuth, async (req, res) => {
+    try {
+        const result = await openFragment(req.user!.userId);
+        res.json(result);
+    } catch (err: any) {
+        const status = err.message === "No tienes fragmentos disponibles" ? 400 : 500;
+        res.status(status).json({ error: err.message ?? "Error al abrir fragmento" });
     }
 });
 

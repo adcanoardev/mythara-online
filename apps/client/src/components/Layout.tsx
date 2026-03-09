@@ -6,9 +6,10 @@ const NAV = [
     { icon: "👤", label: "Perfil", path: "/perfil" },
     { icon: "🐾", label: "Equipo", path: "/equipo" },
     { icon: "⚔️", label: "Combatir", path: "/combate" },
+    { icon: "◈", label: "Fragmentos", path: "/fragmento" },
     { icon: "🎒", label: "Inventario", path: "/inventario" },
     { icon: "🏅", label: "Santuarios", path: "/santuarios" },
-    { icon: "🏆", label: "Ranking", path: "/ranking" }
+    { icon: "🏆", label: "Ranking", path: "/ranking" },
 ];
 
 interface Props {

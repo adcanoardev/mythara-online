@@ -4,12 +4,15 @@ import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./hooks/AuthProvider";
 import App from "./App";
 import "./style.css";
+import { TrainerProvider } from "./context/TrainerContext";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
     <React.StrictMode>
         <BrowserRouter>
             <AuthProvider>
-                <App />
+                <TrainerProvider>
+                    <App />
+                </TrainerProvider>
             </AuthProvider>
         </BrowserRouter>
     </React.StrictMode>,

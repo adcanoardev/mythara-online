@@ -68,11 +68,17 @@ function rollLoot(level: number): ItemType {
 }
 
 export async function getStructure(userId: string, type: StructureType) {
-    return prisma.structure.findUniqueOrThrow({
+    return prisma.structure.upsert({
         where: { userId_type: { userId, type } },
+        update: {},
+        create: {
+            userId,
+            type,
+            level: 1,
+            lastCollected: new Date(0), // epoch — listo para recoger inmediatamente
+        },
     });
 }
-
 export async function getMineStatus(userId: string) {
     const mine = await getStructure(userId, "MINE");
     const cooldownMs = MINE_COOLDOWN_MS[mine.level] ?? MINE_COOLDOWN_MS[1];

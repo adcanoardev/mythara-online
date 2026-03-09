@@ -149,6 +149,55 @@ function calcCoinsGained(enemyLevel: number, won: boolean): number {
     return randInt(enemyLevel * 2, enemyLevel * 5);
 }
 
+// ── XP para el Myth del jugador ───────────────────────────────
+const MYTH_XP_TO_LEVEL = (level: number) => Math.floor(50 * Math.pow(level, 1.6));
+
+async function addMythXp(instanceId: string, xpGained: number) {
+    const myth = await prisma.creatureInstance.findUnique({ where: { id: instanceId } });
+    if (!myth || myth.level >= 60) return null;
+
+    const newXp = myth.xp + xpGained;
+    const xpNeeded = MYTH_XP_TO_LEVEL(myth.level);
+
+    if (newXp < xpNeeded) {
+        await prisma.creatureInstance.update({
+            where: { id: instanceId },
+            data: { xp: newXp },
+        });
+        return { leveledUp: false, newLevel: myth.level, newXp };
+    }
+
+    // Subir de nivel (puede subir varios a la vez)
+    let level = myth.level;
+    let xp = newXp;
+    while (xp >= MYTH_XP_TO_LEVEL(level) && level < 60) {
+        xp -= MYTH_XP_TO_LEVEL(level);
+        level++;
+    }
+
+    // Recalcular stats al subir de nivel
+    const species = getCreature(myth.speciesId);
+    const newMaxHp = Math.floor(species.baseStats.hp * (1 + level * 0.1));
+    const newAttack = Math.floor(species.baseStats.atk * (1 + level * 0.05));
+    const newDefense = Math.floor(species.baseStats.def * (1 + level * 0.05));
+    const newSpeed = Math.floor(species.baseStats.spd * (1 + level * 0.04));
+
+    await prisma.creatureInstance.update({
+        where: { id: instanceId },
+        data: {
+            level,
+            xp,
+            maxHp: newMaxHp,
+            hp: newMaxHp, // restaura HP al subir de nivel
+            attack: newAttack,
+            defense: newDefense,
+            speed: newSpeed,
+        },
+    });
+
+    return { leveledUp: true, newLevel: level, newXp: xp };
+}
+
 // ── GET ACTIVE — Recuperar sesión activa ──────────────────────
 export function getActiveBattle(userId: string) {
     const session = getUserSession(userId);
@@ -356,8 +405,11 @@ export async function executeTurn(userId: string, battleId: string, moveId: stri
     const xpGained = calcXpGained(session.enemy.level, won);
     const coinsGained = calcCoinsGained(session.enemy.level, won);
 
-    const [updatedTrainer] = await Promise.all([
+    const mythXpGained = Math.floor(xpGained * 1.2); // Myths ganan un 20% más de XP que el Binder
+
+    const [updatedTrainer, mythLevelResult] = await Promise.all([
         addXp(userId, xpGained),
+        addMythXp(session.playerInstanceId, mythXpGained),
         won && coinsGained > 0
             ? prisma.trainerProfile.update({
                   where: { userId },
@@ -425,6 +477,7 @@ export async function executeTurn(userId: string, battleId: string, moveId: stri
         coinsGained,
         trainerLevel: updatedTrainer.level,
         trainerXp: updatedTrainer.xp,
+        mythLevelResult, // ← nuevo
         captured,
         evolution: evoResult,
     };
@@ -437,15 +490,12 @@ export async function fleeBattle(userId: string, battleId: string) {
     if (session.userId !== userId) return { error: "No autorizado" };
     if (session.status !== "active") return { error: "El combate ya ha terminado" };
 
-    const xpGained = calcXpGained(session.enemy.level, false);
-    await addXp(userId, xpGained);
-
     await prisma.battleLog.create({
         data: {
             userId,
             type: "NPC",
             result: "LOSE",
-            xpGained,
+            xpGained: 0,
             coinsGained: 0,
             playerSpeciesId: session.player.speciesId,
             playerLevel: session.player.level,
@@ -455,5 +505,5 @@ export async function fleeBattle(userId: string, battleId: string) {
     });
 
     deleteSession(battleId);
-    return { status: "fled", xpGained };
+    return { status: "fled", xpGained: 0 };
 }

@@ -64,6 +64,7 @@ export const api = {
     // Forge
     forgeStatus: () => request<any>("/forge/me"),
     forgeCollect: () => request<any>("/forge/collect", { method: "POST" }),
+    forgeOpen: () => request<any>("/forge/open", { method: "POST" }),
 
     // Lab
     labStatus: () => request<any>("/lab/me"),

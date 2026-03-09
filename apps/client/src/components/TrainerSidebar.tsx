@@ -1,8 +1,7 @@
-import { useEffect, useState, useRef } from "react";
-import { api } from "../lib/api";
+import { useEffect, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
+import { useTrainer } from "../context/TrainerContext";
 
-// Countdown en vivo — recibe ms restantes y los va decrementando
 function Countdown({ initialMs }: { initialMs: number }) {
     const [ms, setMs] = useState(initialMs);
 
@@ -50,31 +49,13 @@ function TokenDots({ filled, max, color }: { filled: number; max: number; color:
 
 export default function TrainerSidebar() {
     const { user } = useAuth();
-    const [trainer, setTrainer] = useState<any>(null);
-    const [tokens, setTokens] = useState<any>(null);
-
-    async function load() {
-        const [t, tk] = await Promise.all([api.trainer(), api.tokens()]);
-        setTrainer(t);
-        setTokens(tk);
-    }
-
-    useEffect(() => {
-        load();
-        const interval = setInterval(load, 30_000);
-        window.addEventListener("sidebar:reload", load);
-        return () => {
-            clearInterval(interval);
-            window.removeEventListener("sidebar:reload", load);
-        };
-    }, []);
+    const { trainer, tokens } = useTrainer();
 
     const xpForLevel = (lvl: number) => Math.floor(100 * Math.pow(lvl, 1.8));
     const xpPct = trainer ? Math.min(100, Math.round((trainer.xp / xpForLevel(trainer.level)) * 100)) : 0;
 
     return (
         <div className="flex flex-col gap-4">
-            {/* Avatar + nombre */}
             <div className="flex items-center gap-2">
                 <div
                     className="w-8 h-8 rounded-full flex items-center justify-center text-base flex-shrink-0"
@@ -90,7 +71,6 @@ export default function TrainerSidebar() {
                 </div>
             </div>
 
-            {/* Barra XP */}
             <div>
                 <div className="bg-white/5 rounded-full h-1 overflow-hidden">
                     <div
@@ -104,7 +84,6 @@ export default function TrainerSidebar() {
                 </div>
             </div>
 
-            {/* Fichas NPC */}
             <div className="flex flex-col gap-2">
                 <div className="flex justify-between items-center">
                     <span
@@ -125,10 +104,8 @@ export default function TrainerSidebar() {
                 )}
             </div>
 
-            {/* Separador */}
             <div className="border-t border-border/50" />
 
-            {/* Tokens PvP */}
             <div className="flex flex-col gap-2">
                 <div className="flex justify-between items-center">
                     <span

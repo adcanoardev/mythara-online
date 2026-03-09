@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import Layout from "../components/Layout";
 import TrainerSidebar from "../components/TrainerSidebar";
 import { api } from "../lib/api";
+import { useNavigate } from "react-router-dom";
 
 function msToTime(ms: number) {
     const s = Math.floor(ms / 1000);
@@ -78,13 +79,17 @@ function MineCard({ inventory }: { inventory: any[] }) {
 
 // ─── Tarjeta Forja ────────────────────────────────────────────────────────────
 function ForgeCard() {
+    const navigate = useNavigate();
     const [forge, setForge] = useState<any>(null);
+    const [fragmentCount, setFragmentCount] = useState<number>(0);
     const [collecting, setCollecting] = useState(false);
     const [msg, setMsg] = useState("");
 
     const load = useCallback(async () => {
-        const f = await api.forgeStatus();
+        const [f, inv] = await Promise.all([api.forgeStatus(), api.inventory()]);
         setForge(f);
+        const frag = (inv as any[]).find((i: any) => i.item === "FRAGMENT");
+        setFragmentCount(frag?.quantity ?? 0);
     }, []);
 
     useEffect(() => {
@@ -105,19 +110,72 @@ function ForgeCard() {
         }
     }
 
+    const ready = forge?.ready ?? false;
+    const nextCollectMs = forge?.nextCollectMs ?? null;
+    const totalCooldownMs = 6 * 3600 * 1000;
+
     return (
-        <StructureCard
-            icon="🏭"
-            name="Forja de Fragmentos"
-            desc="Produce Fragmentos para invocar Myths"
-            level={forge?.level ?? 1}
-            ready={forge?.ready ?? false}
-            nextCollectMs={forge?.nextCollectMs ?? null}
-            totalCooldownMs={6 * 3600 * 1000}
-            msg={msg}
-            collecting={collecting}
-            onCollect={handleCollect}
-        />
+        <div
+            className={`bg-card border rounded-2xl p-5 flex flex-col transition-all
+            ${ready ? "border-green/40" : "border-border"}`}
+            style={ready ? { boxShadow: "0 0 20px rgba(6,214,160,0.15)" } : {}}
+        >
+            <div className="flex justify-between items-start mb-3">
+                <span className="text-4xl">🏭</span>
+                <span className="bg-bg3 border border-border rounded-lg px-2 py-0.5 text-xs text-muted font-display font-semibold">
+                    NIV {forge?.level ?? 1}
+                </span>
+            </div>
+            <div className="font-display font-bold text-lg mb-1">Forja de Fragmentos</div>
+            <div className="text-muted text-xs mb-3 flex-1">Produce Fragmentos para invocar Myths</div>
+
+            {msg && (
+                <div
+                    className="text-xs font-semibold mb-2"
+                    style={{ color: msg.startsWith("✅") ? "#06d6a0" : "#e63946" }}
+                >
+                    {msg}
+                </div>
+            )}
+
+            {ready ? (
+                <>
+                    <div className="text-green text-xs font-semibold mb-2">✅ ¡Lista!</div>
+                    <button
+                        onClick={handleCollect}
+                        disabled={collecting}
+                        className="py-2 rounded-xl font-display font-bold text-xs tracking-widest uppercase text-bg disabled:opacity-50"
+                        style={{
+                            background: "linear-gradient(135deg, #06d6a0, #04a57a)",
+                            boxShadow: "0 0 12px rgba(6,214,160,0.3)",
+                        }}
+                    >
+                        {collecting ? "..." : "Recoger"}
+                    </button>
+                </>
+            ) : (
+                <>
+                    <div className="text-muted text-xs mb-1.5">
+                        ⏱ {nextCollectMs != null ? msToTime(nextCollectMs) : "..."}
+                    </div>
+                    <ProgressBar ms={nextCollectMs ?? totalCooldownMs} totalMs={totalCooldownMs} />
+                </>
+            )}
+
+            {/* Botón abrir fragmentos — siempre visible si hay stock */}
+            {fragmentCount > 0 && (
+                <button
+                    onClick={() => navigate("/fragmento")}
+                    className="mt-3 py-2 rounded-xl font-display font-bold text-xs tracking-widest uppercase text-bg transition-all"
+                    style={{
+                        background: "linear-gradient(135deg, #4cc9f0 0%, #7b2fff 100%)",
+                        boxShadow: "0 0 12px rgba(76,201,240,0.3)",
+                    }}
+                >
+                    ◈ Abrir fragmentos ({fragmentCount})
+                </button>
+            )}
+        </div>
     );
 }
 
