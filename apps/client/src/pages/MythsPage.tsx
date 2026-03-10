@@ -7,7 +7,7 @@ import TrainerSidebar from "../components/TrainerSidebar";
 
 type Affinity = "EMBER" | "TIDE" | "GROVE" | "VOLT" | "STONE" | "FROST" | "VENOM" | "ASTRAL" | "IRON" | "SHADE";
 
-type Rarity = "COMMON" | "RARE" | "ELITE" | "LEGENDARY" | "MYTHIC";
+type Rarity = "COMMON" | "RARE" | "ELITE" | "EPIC" | "LEGENDARY" | "MYTHIC";
 
 interface Move {
     id: string;
@@ -68,6 +68,14 @@ const RARITY_CONFIG: Record<
         badge: "bg-[#1a0b33] text-[#c77dff]",
         text: "text-[#c77dff]",
         glowRgb: "155,93,229",
+    },
+    EPIC: {
+        label: "Épico",
+        border: "border-[#f77f00]",
+        glow: "shadow-[0_0_18px_rgba(247,127,0,0.5)]",
+        badge: "bg-[#2a1500] text-[#f77f00]",
+        text: "text-[#f77f00]",
+        glowRgb: "247,127,0",
     },
     LEGENDARY: {
         label: "Legendario",
@@ -343,7 +351,7 @@ function MythCard({ myth, onClick }: { myth: Creature; onClick: () => void }) {
 
 // ─── constants ────────────────────────────────────────────────────────────────
 
-const ALL_RARITIES: Rarity[] = ["COMMON", "RARE", "ELITE", "LEGENDARY", "MYTHIC"];
+const ALL_RARITIES: Rarity[] = ["COMMON", "RARE", "ELITE", "EPIC", "LEGENDARY", "MYTHIC"];
 const ALL_AFFINITIES: Affinity[] = [
     "EMBER",
     "TIDE",
