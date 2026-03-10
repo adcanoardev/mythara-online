@@ -44,12 +44,25 @@ export const api = {
         request<any>("/creatures/party/update", { method: "POST", body: JSON.stringify({ party }) }),
     mineStatus: () => request<any>("/mine/me"),
     mineCollect: () => request<any>("/mine/collect", { method: "POST" }),
-    battleNpcStart: () => request<any>("/battle/npc/start", { method: "POST" }),
-    battleNpcTurn: (battleId: string, moveId: string) =>
-        request<any>("/battle/npc/turn", { method: "POST", body: JSON.stringify({ battleId, moveId }) }),
+    battleNpcStart: (order: string[]) =>
+        request<any>("/battle/npc/start", {
+            method: "POST",
+            body: JSON.stringify({ order }),
+        }),
+    battleNpcTurn: (battleId: string, actingMythId: string, moveId: string, targetMythId?: string) =>
+        request<any>("/battle/npc/turn", {
+            method: "POST",
+            body: JSON.stringify({ battleId, actingMythId, moveId, ...(targetMythId ? { targetMythId } : {}) }),
+        }),
     battleNpcFlee: (battleId: string) =>
         request<any>("/battle/npc/flee", { method: "POST", body: JSON.stringify({ battleId }) }),
     battleNpcActive: () => request<any>("/battle/npc/active"),
+
+    battleNpcCapture: (battleId: string, targetMythId: string) =>
+        request<any>("/battle/npc/capture", {
+            method: "POST",
+            body: JSON.stringify({ battleId, targetMythId }),
+        }),
     battlePvp: (defenderUserId: string) =>
         request<any>("/battle/pvp", { method: "POST", body: JSON.stringify({ defenderUserId }) }),
     battleStats: () => request<any>("/battle/stats"),

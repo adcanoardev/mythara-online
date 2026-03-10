@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./hooks/useAuth";
 import LoginPage from "./pages/LoginPage";
-import CombatPage from "./pages/CombatPage";
+import CombatPage from "./pages/BattlePage";
 import InventarioPage from "./pages/InventarioPage";
 import RankingPage from "./pages/RankingPage";
 import PerfilPage from "./pages/PerfilPage";
