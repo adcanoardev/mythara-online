@@ -70,8 +70,7 @@ router.post("/battle/npc/capture", async (req, res) => {
 // GET /battle/npc/active
 router.get("/battle/npc/active", (req, res) => {
     const session = getActiveBattle(req.user!.userId);
-    if (!session) return res.status(404).json({ error: "Sin combate activo" });
-    res.json(session);
+    res.json(session ?? null); // ← 200 siempre, null si no hay sesión
 });
 
 // GET /battle/stats
