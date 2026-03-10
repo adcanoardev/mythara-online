@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { api } from "../lib/api";
+import Layout from "../components/Layout";
+import TrainerSidebar from "../components/TrainerSidebar";
 
 // ─── types ────────────────────────────────────────────────────────────────────
 
@@ -318,7 +320,7 @@ function MythCard({ myth, onClick }: { myth: Creature; onClick: () => void }) {
                 )}
             </div>
 
-            {/* ID */}
+            {/* ID + name */}
             <div className="text-center w-full">
                 <p className="text-[#5a6a85] text-[10px] font-mono">#{myth.id}</p>
                 <p className="text-white text-xs font-semibold leading-tight truncate w-full px-1">{myth.name}</p>
@@ -368,11 +370,10 @@ export default function MythsPage() {
 
     useEffect(() => {
         setLoading(true);
-        // api.dex() calls GET /dex — returns Creature[]
         (api as any)
             .dex()
             .then((data: Creature[]) => setCreatures(Array.isArray(data) ? data : []))
-            .catch(() => setError("Error al cargar el Arcanium. Intenta recargar la página."))
+            .catch(() => setError("Error al cargar el Arcanum. Intenta recargar la página."))
             .finally(() => setLoading(false));
     }, []);
 
@@ -391,10 +392,7 @@ export default function MythsPage() {
     );
 
     return (
-        <div
-            className="h-screen w-screen overflow-hidden flex flex-col"
-            style={{ background: "#070b14", color: "#fff" }}
-        >
+        <Layout sidebar={<TrainerSidebar />}>
             {/* ── Header ── */}
             <div className="shrink-0 px-6 pt-5 pb-3 border-b border-[#1e2d45]">
                 <div className="flex items-center justify-between mb-3">
@@ -416,7 +414,7 @@ export default function MythsPage() {
 
                 {/* Filters */}
                 <div className="flex flex-wrap items-center gap-2">
-                    {/* Rarity */}
+                    {/* Rarity chips */}
                     <div className="flex flex-wrap gap-1.5">
                         <button
                             onClick={() => setFilterRarity("ALL")}
@@ -446,7 +444,7 @@ export default function MythsPage() {
                         })}
                     </div>
 
-                    {/* Affinity */}
+                    {/* Affinity buttons */}
                     <div className="flex flex-wrap gap-1 ml-auto">
                         {ALL_AFFINITIES.map((a) => {
                             const cfg = AFFINITY_CONFIG[a];
@@ -509,6 +507,6 @@ export default function MythsPage() {
 
             {/* ── Modal ── */}
             {selected && <MythModal myth={selected} onClose={() => setSelected(null)} />}
-        </div>
+        </Layout>
     );
 }
