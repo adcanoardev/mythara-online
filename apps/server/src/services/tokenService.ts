@@ -59,21 +59,20 @@ export async function getTokens(userId: string) {
 }
 
 export async function useNpcToken(userId: string): Promise<boolean> {
-    const { npcTokens } = await getTokens(userId);
-    if (npcTokens <= 0) return false;
-    await prisma.combatToken.update({
-        where: { userId },
-        data: { npcTokens: npcTokens - 1 },
-    });
-    return true;
-}
+    const tokens = await prisma.combatToken.findUniqueOrThrow({ where: { userId } });
 
-export async function usePvpToken(userId: string): Promise<boolean> {
-    const { pvpTokens } = await getTokens(userId);
-    if (pvpTokens <= 0) return false;
+    // Aplicar recarga pendiente primero
+    const npc = calculateRecharge(tokens.npcTokens, NPC_MAX, tokens.lastNpcRecharge, NPC_RECHARGE_MS);
+
+    if (npc.newCount <= 0) return false;
+
     await prisma.combatToken.update({
         where: { userId },
-        data: { pvpTokens: pvpTokens - 1 },
+        data: {
+            npcTokens: npc.newCount - 1,
+            // ✅ Si estaba lleno, iniciar el timer de recarga ahora
+            lastNpcRecharge: npc.newCount === NPC_MAX ? new Date() : npc.newLastRecharge,
+        },
     });
     return true;
 }

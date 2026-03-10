@@ -3,7 +3,7 @@ import { createBattleSession, getSession, getUserSession, deleteSession } from "
 import { getCreature } from "./creatureService.js";
 import { addXp } from "./trainerService.js";
 import creaturesData from "../data/creatures.json" with { type: "json" };
-
+import { useNpcToken } from "./tokenService.js";
 // ─────────────────────────────────────────
 // Types
 // ─────────────────────────────────────────
@@ -225,13 +225,8 @@ export async function startNpcBattle(
     evict();
 
     // Consumir ficha NPC
-    const tokenRow = await prisma.combatToken.findUnique({ where: { userId } });
-    if (!tokenRow || tokenRow.npcTokens <= 0) throw new Error("Sin fichas NPC disponibles");
-
-    await prisma.combatToken.update({
-        where: { userId },
-        data: { npcTokens: { decrement: 1 } },
-    });
+    const tokenUsed = await useNpcToken(userId);
+    if (!tokenUsed) throw new Error("Sin fichas NPC disponibles");
 
     // Construir equipo del jugador (máx 3)
     const playerTeam: BattleMyth[] = [];
