@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTrainer } from "../context/TrainerContext";
 
@@ -20,6 +20,36 @@ function TokenDot({ filled }: { filled: boolean }) {
         />
     );
 }
+
+
+// Borde de la tarjeta según rango — objetos CSS directos
+const RANK_BORDER_STYLE: Record<string, React.CSSProperties> = {
+    "Novato":       { border: "1px solid #475569" },
+    "Aprendiz":     { border: "1px solid #22c55e" },
+    "Explorador":   { border: "1px solid #3b82f6" },
+    "Cazador":      { border: "1px solid #f97316" },
+    "Élite":        { border: "1px solid #a855f7" },
+    "Maestro":      { border: "1px solid #eab308" },
+    "Gran Maestro": { border: "1px solid #ec4899" },
+    "Legendario":   { border: "2px solid #f43f5e", boxShadow: "0 0 12px rgba(244,63,94,0.4)" },
+    "Mítico":       { border: "2px solid #facc15", boxShadow: "0 0 16px rgba(250,204,21,0.5), 0 0 32px rgba(250,204,21,0.2)" },
+};
+
+function getRankBorderStyle(rank: string): React.CSSProperties {
+    return RANK_BORDER_STYLE[rank] ?? RANK_BORDER_STYLE["Novato"];
+}
+
+const RANK_LABEL_COLOR: Record<string, string> = {
+    "Novato":       "text-slate-400",
+    "Aprendiz":     "text-green-400",
+    "Explorador":   "text-blue-400",
+    "Cazador":      "text-orange-400",
+    "Élite":        "text-purple-400",
+    "Maestro":      "text-yellow-400",
+    "Gran Maestro": "text-pink-400",
+    "Legendario":   "text-rose-400",
+    "Mítico":       "text-yellow-300",
+};
 
 const AVATAR_EMOJI: Record<string, string> = {
     male_1: "👦",
@@ -91,35 +121,58 @@ export default function TrainerSidebar() {
 
     if (!trainer) {
         return (
-            <aside className="w-56 shrink-0 flex flex-col gap-3 py-4 px-3">
-                <div className="h-20 rounded-xl bg-card animate-pulse" />
+            <div className="flex flex-col gap-3 py-2 px-1">
+                <div className="bg-card border border-slate-700 rounded-xl px-4 py-3 flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center flex-shrink-0">
+                        <span className="text-3xl">🧙</span>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                        <p className="text-white font-bold text-sm truncate">{user?.username ?? "..."}</p>
+                        <div className="h-2 w-12 rounded bg-slate-700 animate-pulse mt-1" />
+                        <div className="h-2 w-16 rounded bg-slate-700 animate-pulse mt-1.5" />
+                    </div>
+                </div>
                 <div className="h-32 rounded-xl bg-card animate-pulse" />
                 <div className="h-32 rounded-xl bg-card animate-pulse" />
-            </aside>
+            </div>
         );
     }
 
+    const rank = trainer?.rank ?? "Novato";
+    const rankColor = RANK_LABEL_COLOR[rank] ?? "text-slate-400";
+
     return (
-        <aside className="w-56 shrink-0 flex flex-col gap-3 py-4 px-3 overflow-y-auto">
+        <div className="flex flex-col gap-3 py-2 px-1 overflow-y-auto">
             {/* ── Trainer card ─────────────────────────────────────────────────── */}
             <div
                 onClick={goProfile}
-                className="bg-card border border-border rounded-xl px-4 py-3 flex flex-col gap-1 cursor-pointer hover:border-blue/40 hover:bg-bg3 transition-all"
+                className="bg-card rounded-xl px-4 py-3 flex flex-col gap-2 cursor-pointer transition-all hover:brightness-110"
+                style={getRankBorderStyle(rank)}
             >
-                <div className="flex items-center gap-2">
-                    <span className="text-2xl">{AVATAR_EMOJI[trainer?.avatar] ?? "🧙"}</span>
-                    <div className="min-w-0">
-                        <p className="text-white font-semibold text-sm truncate">{trainer?.username ?? "—"}</p>
-                        <p className="text-muted text-xs">Nivel {trainer?.level ?? "—"}</p>
+                {/* Avatar + info */}
+                <div className="flex items-center gap-3">
+                    {/* Avatar placeholder — espacio para foto de perfil futura */}
+                    <div className="w-12 h-12 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                        <span className="text-3xl leading-none">{AVATAR_EMOJI[trainer?.avatar] ?? "🧙"}</span>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                        <p className="text-white font-bold text-sm truncate leading-tight">
+                            {trainer?.username ?? "—"}
+                        </p>
+                        <p className="text-muted text-xs leading-tight">Nv. {trainer?.level ?? "—"}</p>
+                        <p className={`text-xs font-semibold leading-tight mt-0.5 ${rankColor}`}>
+                            {rank}
+                        </p>
                     </div>
                 </div>
-                <div className="flex items-center justify-between mt-1">
+                {/* Monedas + fragmentos */}
+                <div className="flex items-center justify-between">
                     <span className="text-yellow text-xs font-medium">
                         🪙 {trainer?.coins?.toLocaleString() ?? "—"}
                     </span>
                     {fragments > 0 && (
                         <button
-                            onClick={goFragments}
+                            onClick={(e) => { e.stopPropagation(); goFragments(); }}
                             className="text-xs text-blue hover:text-white transition-colors"
                             title="Abrir fragmentos"
                         >
@@ -216,6 +269,6 @@ export default function TrainerSidebar() {
                     </p>
                 )}
             </button>
-        </aside>
+        </div>
     );
 }

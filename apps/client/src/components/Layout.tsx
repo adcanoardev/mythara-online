@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, useEffect, useRef, createContext, useContext } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 
@@ -13,6 +13,70 @@ const NAV = [
     { icon: "🏅", label: "Santuarios", path: "/sanctums" },
     { icon: "🏆", label: "Ranking", path: "/ranking" },
 ];
+
+
+// ─────────────────────────────────────────
+// Toast system
+// ─────────────────────────────────────────
+
+export type ToastType = "success" | "error" | "info" | "warning";
+
+interface Toast {
+    id: number;
+    message: string;
+    type: ToastType;
+}
+
+interface ToastContextValue {
+    toast: (message: string, type?: ToastType) => void;
+}
+
+const ToastContext = createContext<ToastContextValue>({ toast: () => {} });
+
+export function useToast() {
+    return useContext(ToastContext);
+}
+
+const TOAST_COLORS: Record<ToastType, string> = {
+    success: "border-emerald-500/60 bg-emerald-500/10 text-emerald-300",
+    error:   "border-red-500/60    bg-red-500/10    text-red-300",
+    info:    "border-blue-500/60   bg-blue-500/10   text-blue-300",
+    warning: "border-yellow-500/60 bg-yellow-500/10 text-yellow-300",
+};
+
+const TOAST_ICONS: Record<ToastType, string> = {
+    success: "✅",
+    error:   "❌",
+    info:    "ℹ️",
+    warning: "⚠️",
+};
+
+let _toastCounter = 0;
+
+function ToastContainer({ toasts, onRemove }: { toasts: Toast[]; onRemove: (id: number) => void }) {
+    return (
+        <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none">
+            {toasts.map((t) => (
+                <div
+                    key={t.id}
+                    className={`flex items-start gap-2.5 px-4 py-3 rounded-xl border shadow-lg shadow-black/40
+                        font-mono text-xs max-w-xs pointer-events-auto
+                        animate-toast-in
+                        ${TOAST_COLORS[t.type]}`}
+                >
+                    <span className="flex-shrink-0 text-sm">{TOAST_ICONS[t.type]}</span>
+                    <p className="leading-relaxed flex-1">{t.message}</p>
+                    <button
+                        onClick={() => onRemove(t.id)}
+                        className="flex-shrink-0 opacity-50 hover:opacity-100 transition-opacity ml-1 text-xs"
+                    >
+                        ✕
+                    </button>
+                </div>
+            ))}
+        </div>
+    );
+}
 
 // ─────────────────────────────────────────
 // Affinity table data
@@ -189,8 +253,37 @@ export default function Layout({ children, sidebar }: Props) {
     const location = useLocation();
     const [showAffinity, setShowAffinity] = useState(false);
 
+    // Toast state
+    const [toasts, setToasts] = useState<Toast[]>([]);
+    const timersRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
+
+    const addToast = useCallback((message: string, type: ToastType = "info") => {
+        const id = ++_toastCounter;
+        setToasts(prev => [...prev, { id, message, type }]);
+        timersRef.current[id] = setTimeout(() => removeToast(id), 3500);
+    }, []);
+
+    const removeToast = useCallback((id: number) => {
+        clearTimeout(timersRef.current[id]);
+        delete timersRef.current[id];
+        setToasts(prev => prev.filter(t => t.id !== id));
+    }, []);
+
+    // Limpiar timers al desmontar
+    useEffect(() => {
+        return () => { Object.values(timersRef.current).forEach(clearTimeout); };
+    }, []);
+
     return (
+        <ToastContext.Provider value={{ toast: addToast }}>
         <div className="h-screen w-screen overflow-hidden flex flex-col bg-bg">
+        <style>{`
+            @keyframes toastIn {
+                from { opacity: 0; transform: translateX(100%) scale(0.95); }
+                to   { opacity: 1; transform: translateX(0)   scale(1); }
+            }
+            .animate-toast-in { animation: toastIn 0.25s cubic-bezier(0.34,1.56,0.64,1) both; }
+        `}</style>
             {/* Top bar */}
             <header className="flex-shrink-0 bg-bg/90 backdrop-blur border-b border-border px-6 h-14 flex items-center justify-between">
                 <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/")}>
@@ -255,7 +348,7 @@ export default function Layout({ children, sidebar }: Props) {
             {/* Body */}
             <div className="flex-1 flex overflow-hidden">
                 <aside className="w-56 flex-shrink-0 border-r border-border flex flex-col overflow-hidden">
-                    {sidebar && <div className="flex-shrink-0 p-3 border-b border-border">{sidebar}</div>}
+                    {sidebar && <div className="flex-shrink-0 overflow-y-auto">{sidebar}</div>}
                     <nav className="flex-1 p-2 flex flex-col gap-0.5">
                         {NAV.map((item) => {
                             const active = location.pathname === item.path;
@@ -300,5 +393,9 @@ export default function Layout({ children, sidebar }: Props) {
             {/* Affinity modal */}
             {showAffinity && <AffinityTableModal onClose={() => setShowAffinity(false)} />}
         </div>
+
+        {/* Toasts — fuera del div principal para no ser afectados por overflow:hidden */}
+        <ToastContainer toasts={toasts} onRemove={removeToast} />
+        </ToastContext.Provider>
     );
 }

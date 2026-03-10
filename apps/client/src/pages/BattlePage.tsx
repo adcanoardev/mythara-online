@@ -4,6 +4,7 @@ import Layout from "../components/Layout";
 import TrainerSidebar from "../components/TrainerSidebar";
 import { api } from "../lib/api";
 import { useTrainer } from "../context/TrainerContext";
+import { useToast } from "../components/Layout";
 // ─────────────────────────────────────────
 // Types
 // ─────────────────────────────────────────
@@ -598,6 +599,7 @@ export default function BattlePage() {
     const logRef = useRef<HTMLDivElement>(null);
     const [result, setResult] = useState<{ status: "win" | "lose"; xp?: number; coins?: number } | null>(null);
     const { reload } = useTrainer();
+    const { toast } = useToast();
 
     useEffect(() => {
         api.creatures()
@@ -698,7 +700,7 @@ export default function BattlePage() {
             addLog("⚔️ ¡Comienza el combate!", "system");
             await reload();
         } catch (e: any) {
-            alert(e.message ?? "Error al iniciar combate");
+            toast(e.message ?? "Error al iniciar combate", "error");
         } finally {
             setLoadingStart(false);
         }

@@ -14,10 +14,32 @@ import { getCreature } from "../services/creatureService.js";
 
 const router = Router();
 
+// Rangos por nivel
+function getRank(level: number): string {
+    if (level >= 100) return "Mítico";
+    if (level >= 80)  return "Legendario";
+    if (level >= 65)  return "Gran Maestro";
+    if (level >= 50)  return "Maestro";
+    if (level >= 40)  return "Élite";
+    if (level >= 30)  return "Cazador";
+    if (level >= 20)  return "Explorador";
+    if (level >= 10)  return "Aprendiz";
+    return "Novato";
+}
+
 router.get("/trainer/me", requireAuth, async (req, res) => {
     try {
         const trainer = await getOrCreateTrainer(req.user!.userId);
-        res.json(trainer);
+        // Enriquecer con username del modelo User
+        const user = await prisma.user.findUnique({
+            where: { id: req.user!.userId },
+            select: { username: true },
+        });
+        res.json({
+            ...trainer,
+            username: user?.username ?? null,
+            rank: getRank(trainer.level),
+        });
     } catch (e) {
         res.status(500).json({ error: "Internal error" });
     }
