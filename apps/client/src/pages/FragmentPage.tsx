@@ -1,437 +1,308 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import Layout from "../components/Layout";
+import TrainerSidebar from "../components/TrainerSidebar";
 import { api } from "../lib/api";
 
-type Rarity = "COMMON" | "RARE" | "ELITE" | "LEGENDARY" | "MYTHIC";
-
-interface FragmentResult {
-    rarity: Rarity;
-    creature: {
-        instanceId: string;
-        speciesId: string;
-        name: string;
-        art: { portrait: string; front: string; back: string };
-        affinities: string[];
-        rarity: Rarity;
-        level: number;
-        maxHp: number;
-        attack: number;
-        defense: number;
-        speed: number;
-    };
-}
-
-const RARITY_CONFIG: Record<Rarity, { label: string; color: string; glow: string; border: string; particle: string }> =
-    {
-        COMMON: {
-            label: "COMÚN",
-            color: "text-gray-300",
-            glow: "shadow-[0_0_30px_rgba(156,163,175,0.4)]",
-            border: "border-gray-500",
-            particle: "#9ca3af",
-        },
-        RARE: {
-            label: "RARA",
-            color: "text-blue-400",
-            glow: "shadow-[0_0_40px_rgba(76,201,240,0.6)]",
-            border: "border-blue-400",
-            particle: "#4cc9f0",
-        },
-        ELITE: {
-            label: "ÉLITE",
-            color: "text-yellow",
-            glow: "shadow-[0_0_50px_rgba(255,214,10,0.7)]",
-            border: "border-yellow",
-            particle: "#ffd60a",
-        },
-        LEGENDARY: {
-            label: "LEGENDARIA",
-            color: "text-red",
-            glow: "shadow-[0_0_70px_rgba(230,57,70,0.9)]",
-            border: "border-red",
-            particle: "#e63946",
-        },
-        MYTHIC: {
-            label: "MÍTICA",
-            color: "text-purple-400",
-            glow: "shadow-[0_0_80px_rgba(167,139,250,1)]",
-            border: "border-purple-400",
-            particle: "#a78bfa",
-        },
-    };
-
-const AFFINITY_COLORS: Record<string, string> = {
-    EMBER: "bg-orange-500/20 text-orange-400 border-orange-500/40",
-    TIDE: "bg-blue-500/20 text-blue-400 border-blue-500/40",
-    GROVE: "bg-green-500/20 text-green-400 border-green-500/40",
-    VOLT: "bg-yellow-400/20 text-yellow-300 border-yellow-400/40",
-    STONE: "bg-stone-500/20 text-stone-300 border-stone-500/40",
-    FROST: "bg-cyan-400/20 text-cyan-300 border-cyan-400/40",
-    VENOM: "bg-purple-600/20 text-purple-400 border-purple-600/40",
-    ASTRAL: "bg-indigo-500/20 text-indigo-300 border-indigo-500/40",
-    IRON: "bg-gray-400/20 text-gray-300 border-gray-400/40",
-    SHADE: "bg-gray-800/40 text-gray-400 border-gray-700/60",
+const RARITY_CONFIG: Record<string, {
+    label: string;
+    color: string;
+    glow: string;
+    bg: string;
+    border: string;
+    particles: number;
+    particleColor: string;
+}> = {
+    COMMON:    { label: "Común",     color: "text-slate-300",   glow: "#94a3b8", bg: "bg-slate-700/40",   border: "border-slate-500",   particles: 8,  particleColor: "#94a3b8" },
+    RARE:      { label: "Raro",      color: "text-sky-300",     glow: "#38bdf8", bg: "bg-sky-800/30",     border: "border-sky-500",     particles: 14, particleColor: "#38bdf8" },
+    ELITE:     { label: "Élite",     color: "text-violet-300",  glow: "#a78bfa", bg: "bg-violet-800/30",  border: "border-violet-400",  particles: 18, particleColor: "#a78bfa" },
+    LEGENDARY: { label: "Legendario",color: "text-yellow-300",  glow: "#fcd34d", bg: "bg-yellow-700/20",  border: "border-yellow-400",  particles: 24, particleColor: "#fcd34d" },
+    MYTHIC:    { label: "Mítico",    color: "text-pink-300",    glow: "#f472b6", bg: "bg-pink-800/20",    border: "border-pink-400",    particles: 30, particleColor: "#f472b6" },
 };
 
-type Phase = "idle" | "shaking" | "opening" | "revealed" | "empty";
-
-function delay(ms: number) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-}
+type OpenPhase = "idle" | "hover" | "shaking" | "opening" | "revealed";
 
 export default function FragmentPage() {
     const navigate = useNavigate();
-    const [fragmentCount, setFragmentCount] = useState<number | null>(null);
-    const [phase, setPhase] = useState<Phase>("idle");
-    const [result, setResult] = useState<FragmentResult | null>(null);
-    const [error, setError] = useState<string | null>(null);
-    const [particles, setParticles] = useState<{ id: number; x: number; y: number; angle: number; dist: number }[]>([]);
+    const [fragments, setFragments] = useState<number>(0);
+    const [phase, setPhase] = useState<OpenPhase>("idle");
+    const [creature, setCreature] = useState<any | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [particles, setParticles] = useState<{ x: number; y: number; delay: number; size: number }[]>([]);
 
     useEffect(() => {
-        loadFragmentCount();
+        api.inventory().then((items: any[]) => {
+            const frag = items.find((i: any) => i.type === "FRAGMENT" || i.itemType === "FRAGMENT");
+            setFragments(frag?.quantity ?? frag?.amount ?? 0);
+        }).catch(() => {});
     }, []);
 
-    async function loadFragmentCount() {
-        try {
-            const inv = await api.inventory();
-            const frag = (inv as any[]).find((i: any) => i.item === "FRAGMENT");
-            const count = frag?.quantity ?? 0;
-            setFragmentCount(count);
-            if (count === 0) setPhase("empty");
-        } catch {
-            setFragmentCount(0);
-            setPhase("empty");
-        }
-    }
-
     async function handleOpen() {
-        if (phase !== "idle" || fragmentCount === 0) return;
+        if (fragments <= 0 || loading || phase !== "idle") return;
+        setLoading(true);
+        setPhase("hover");
+
+        await sleep(200);
         setPhase("shaking");
-        await delay(700);
+        await sleep(900);
         setPhase("opening");
+        await sleep(600);
+
         try {
-            const data = (await api.forgeOpen()) as FragmentResult;
-            await delay(600);
-            setResult(data);
-            spawnParticles(data.rarity);
-            await delay(400);
+            const result = await api.forgeOpen();
+            setCreature(result);
+            setFragments((f) => Math.max(0, f - 1));
+
+            // Generar partículas
+            const cfg = RARITY_CONFIG[result.rarity ?? "COMMON"];
+            const pts = Array.from({ length: cfg.particles }, (_, i) => ({
+                x: 40 + Math.random() * 20,
+                y: 40 + Math.random() * 20,
+                delay: i * 40,
+                size: 4 + Math.random() * 8,
+            }));
+            setParticles(pts);
+
+            await sleep(300);
             setPhase("revealed");
-        } catch (err: any) {
-            setError(err?.message ?? "Error al abrir fragmento");
+        } catch (e: any) {
+            alert(e.message ?? "Error al abrir fragmento");
             setPhase("idle");
+        } finally {
+            setLoading(false);
         }
-    }
-
-    function spawnParticles(rarity: Rarity) {
-        const count = rarity === "LEGENDARY" ? 24 : rarity === "ELITE" ? 18 : 12;
-        const ps = Array.from({ length: count }, (_, i) => ({
-            id: i,
-            x: 50 + (Math.random() - 0.5) * 10,
-            y: 50 + (Math.random() - 0.5) * 10,
-            angle: (360 / count) * i + Math.random() * 20 - 10,
-            dist: 80 + Math.random() * 80,
-        }));
-        setParticles(ps);
-        setTimeout(() => setParticles([]), 1200);
-    }
-
-    function handleClose() {
-        navigate("/")
     }
 
     function handleOpenAnother() {
-        setResult(null);
-        setFragmentCount((c) => (c !== null ? c - 1 : 0));
-        setPhase(fragmentCount! > 1 ? "idle" : "empty");
+        setCreature(null);
+        setPhase("idle");
+        setParticles([]);
     }
 
-    const rarityConfig = result ? RARITY_CONFIG[result.rarity] : null;
+    function sleep(ms: number) { return new Promise<void>((r) => setTimeout(r, ms)); }
+
+    const cfg = creature ? (RARITY_CONFIG[creature.rarity ?? "COMMON"] ?? RARITY_CONFIG.COMMON) : null;
 
     return (
-        <div className="h-screen w-screen overflow-hidden bg-bg flex flex-col items-center justify-center relative select-none">
-            {/* Fondo hexagonal */}
-            <div
-                className="absolute inset-0 opacity-5"
-                style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='52' viewBox='0 0 60 52'%3E%3Cpolygon points='30,2 58,17 58,35 30,50 2,35 2,17' fill='none' stroke='%234cc9f0' stroke-width='1'/%3E%3C/svg%3E")`,
-                    backgroundSize: "60px 52px",
-                }}
-            />
+        <Layout sidebar={<TrainerSidebar />}>
+            <style>{`
+                @keyframes fragmentFloat {
+                    0%,100% { transform: translateY(0px) rotate(-2deg); }
+                    50%     { transform: translateY(-10px) rotate(2deg); }
+                }
+                @keyframes fragmentShake {
+                    0%,100% { transform: translateX(0) rotate(0deg); }
+                    15%     { transform: translateX(-8px) rotate(-4deg); }
+                    30%     { transform: translateX(8px) rotate(4deg); }
+                    45%     { transform: translateX(-6px) rotate(-3deg); }
+                    60%     { transform: translateX(6px) rotate(3deg); }
+                    75%     { transform: translateX(-3px) rotate(-1deg); }
+                    90%     { transform: translateX(3px) rotate(1deg); }
+                }
+                @keyframes fragmentOpen {
+                    0%   { transform: scale(1) rotate(0deg); opacity:1; }
+                    40%  { transform: scale(1.3) rotate(-10deg); opacity:0.9; filter: brightness(3); }
+                    70%  { transform: scale(1.8) rotate(15deg); opacity:0.6; filter: brightness(5); }
+                    100% { transform: scale(2.2) rotate(0deg); opacity:0; filter: brightness(8); }
+                }
+                @keyframes revealPop {
+                    0%   { opacity:0; transform: scale(0.4) translateY(20px); }
+                    60%  { opacity:1; transform: scale(1.08) translateY(-4px); }
+                    80%  { transform: scale(0.96) translateY(2px); }
+                    100% { opacity:1; transform: scale(1) translateY(0); }
+                }
+                @keyframes glowPulse {
+                    0%,100% { opacity:0.5; transform: scale(1); }
+                    50%     { opacity:1; transform: scale(1.08); }
+                }
+                @keyframes particle {
+                    0%   { opacity:1; transform: translate(0,0) scale(1); }
+                    100% { opacity:0; transform: translate(var(--tx), var(--ty)) scale(0.2); }
+                }
+                @keyframes statsSlide {
+                    from { opacity:0; transform: translateY(8px); }
+                    to   { opacity:1; transform: translateY(0); }
+                }
+                .anim-float   { animation: fragmentFloat 3s ease-in-out infinite; }
+                .anim-shake   { animation: fragmentShake 0.9s ease-in-out; }
+                .anim-open    { animation: fragmentOpen 0.8s cubic-bezier(0.4,0,1,1) forwards; }
+                .anim-reveal  { animation: revealPop 0.6s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+                .anim-glow    { animation: glowPulse 2s ease-in-out infinite; }
+                .anim-stats   { animation: statsSlide 0.4s ease-out both; }
+            `}</style>
 
-            {/* Header */}
-            <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-6 py-4 z-10">
-                <button
-                    onClick={handleClose}
-                    className="flex items-center gap-2 text-muted hover:text-white transition-colors text-sm font-medium"
-                >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                    Posada
-                </button>
-                <h1
-                    className="text-white font-bold tracking-widest text-sm uppercase"
-                    style={{ fontFamily: "'Rajdhani', sans-serif", letterSpacing: "0.2em" }}
-                >
-                    Fragmentos
-                </h1>
-                <div className="text-muted text-sm">
-                    {fragmentCount !== null && (
-                        <span className="flex items-center gap-1.5">
-                            <span className="text-blue text-base">◈</span>
-                            <span>{fragmentCount} disponibles</span>
-                        </span>
-                    )}
-                </div>
-            </div>
+            <div className="flex-1 flex flex-col items-center justify-center p-6 relative overflow-hidden">
 
-            {/* Error */}
-            {error && (
-                <div className="absolute top-16 left-1/2 -translate-x-1/2 bg-red/20 border border-red/40 text-red text-sm px-4 py-2 rounded-lg z-20">
-                    {error}
-                </div>
-            )}
+                {/* ── Estado idle / animación ── */}
+                {phase !== "revealed" && (
+                    <div className="flex flex-col items-center gap-8 w-full max-w-sm">
 
-            {/* Zona central */}
-            <div className="flex flex-col items-center gap-8 z-10">
-                {/* Sin fragmentos */}
-                {phase === "empty" && !result && (
-                    <div className="flex flex-col items-center gap-4 text-center">
-                        <div className="text-6xl opacity-30">◈</div>
-                        <p className="text-muted text-lg">No tienes fragmentos</p>
-                        <p className="text-muted/60 text-sm max-w-xs">
-                            Recoge la Forja de Fragmentos en tu Posada cada 6 horas para conseguir más.
-                        </p>
-                        <button
-                            onClick={handleClose}
-                            className="mt-4 px-6 py-2 border border-border text-muted hover:text-white hover:border-white/30 rounded-lg transition-colors text-sm"
-                        >
-                            Volver a la Posada
-                        </button>
-                    </div>
-                )}
+                        {/* Fragmento grande animado */}
+                        <div className="relative flex items-center justify-center h-52 w-52">
+                            {/* Halo */}
+                            <div className="absolute inset-0 rounded-full opacity-20"
+                                style={{ background: "radial-gradient(circle, #818cf8 0%, transparent 70%)" }} />
 
-                {/* Idle / Shaking */}
-                {(phase === "idle" || phase === "shaking") && !result && (
-                    <div className="flex flex-col items-center gap-10">
-                        <div
-                            className="relative cursor-pointer"
-                            onClick={handleOpen}
-                            style={{ animation: phase === "shaking" ? "shake 0.1s ease-in-out infinite" : undefined }}
-                        >
+                            {/* El fragmento */}
                             <div
-                                className="absolute inset-0 rounded-2xl blur-xl"
+                                className={`relative z-10 text-9xl select-none
+                                    ${phase === "idle" ? "anim-float" : ""}
+                                    ${phase === "hover" ? "anim-float" : ""}
+                                    ${phase === "shaking" ? "anim-shake" : ""}
+                                    ${phase === "opening" ? "anim-open" : ""}
+                                `}
                                 style={{
-                                    background: "radial-gradient(ellipse, rgba(76,201,240,0.25) 0%, transparent 70%)",
-                                    transform: "scale(1.4)",
-                                }}
-                            />
-                            <div
-                                className="relative w-48 h-64 rounded-2xl border border-blue/30 bg-card flex flex-col items-center justify-center gap-4 overflow-hidden"
-                                style={{
-                                    boxShadow:
-                                        phase === "shaking"
-                                            ? "0 0 40px rgba(76,201,240,0.5), inset 0 0 20px rgba(76,201,240,0.1)"
-                                            : "0 0 20px rgba(76,201,240,0.2), inset 0 0 10px rgba(76,201,240,0.05)",
-                                    transition: "box-shadow 0.3s",
-                                }}
-                            >
-                                <div
-                                    className="absolute inset-0 opacity-10"
-                                    style={{
-                                        background:
-                                            "repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(76,201,240,0.3) 8px, rgba(76,201,240,0.3) 9px)",
-                                    }}
-                                />
-                                <span className="text-6xl relative z-10">◈</span>
-                                <span
-                                    className="text-blue text-xs tracking-widest uppercase relative z-10 font-semibold"
-                                    style={{ fontFamily: "'Rajdhani', sans-serif" }}
-                                >
-                                    Fragmento
-                                </span>
+                                    filter: phase === "idle"
+                                        ? "drop-shadow(0 0 20px rgba(129,140,248,0.5))"
+                                        : phase === "shaking"
+                                            ? "drop-shadow(0 0 30px rgba(129,140,248,0.9)) brightness(1.3)"
+                                            : phase === "opening"
+                                                ? "drop-shadow(0 0 50px white) brightness(3)"
+                                                : "drop-shadow(0 0 20px rgba(129,140,248,0.5))",
+                                }}>
+                                ◈
                             </div>
                         </div>
 
-                        <button
-                            onClick={handleOpen}
-                            disabled={phase === "shaking"}
-                            className="px-10 py-3 rounded-xl font-bold tracking-wider text-sm uppercase transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                            style={{
-                                fontFamily: "'Rajdhani', sans-serif",
-                                background: "linear-gradient(135deg, #4cc9f0 0%, #7b2fff 100%)",
-                                boxShadow: phase === "shaking" ? "0 0 30px rgba(76,201,240,0.6)" : "none",
-                                letterSpacing: "0.15em",
-                            }}
-                        >
-                            {phase === "shaking" ? "Abriendo…" : "Abrir Fragmento"}
-                        </button>
+                        {/* Botones en fila */}
+                        <div className="flex items-center gap-4 w-full">
+                            {/* Botón Posada — izquierda */}
+                            <button onClick={() => navigate("/")}
+                                className="flex items-center gap-2 px-5 py-3 rounded-xl border border-slate-700 text-slate-400
+                                    font-mono text-sm tracking-widest uppercase hover:border-slate-500 hover:text-white
+                                    transition-all hover:scale-105">
+                                ← Posada
+                            </button>
+
+                            {/* Botón abrir — flex-1 para que ocupe el espacio */}
+                            <button
+                                onClick={handleOpen}
+                                disabled={fragments <= 0 || loading || phase !== "idle"}
+                                className={`flex-1 flex flex-col items-center py-3 rounded-xl font-mono font-black
+                                    text-sm tracking-widest uppercase transition-all
+                                    ${fragments > 0 && phase === "idle"
+                                        ? "bg-indigo-600 text-white hover:bg-indigo-500 hover:scale-105 shadow-lg shadow-indigo-900/60"
+                                        : "bg-slate-800 text-slate-600 cursor-not-allowed"}`}>
+                                <span>{loading ? "Abriendo..." : "◈ Abrir fragmento"}</span>
+                                <span className={`text-xs mt-0.5 font-normal
+                                    ${fragments > 0 ? "text-indigo-300" : "text-slate-600"}`}>
+                                    {fragments} disponible{fragments !== 1 ? "s" : ""}
+                                </span>
+                            </button>
+                        </div>
+
+                        {fragments === 0 && (
+                            <p className="text-slate-600 text-xs font-mono text-center -mt-4">
+                                Recoge más fragmentos en la Forja
+                            </p>
+                        )}
                     </div>
                 )}
 
-                {/* Opening — flip */}
-                {phase === "opening" && (
-                    <div
-                        className="w-48 h-64 rounded-2xl border border-blue/30 bg-card flex items-center justify-center"
-                        style={{
-                            animation: "cardFlip 1s ease-in-out forwards",
-                            boxShadow: "0 0 40px rgba(76,201,240,0.4)",
-                        }}
-                    >
-                        <span className="text-4xl animate-pulse">✦</span>
-                    </div>
-                )}
+                {/* ── Reveal ── */}
+                {phase === "revealed" && creature && cfg && (
+                    <div className="flex flex-col items-center gap-6 w-full max-w-md">
 
-                {/* Revealed */}
-                {phase === "revealed" && result && rarityConfig && (
-                    <div
-                        className="flex flex-col items-center gap-6"
-                        style={{ animation: "revealFade 0.5s ease-out forwards" }}
-                    >
                         {/* Partículas */}
                         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                            {particles.map((p) => (
-                                <div
-                                    key={p.id}
-                                    className="absolute w-2 h-2 rounded-full"
-                                    style={
-                                        {
-                                            left: `${p.x}%`,
-                                            top: `${p.y}%`,
-                                            backgroundColor: rarityConfig.particle,
-                                            boxShadow: `0 0 6px ${rarityConfig.particle}`,
-                                            animation: `particleBurst 1.2s ease-out forwards`,
-                                            animationDelay: `${p.id * 20}ms`,
-                                            "--angle": `${p.angle}deg`,
-                                            "--dist": `${p.dist}px`,
-                                        } as any
-                                    }
-                                />
+                            {particles.map((p, i) => (
+                                <div key={i} className="absolute rounded-full"
+                                    style={{
+                                        width: p.size, height: p.size,
+                                        left: `${p.x}%`, top: `${p.y}%`,
+                                        background: cfg.particleColor,
+                                        boxShadow: `0 0 ${p.size * 2}px ${cfg.particleColor}`,
+                                        animation: `particle 1.2s ease-out ${p.delay}ms forwards`,
+                                        ["--tx" as any]: `${(Math.random() - 0.5) * 200}px`,
+                                        ["--ty" as any]: `${(Math.random() - 0.5) * 200}px`,
+                                    }} />
                             ))}
                         </div>
 
-                        {/* Badge rareza */}
-                        <div
-                            className={`px-4 py-1 rounded-full border text-xs font-bold tracking-widest uppercase ${rarityConfig.color} ${rarityConfig.border}`}
-                            style={{
-                                fontFamily: "'Rajdhani', sans-serif",
-                                animation: "badgePop 0.4s cubic-bezier(0.34,1.56,0.64,1) 0.1s both",
-                            }}
-                        >
-                            {rarityConfig.label}
-                        </div>
+                        {/* Tarjeta del Myth revelado */}
+                        <div className="anim-reveal relative">
+                            {/* Halo de rareza */}
+                            <div className="absolute -inset-6 rounded-full anim-glow pointer-events-none"
+                                style={{ background: `radial-gradient(circle, ${cfg.glow}30 0%, transparent 70%)` }} />
 
-                        {/* Card criatura */}
-                        <div
-                            className={`relative w-52 h-72 rounded-2xl border-2 bg-card flex flex-col items-center justify-center gap-3 overflow-hidden ${rarityConfig.border} ${rarityConfig.glow}`}
-                            style={{ animation: "cardReveal 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.2s both" }}
-                        >
-                            <div
-                                className="absolute inset-0 opacity-10"
-                                style={{
-                                    background: `radial-gradient(ellipse at 50% 30%, ${rarityConfig.particle} 0%, transparent 70%)`,
-                                }}
-                            />
-                            <div className="relative z-10 text-7xl leading-none">{result.creature.art.front}</div>
-                            <p
-                                className="relative z-10 text-white font-bold text-lg text-center leading-tight"
-                                style={{ fontFamily: "'Rajdhani', sans-serif" }}
-                            >
-                                {result.creature.name}
-                            </p>
-                            <p className="relative z-10 text-muted text-xs">Nivel {result.creature.level}</p>
-                            <div className="relative z-10 flex gap-1.5 flex-wrap justify-center px-3">
-                                {result.creature.affinities.map((aff) => (
-                                    <span
-                                        key={aff}
-                                        className={`px-2 py-0.5 rounded border text-xs font-medium ${AFFINITY_COLORS[aff] ?? "bg-gray-700 text-gray-300 border-gray-600"}`}
-                                    >
-                                        {aff}
-                                    </span>
-                                ))}
+                            <div className={`relative z-10 flex flex-col items-center gap-3 p-6 rounded-2xl border-2
+                                ${cfg.bg} ${cfg.border}`}
+                                style={{ boxShadow: `0 0 40px ${cfg.glow}40, 0 0 80px ${cfg.glow}20` }}>
+
+                                {/* Arte del Myth — grande */}
+                                <div className="text-8xl" style={{ filter: `drop-shadow(0 0 16px ${cfg.glow})` }}>
+                                    {creature.art?.front ?? "❓"}
+                                </div>
+
+                                {/* Badge rareza */}
+                                <span className={`px-3 py-1 rounded-full text-xs font-mono font-black uppercase tracking-widest
+                                    ${cfg.color} border ${cfg.border}`}
+                                    style={{ boxShadow: `0 0 12px ${cfg.glow}60` }}>
+                                    {cfg.label}
+                                </span>
+
+                                <div className="text-center">
+                                    <p className={`font-mono font-black text-xl tracking-widest ${cfg.color}`}>
+                                        {creature.name}
+                                    </p>
+                                    <p className="text-slate-500 text-xs font-mono mt-1">#{creature.speciesId} · Nv.{creature.level ?? 5}</p>
+                                </div>
+
+                                {/* Affinities */}
+                                {creature.affinities?.length > 0 && (
+                                    <div className="flex gap-2">
+                                        {creature.affinities.map((a: string) => (
+                                            <span key={a} className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-slate-300 font-mono">
+                                                {a}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Stats */}
+                                <div className="anim-stats grid grid-cols-3 gap-3 mt-1 w-full" style={{ animationDelay: "200ms" }}>
+                                    {[
+                                        { label: "HP",  value: creature.hp ?? creature.maxHp },
+                                        { label: "ATK", value: creature.attack },
+                                        { label: "DEF", value: creature.defense },
+                                    ].map((s) => (
+                                        <div key={s.label} className="flex flex-col items-center gap-0.5">
+                                            <p className="text-slate-500 text-xs font-mono uppercase">{s.label}</p>
+                                            <p className={`font-mono font-black text-sm ${cfg.color}`}>{s.value ?? "—"}</p>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <p className="text-slate-500 text-xs font-mono italic text-center mt-1">
+                                    Guardado en el almacén
+                                </p>
                             </div>
                         </div>
 
-                        {/* Stats */}
-                        <div className="flex gap-4 text-xs text-muted">
-                            <span>
-                                HP <span className="text-white font-semibold">{result.creature.maxHp}</span>
-                            </span>
-                            <span>
-                                ATQ <span className="text-white font-semibold">{result.creature.attack}</span>
-                            </span>
-                            <span>
-                                DEF <span className="text-white font-semibold">{result.creature.defense}</span>
-                            </span>
-                            <span>
-                                VEL <span className="text-white font-semibold">{result.creature.speed}</span>
-                            </span>
-                        </div>
+                        {/* Botones post-reveal */}
+                        <div className="flex items-center gap-4 w-full anim-stats" style={{ animationDelay: "400ms" }}>
+                            <button onClick={() => navigate("/")}
+                                className="flex items-center gap-2 px-5 py-3 rounded-xl border border-slate-700 text-slate-400
+                                    font-mono text-sm tracking-widest uppercase hover:border-slate-500 hover:text-white
+                                    transition-all hover:scale-105">
+                                ← Posada
+                            </button>
 
-                        <p className="text-muted/70 text-xs text-center">Enviado al almacén automáticamente</p>
-
-                        {/* Botones */}
-                        <div className="flex gap-3 mt-1">
-                            {fragmentCount !== null && fragmentCount > 1 && (
-                                <button
-                                    onClick={handleOpenAnother}
-                                    className="px-5 py-2 rounded-xl text-sm font-semibold border border-blue/40 text-blue hover:bg-blue/10 transition-colors"
-                                    style={{ fontFamily: "'Rajdhani', sans-serif" }}
-                                >
-                                    Abrir otro ({fragmentCount - 1} restantes)
-                                </button>
-                            )}
-                            <button
-                                onClick={handleClose}
-                                className="px-6 py-2 rounded-xl text-sm font-bold text-white transition-all"
-                                style={{
-                                    fontFamily: "'Rajdhani', sans-serif",
-                                    background: "linear-gradient(135deg, #4cc9f0 0%, #7b2fff 100%)",
-                                }}
-                            >
-                                Ir a la Posada
+                            <button onClick={handleOpenAnother} disabled={fragments <= 0}
+                                className={`flex-1 flex flex-col items-center py-3 rounded-xl font-mono font-black
+                                    text-sm tracking-widest uppercase transition-all
+                                    ${fragments > 0
+                                        ? "bg-indigo-600 text-white hover:bg-indigo-500 hover:scale-105 shadow-lg shadow-indigo-900/60"
+                                        : "bg-slate-800 text-slate-600 cursor-not-allowed"}`}>
+                                <span>◈ Abrir otro</span>
+                                <span className={`text-xs mt-0.5 font-normal ${fragments > 0 ? "text-indigo-300" : "text-slate-600"}`}>
+                                    {fragments} disponible{fragments !== 1 ? "s" : ""}
+                                </span>
                             </button>
                         </div>
                     </div>
                 )}
             </div>
-
-            <style>{`
-        @keyframes shake {
-          0%, 100% { transform: translateX(0) rotate(0deg); }
-          20% { transform: translateX(-4px) rotate(-1.5deg); }
-          40% { transform: translateX(4px) rotate(1.5deg); }
-          60% { transform: translateX(-3px) rotate(-1deg); }
-          80% { transform: translateX(3px) rotate(1deg); }
-        }
-        @keyframes cardFlip {
-          0%   { transform: rotateY(0deg) scale(1); }
-          50%  { transform: rotateY(90deg) scale(1.05); filter: brightness(2); }
-          100% { transform: rotateY(0deg) scale(1); }
-        }
-        @keyframes revealFade {
-          from { opacity: 0; transform: translateY(10px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes cardReveal {
-          from { opacity: 0; transform: scale(0.7) translateY(20px); }
-          to   { opacity: 1; transform: scale(1) translateY(0); }
-        }
-        @keyframes badgePop {
-          from { opacity: 0; transform: scale(0.5); }
-          to   { opacity: 1; transform: scale(1); }
-        }
-        @keyframes particleBurst {
-          0%   { opacity: 1; transform: translate(0, 0) scale(1); }
-          100% {
-            opacity: 0;
-            transform: translate(
-              calc(cos(var(--angle)) * var(--dist)),
-              calc(sin(var(--angle)) * var(--dist))
-            ) scale(0);
-          }
-        }
-      `}</style>
-        </div>
+        </Layout>
     );
 }

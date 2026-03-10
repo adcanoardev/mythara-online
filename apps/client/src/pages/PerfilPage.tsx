@@ -98,7 +98,11 @@ export default function PerfilPage() {
     const [stats, setStats] = useState<any>(null);
 
     useEffect(() => {
-        Promise.all([api.trainer(), api.party(), api.battleStats()]).then(([t, p, s]) => {
+        Promise.all([
+            api.trainer(),
+            api.party(),
+            api.battleStats().catch(() => null), // ← no rompe si falla
+        ]).then(([t, p, s]) => {
             setTrainer(t);
             setParty(p);
             setStats(s);
@@ -108,9 +112,9 @@ export default function PerfilPage() {
     const xpForLevel = (lvl: number) => Math.floor(100 * Math.pow(lvl, 1.8));
     const xpPct = trainer ? Math.min(100, Math.round((trainer.xp / xpForLevel(trainer.level)) * 100)) : 0;
     const rankIdx = trainer ? RANK_THRESHOLDS.filter((t) => trainer.prestige >= t).length - 1 : 0;
-    const totalCombats = (stats?.npcWins ?? 0) + (stats?.npcLosses ?? 0);
-    const winRate = totalCombats > 0 ? Math.round(((stats?.npcWins ?? 0) / totalCombats) * 100) : 0;
-    const totalByRarity = stats
+    const totalCombats = (stats?.wins ?? 0) + (stats?.losses ?? 0);
+    const winRate = totalCombats > 0 ? Math.round(((stats?.wins ?? 0) / totalCombats) * 100) : 0;
+    const totalByRarity = stats?.byRarity
         ? Object.values(stats.byRarity as Record<string, number>).reduce((a: number, b: number) => a + b, 0)
         : 0;
 
@@ -183,7 +187,7 @@ export default function PerfilPage() {
                             <div className="text-xs text-muted">Emblemas</div>
                         </div>
                         <div>
-                            <div className="font-display font-bold text-xl text-green">{stats?.totalMyths ?? 0}</div>
+                            <div className="font-display font-bold text-xl text-green">{party.length}</div>
                             <div className="text-xs text-muted">Myths</div>
                         </div>
                     </div>
@@ -242,14 +246,14 @@ export default function PerfilPage() {
                         </div>
                         <div className="grid grid-cols-2 gap-x-6">
                             <div>
-                                <StatRow label="Victorias NPC" value={stats?.npcWins ?? 0} color="#06d6a0" />
-                                <StatRow label="Derrotas NPC" value={stats?.npcLosses ?? 0} color="#e63946" />
+                                <StatRow label="Victorias NPC" value={stats?.wins ?? 0} color="#06d6a0" />
+                                <StatRow label="Derrotas NPC" value={stats?.losses ?? 0} color="#e63946" />
                                 <StatRow label="Tasa de victoria" value={`${winRate}%`} color="#4cc9f0" />
                             </div>
                             <div>
-                                <StatRow label="Victorias PvP" value={stats?.pvpWins ?? 0} color="#06d6a0" />
-                                <StatRow label="Derrotas PvP" value={stats?.pvpLosses ?? 0} color="#e63946" />
-                                <StatRow label="Myths capturados" value={stats?.captured ?? 0} color="#ffd60a" />
+                                <StatRow label="Victorias PvP" value={0} color="#06d6a0" />
+                                <StatRow label="Derrotas PvP" value={0} color="#e63946" />
+                                <StatRow label="Myths capturados" value={stats?.captures ?? 0} color="#ffd60a" />
                             </div>
                         </div>
                         {/* Barra win rate */}

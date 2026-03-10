@@ -3,456 +3,714 @@
         "id": "001",
         "slug": "cindor",
         "name": "Cindor",
-        "affinities": ["EMBER"],
+        "affinities": [
+            "EMBER"
+        ],
         "rarity": "COMMON",
         "description": "Pequeña bestia ígnea cuyo corazón arde como una brasa eterna nacida de las forjas volcánicas de Mythara.",
-        "baseStats": { "hp": 60, "atk": 70, "def": 40, "spd": 40 },
+        "baseStats": {
+            "hp": 87,
+            "atk": 80,
+            "def": 70,
+            "spd": 63
+        },
         "catchRate": 0.6,
-        "evolution": { "evolvesTo": "002", "method": "LEVEL", "value": 16 },
-        "art": { "portrait": "🔥", "front": "🔥", "back": "🔥" },
+        "evolution": {
+            "evolvesTo": "002",
+            "method": "LEVEL",
+            "value": 16
+        },
+        "art": {
+            "portrait": "🔥",
+            "front": "🔥",
+            "back": "🔥"
+        },
         "moves": [
             {
-                "id": "ember_scratch",
-                "name": "Zarpazo Ígneo",
-                "affinity": "EMBER",
-                "power": 40,
-                "accuracy": 0.95,
-                "description": "Un zarpazo rápido que deja brasas en la herida."
-            },
-            {
                 "id": "ember_spark",
-                "name": "Chispa Viva",
-                "affinity": "EMBER",
-                "power": 50,
-                "accuracy": 0.9,
-                "description": "Lanza una chispa concentrada de fuego puro."
-            },
-            {
-                "id": "ember_bite",
-                "name": "Mordisco Ardiente",
+                "name": "Ascuazo Ígneo",
                 "affinity": "EMBER",
                 "power": 60,
-                "accuracy": 0.85,
-                "description": "Muerde al rival dejando llamas en la herida."
+                "accuracy": 95,
+                "description": "Golpea al rival con una llamarada feroz de calor abrasador.",
+                "effect": null
             },
             {
                 "id": "ember_burst",
-                "name": "Explosión de Brasas",
+                "name": "Colmillo de Fuego",
                 "affinity": "EMBER",
-                "power": 80,
-                "accuracy": 0.75,
-                "description": "Libera una explosión de brasas acumuladas."
+                "power": 78,
+                "accuracy": 88,
+                "description": "Desata un impacto ígneo que calcina todo a su paso.",
+                "effect": null
+            },
+            {
+                "id": "ember_flare",
+                "name": "Brasa Maldita",
+                "affinity": "EMBER",
+                "power": 0,
+                "accuracy": 100,
+                "description": "Aviva sus llamas internas para dejar al rival ardiendo.",
+                "effect": {
+                    "type": "burn",
+                    "value": 2,
+                    "target": "enemy"
+                }
+            },
+            {
+                "id": "ember_inferno",
+                "name": "Zarpazo de Ceniza",
+                "affinity": "EMBER",
+                "power": 50,
+                "accuracy": 90,
+                "description": "Una llamarada voraz hiere al enemigo y lo deja envuelto en brasas.",
+                "effect": {
+                    "type": "burn",
+                    "value": 1,
+                    "target": "enemy"
+                }
             }
         ]
     },
     {
         "id": "002",
-        "slug": "blazra",
-        "name": "Blazra",
-        "affinities": ["EMBER"],
+        "slug": "pyronox",
+        "name": "Pyronox",
+        "affinities": [
+            "EMBER"
+        ],
         "rarity": "RARE",
-        "description": "Sus placas ardientes canalizan fuego vivo que ruge cada vez que entra en combate.",
-        "baseStats": { "hp": 80, "atk": 100, "def": 55, "spd": 55 },
-        "catchRate": 0.2,
-        "evolution": { "evolvesTo": "003", "method": "LEVEL", "value": 36 },
-        "art": { "portrait": "🔥", "front": "🔥", "back": "🔥" },
+        "description": "Depredador volcánico que exhala cenizas tóxicas y llamas capaces de fundir roca en segundos.",
+        "baseStats": {
+            "hp": 99,
+            "atk": 94,
+            "def": 81,
+            "spd": 76
+        },
+        "catchRate": 0.25,
+        "evolution": {
+            "evolvesTo": "003",
+            "method": "LEVEL",
+            "value": 36
+        },
+        "art": {
+            "portrait": "🔥",
+            "front": "🔥",
+            "back": "🔥"
+        },
         "moves": [
             {
-                "id": "ember_slash",
-                "name": "Tajo Flamígero",
+                "id": "ember_blaze",
+                "name": "Ala Incandescente",
                 "affinity": "EMBER",
-                "power": 55,
-                "accuracy": 0.95,
-                "description": "Un tajo veloz envuelto en llamas vivas."
+                "power": 72,
+                "accuracy": 92,
+                "description": "Golpea al rival con una llamarada feroz de calor abrasador.",
+                "effect": null
+            },
+            {
+                "id": "ember_roar",
+                "name": "Mordisco de Horno",
+                "affinity": "EMBER",
+                "power": 92,
+                "accuracy": 84,
+                "description": "Desata un impacto ígneo que calcina todo a su paso.",
+                "effect": null
             },
             {
                 "id": "ember_wave",
-                "name": "Ola de Fuego",
+                "name": "Garra de Brasa",
                 "affinity": "EMBER",
-                "power": 70,
-                "accuracy": 0.88,
-                "description": "Proyecta una ola de fuego que abrasa al rival."
+                "power": 0,
+                "accuracy": 100,
+                "description": "Aviva sus llamas internas para dejar al rival ardiendo.",
+                "effect": {
+                    "type": "burn",
+                    "value": 2,
+                    "target": "enemy"
+                }
             },
             {
-                "id": "ember_crash",
-                "name": "Impacto Incandescente",
+                "id": "ember_cataclysm",
+                "name": "Erupción Breve",
                 "affinity": "EMBER",
-                "power": 85,
-                "accuracy": 0.82,
-                "description": "Embiste al rival con el cuerpo en llamas."
-            },
-            {
-                "id": "ember_inferno",
-                "name": "Infierno Concentrado",
-                "affinity": "EMBER",
-                "power": 100,
-                "accuracy": 0.72,
-                "description": "Concentra todo el calor interno en un único ataque devastador."
+                "power": 58,
+                "accuracy": 86,
+                "description": "Una llamarada voraz hiere al enemigo y lo deja envuelto en brasas.",
+                "effect": {
+                    "type": "burn",
+                    "value": 1,
+                    "target": "enemy"
+                }
             }
         ]
     },
     {
         "id": "003",
-        "slug": "volkrad",
-        "name": "Volkrad",
-        "affinities": ["EMBER"],
-        "rarity": "ELITE",
-        "description": "Un titán de magma viviente cuya furia incendia el campo de batalla con cada embestida.",
-        "baseStats": { "hp": 105, "atk": 135, "def": 65, "spd": 65 },
+        "slug": "vulcarion",
+        "name": "Vulcarion",
+        "affinities": [
+            "EMBER"
+        ],
+        "rarity": "EPIC",
+        "description": "Señor de las forjas de Mythara, un titán envuelto en magma vivo y placas de obsidiana ardiente.",
+        "baseStats": {
+            "hp": 115,
+            "atk": 110,
+            "def": 93,
+            "spd": 82
+        },
         "catchRate": 0.05,
-        "art": { "portrait": "🔥", "front": "🔥", "back": "🔥" },
+        "art": {
+            "portrait": "🔥",
+            "front": "🔥",
+            "back": "🔥"
+        },
         "moves": [
             {
                 "id": "ember_crush",
-                "name": "Aplastamiento Volcánico",
+                "name": "Llama Voraz",
                 "affinity": "EMBER",
-                "power": 70,
-                "accuracy": 0.95,
-                "description": "Aplasta al rival con la fuerza de un volcán."
+                "power": 84,
+                "accuracy": 90,
+                "description": "Golpea al rival con una llamarada feroz de calor abrasador.",
+                "effect": null
             },
             {
-                "id": "ember_pillar",
-                "name": "Pilar de Magma",
+                "id": "ember_ruin",
+                "name": "Pira Reforzada",
                 "affinity": "EMBER",
-                "power": 90,
-                "accuracy": 0.85,
-                "description": "Invoca un pilar de magma bajo los pies del rival."
+                "power": 108,
+                "accuracy": 82,
+                "description": "Desata un impacto ígneo que calcina todo a su paso.",
+                "effect": null
             },
             {
-                "id": "ember_roar",
-                "name": "Rugido Ígneo",
+                "id": "ember_magma",
+                "name": "Erupción de Ceniza",
                 "affinity": "EMBER",
-                "power": 100,
-                "accuracy": 0.8,
-                "description": "Un rugido que expulsa fuego a máxima presión."
+                "power": 0,
+                "accuracy": 100,
+                "description": "Aviva sus llamas internas para dejar al rival ardiendo.",
+                "effect": {
+                    "type": "burn",
+                    "value": 2,
+                    "target": "enemy"
+                }
             },
             {
-                "id": "ember_cataclysm",
-                "name": "Cataclismo de Fuego",
+                "id": "ember_apocalypse",
+                "name": "Impacto Calcinante",
                 "affinity": "EMBER",
-                "power": 120,
-                "accuracy": 0.7,
-                "description": "El ataque definitivo. Una erupción controlada que arrasa el campo."
+                "power": 66,
+                "accuracy": 84,
+                "description": "Una llamarada voraz hiere al enemigo y lo deja envuelto en brasas.",
+                "effect": {
+                    "type": "burn",
+                    "value": 1,
+                    "target": "enemy"
+                }
             }
         ]
     },
     {
         "id": "004",
-        "slug": "neril",
-        "name": "Neril",
-        "affinities": ["TIDE"],
+        "slug": "aquaffin",
+        "name": "Aquaffin",
+        "affinities": [
+            "TIDE"
+        ],
         "rarity": "COMMON",
-        "description": "Criatura nacida en corrientes profundas capaz de moldear el agua a su alrededor.",
-        "baseStats": { "hp": 70, "atk": 50, "def": 60, "spd": 30 },
-        "catchRate": 0.6,
-        "evolution": { "evolvesTo": "005", "method": "LEVEL", "value": 16 },
-        "art": { "portrait": "💧", "front": "💧", "back": "💧" },
+        "description": "Criatura acuática juguetona capaz de manipular pequeñas corrientes y salpicar con fuerza sorprendente.",
+        "baseStats": {
+            "hp": 83,
+            "atk": 65,
+            "def": 78,
+            "spd": 74
+        },
+        "catchRate": 0.65,
+        "evolution": {
+            "evolvesTo": "005",
+            "method": "LEVEL",
+            "value": 18
+        },
+        "art": {
+            "portrait": "💧",
+            "front": "💧",
+            "back": "💧"
+        },
         "moves": [
             {
                 "id": "tide_splash",
-                "name": "Salpicadura Cortante",
-                "affinity": "TIDE",
-                "power": 40,
-                "accuracy": 0.95,
-                "description": "Lanza agua a presión que corta como cuchillas."
-            },
-            {
-                "id": "tide_push",
-                "name": "Empuje de Corriente",
-                "affinity": "TIDE",
-                "power": 50,
-                "accuracy": 0.9,
-                "description": "Genera una corriente que golpea y desestabiliza."
-            },
-            {
-                "id": "tide_bubble",
-                "name": "Burbuja de Presión",
+                "name": "Latigazo Marino",
                 "affinity": "TIDE",
                 "power": 60,
-                "accuracy": 0.85,
-                "description": "Atrapa al rival en una burbuja de agua que implosiona."
+                "accuracy": 95,
+                "description": "Azota al enemigo con una corriente cortante de agua comprimida.",
+                "effect": null
             },
             {
-                "id": "tide_surge",
-                "name": "Oleada Profunda",
+                "id": "tide_stream",
+                "name": "Remolino Profundo",
                 "affinity": "TIDE",
-                "power": 80,
-                "accuracy": 0.75,
-                "description": "Convoca una oleada de las profundidades que arrolla al rival."
+                "power": 78,
+                "accuracy": 88,
+                "description": "Invoca una marea violenta que golpea con presión marina.",
+                "effect": null
+            },
+            {
+                "id": "tide_flow",
+                "name": "Pulso de Corriente",
+                "affinity": "TIDE",
+                "power": 0,
+                "accuracy": 100,
+                "description": "Roba humedad vital y recupera fuerzas con el flujo del combate.",
+                "effect": {
+                    "type": "drain",
+                    "value": 18,
+                    "target": "enemy"
+                }
+            },
+            {
+                "id": "tide_torrent",
+                "name": "Marea Drenante",
+                "affinity": "TIDE",
+                "power": 50,
+                "accuracy": 90,
+                "description": "Un remolino drenante que hiere mientras absorbe vida del objetivo.",
+                "effect": {
+                    "type": "drain",
+                    "value": 22,
+                    "target": "enemy"
+                }
             }
         ]
     },
     {
         "id": "005",
-        "slug": "maruvo",
-        "name": "Maruvo",
-        "affinities": ["TIDE"],
+        "slug": "marivor",
+        "name": "Marivor",
+        "affinities": [
+            "TIDE"
+        ],
         "rarity": "RARE",
-        "description": "Sus placas acuáticas generan corrientes de presión que ralentizan a cualquier enemigo.",
-        "baseStats": { "hp": 90, "atk": 70, "def": 80, "spd": 50 },
-        "catchRate": 0.2,
-        "evolution": { "evolvesTo": "006", "method": "LEVEL", "value": 36 },
-        "art": { "portrait": "💧", "front": "💧", "back": "💧" },
+        "description": "Bestia marina que crea remolinos a su alrededor y usa la presión del agua como arma devastadora.",
+        "baseStats": {
+            "hp": 99,
+            "atk": 78,
+            "def": 87,
+            "spd": 86
+        },
+        "catchRate": 0.22,
+        "evolution": {
+            "evolvesTo": "006",
+            "method": "LEVEL",
+            "value": 34
+        },
+        "art": {
+            "portrait": "💧",
+            "front": "💧",
+            "back": "💧"
+        },
         "moves": [
             {
-                "id": "tide_strike",
-                "name": "Golpe de Marea",
+                "id": "tide_slash",
+                "name": "Corte de Marea",
                 "affinity": "TIDE",
-                "power": 55,
-                "accuracy": 0.95,
-                "description": "Un golpe cargado con la fuerza de las mareas."
+                "power": 72,
+                "accuracy": 92,
+                "description": "Azota al enemigo con una corriente cortante de agua comprimida.",
+                "effect": null
             },
             {
-                "id": "tide_vortex",
-                "name": "Vórtice Acuático",
+                "id": "tide_maw",
+                "name": "Chorro Abisal",
                 "affinity": "TIDE",
-                "power": 70,
-                "accuracy": 0.88,
-                "description": "Crea un vórtice que arrastra y daña al rival."
+                "power": 92,
+                "accuracy": 84,
+                "description": "Invoca una marea violenta que golpea con presión marina.",
+                "effect": null
             },
             {
-                "id": "tide_crash",
-                "name": "Choque de Olas",
+                "id": "tide_barrier",
+                "name": "Flujo Sereno",
                 "affinity": "TIDE",
-                "power": 85,
-                "accuracy": 0.82,
-                "description": "Se lanza como una ola gigante sobre el enemigo."
+                "power": 0,
+                "accuracy": 100,
+                "description": "Roba humedad vital y recupera fuerzas con el flujo del combate.",
+                "effect": {
+                    "type": "drain",
+                    "value": 18,
+                    "target": "enemy"
+                }
             },
             {
                 "id": "tide_abyss",
-                "name": "Abismo Marino",
+                "name": "Oleada Vampírica",
                 "affinity": "TIDE",
-                "power": 100,
-                "accuracy": 0.72,
-                "description": "Invoca las presiones del abismo oceánico sobre el rival."
+                "power": 58,
+                "accuracy": 86,
+                "description": "Un remolino drenante que hiere mientras absorbe vida del objetivo.",
+                "effect": {
+                    "type": "drain",
+                    "value": 22,
+                    "target": "enemy"
+                }
             }
         ]
     },
     {
         "id": "006",
-        "slug": "tyrvane",
-        "name": "Tyrvane",
-        "affinities": ["TIDE"],
-        "rarity": "ELITE",
-        "description": "Un leviatán peculiar de presión oceánica que domina las mareas del campo de batalla.",
-        "baseStats": { "hp": 120, "atk": 90, "def": 100, "spd": 60 },
-        "catchRate": 0.05,
-        "art": { "portrait": "💧", "front": "💧", "back": "💧" },
+        "slug": "leviandor",
+        "name": "Leviandor",
+        "affinities": [
+            "TIDE"
+        ],
+        "rarity": "EPIC",
+        "description": "Leviatán ancestral que reina sobre las mareas de Mythara, capaz de invocar tormentas oceánicas colosales.",
+        "baseStats": {
+            "hp": 120,
+            "atk": 87,
+            "def": 99,
+            "spd": 94
+        },
+        "catchRate": 0.04,
+        "art": {
+            "portrait": "💧",
+            "front": "💧",
+            "back": "💧"
+        },
         "moves": [
             {
-                "id": "tide_slam",
-                "name": "Slam Oceánico",
+                "id": "tide_rend",
+                "name": "Mandíbula Marina",
                 "affinity": "TIDE",
-                "power": 70,
-                "accuracy": 0.95,
-                "description": "Golpea con la fuerza bruta del océano."
+                "power": 84,
+                "accuracy": 90,
+                "description": "Azota al enemigo con una corriente cortante de agua comprimida.",
+                "effect": null
             },
             {
-                "id": "tide_torrent",
-                "name": "Torrente Salvaje",
+                "id": "tide_wrath",
+                "name": "Cataclismo de Marea",
                 "affinity": "TIDE",
-                "power": 90,
-                "accuracy": 0.85,
-                "description": "Desata un torrente incontrolable sobre el rival."
+                "power": 108,
+                "accuracy": 82,
+                "description": "Invoca una marea violenta que golpea con presión marina.",
+                "effect": null
             },
             {
-                "id": "tide_leviathan",
-                "name": "Furia del Leviatán",
+                "id": "tide_guardian",
+                "name": "Velo Oceánico",
                 "affinity": "TIDE",
-                "power": 100,
-                "accuracy": 0.8,
-                "description": "Canaliza la furia de los leviatanes abisales."
+                "power": 0,
+                "accuracy": 100,
+                "description": "Roba humedad vital y recupera fuerzas con el flujo del combate.",
+                "effect": {
+                    "type": "drain",
+                    "value": 18,
+                    "target": "enemy"
+                }
             },
             {
-                "id": "tide_maelstrom",
-                "name": "Maelstrom Eterno",
+                "id": "tide_deluge",
+                "name": "Fauces del Abismo",
                 "affinity": "TIDE",
-                "power": 120,
-                "accuracy": 0.7,
-                "description": "Un maelstrom que devora todo lo que toca."
+                "power": 66,
+                "accuracy": 84,
+                "description": "Un remolino drenante que hiere mientras absorbe vida del objetivo.",
+                "effect": {
+                    "type": "drain",
+                    "value": 22,
+                    "target": "enemy"
+                }
             }
         ]
     },
     {
         "id": "007",
-        "slug": "luro",
-        "name": "Luro",
-        "affinities": ["GROVE"],
+        "slug": "spriglit",
+        "name": "Spriglit",
+        "affinities": [
+            "GROVE"
+        ],
         "rarity": "COMMON",
-        "description": "Una criatura joven que brota de semillas antiguas impregnadas con la vida de Mythara.",
-        "baseStats": { "hp": 65, "atk": 45, "def": 60, "spd": 40 },
-        "catchRate": 0.6,
-        "evolution": { "evolvesTo": "008", "method": "LEVEL", "value": 16 },
-        "art": { "portrait": "🌿", "front": "🌿", "back": "🌿" },
+        "description": "Espíritu vegetal pequeño y curioso que florece con la luz del amanecer y cura la tierra a su paso.",
+        "baseStats": {
+            "hp": 88,
+            "atk": 64,
+            "def": 81,
+            "spd": 67
+        },
+        "catchRate": 0.65,
+        "evolution": {
+            "evolvesTo": "008",
+            "method": "LEVEL",
+            "value": 17
+        },
+        "art": {
+            "portrait": "🌿",
+            "front": "🌿",
+            "back": "🌿"
+        },
         "moves": [
             {
-                "id": "grove_thorn",
-                "name": "Espina Brotante",
-                "affinity": "GROVE",
-                "power": 40,
-                "accuracy": 0.95,
-                "description": "Lanza una espina afilada que brota del suelo."
-            },
-            {
-                "id": "grove_whip",
-                "name": "Latigazo de Liana",
-                "affinity": "GROVE",
-                "power": 50,
-                "accuracy": 0.9,
-                "description": "Azota al rival con una liana viviente."
-            },
-            {
-                "id": "grove_seed",
-                "name": "Semilla Explosiva",
+                "id": "grove_leaf",
+                "name": "Abrazo del Bosque",
                 "affinity": "GROVE",
                 "power": 60,
-                "accuracy": 0.85,
-                "description": "Lanza una semilla que explota al contacto."
+                "accuracy": 95,
+                "description": "Ataca con raíces y espinas endurecidas por la savia.",
+                "effect": null
             },
             {
-                "id": "grove_growth",
-                "name": "Crecimiento Salvaje",
+                "id": "grove_bloom",
+                "name": "Brote Vital",
                 "affinity": "GROVE",
-                "power": 80,
-                "accuracy": 0.75,
-                "description": "Invoca raíces que atrapan y aplastan al rival."
+                "power": 78,
+                "accuracy": 88,
+                "description": "Golpea con la furia del bosque y astillas afiladas.",
+                "effect": null
+            },
+            {
+                "id": "grove_mend",
+                "name": "Espina Salvaje",
+                "affinity": "GROVE",
+                "power": 0,
+                "accuracy": 100,
+                "description": "Canaliza savia vital para regenerar parte de su energía.",
+                "effect": {
+                    "type": "heal",
+                    "value": 25,
+                    "target": "self"
+                }
+            },
+            {
+                "id": "grove_thorn",
+                "name": "Látigo de Lianas",
+                "affinity": "GROVE",
+                "power": 50,
+                "accuracy": 90,
+                "description": "Libera toxinas vegetales que dañan y envenenan al enemigo.",
+                "effect": {
+                    "type": "poison",
+                    "value": 2,
+                    "target": "enemy"
+                }
             }
         ]
     },
     {
         "id": "008",
-        "slug": "verdan",
-        "name": "Verdan",
-        "affinities": ["GROVE"],
+        "slug": "florantis",
+        "name": "Florantis",
+        "affinities": [
+            "GROVE"
+        ],
         "rarity": "RARE",
-        "description": "Su cuerpo se cubre de corteza viva que regenera lentamente sus heridas.",
-        "baseStats": { "hp": 85, "atk": 65, "def": 85, "spd": 55 },
+        "description": "Guardián floral que manipula lianas, raíces y polen curativo para dominar el campo de batalla.",
+        "baseStats": {
+            "hp": 105,
+            "atk": 76,
+            "def": 94,
+            "spd": 75
+        },
         "catchRate": 0.2,
-        "evolution": { "evolvesTo": "009", "method": "LEVEL", "value": 36 },
-        "art": { "portrait": "🌿", "front": "🌿", "back": "🌿" },
+        "evolution": {
+            "evolvesTo": "009",
+            "method": "LEVEL",
+            "value": 35
+        },
+        "art": {
+            "portrait": "🌿",
+            "front": "🌿",
+            "back": "🌿"
+        },
         "moves": [
             {
-                "id": "grove_strike",
-                "name": "Golpe Arbóreo",
+                "id": "grove_vine",
+                "name": "Savia Sanadora",
                 "affinity": "GROVE",
-                "power": 55,
-                "accuracy": 0.95,
-                "description": "Un golpe con la fuerza de un árbol centenario."
+                "power": 72,
+                "accuracy": 92,
+                "description": "Ataca con raíces y espinas endurecidas por la savia.",
+                "effect": null
             },
             {
-                "id": "grove_entangle",
-                "name": "Enredadera Viva",
+                "id": "grove_spore",
+                "name": "Floración Venenosa",
                 "affinity": "GROVE",
-                "power": 70,
-                "accuracy": 0.88,
-                "description": "Enreda al rival con lianas que aprietan y dañan."
+                "power": 92,
+                "accuracy": 84,
+                "description": "Golpea con la furia del bosque y astillas afiladas.",
+                "effect": null
             },
             {
-                "id": "grove_barrage",
-                "name": "Lluvia de Espinas",
+                "id": "grove_heal",
+                "name": "Raíz Cruel",
                 "affinity": "GROVE",
-                "power": 85,
-                "accuracy": 0.82,
-                "description": "Dispara una lluvia de espinas desde su corteza."
+                "power": 0,
+                "accuracy": 100,
+                "description": "Canaliza savia vital para regenerar parte de su energía.",
+                "effect": {
+                    "type": "heal",
+                    "value": 25,
+                    "target": "self"
+                }
             },
             {
-                "id": "grove_ancient",
-                "name": "Furia Ancestral",
+                "id": "grove_wrath",
+                "name": "Rama Férrea",
                 "affinity": "GROVE",
-                "power": 100,
-                "accuracy": 0.72,
-                "description": "Canaliza la energía de los bosques primitivos de Mythara."
+                "power": 58,
+                "accuracy": 86,
+                "description": "Libera toxinas vegetales que dañan y envenenan al enemigo.",
+                "effect": {
+                    "type": "poison",
+                    "value": 2,
+                    "target": "enemy"
+                }
             }
         ]
     },
     {
         "id": "009",
-        "slug": "sylthora",
-        "name": "Sylthora",
-        "affinities": ["GROVE"],
-        "rarity": "ELITE",
-        "description": "Un guardián ancestral del bosque cuyo aliento despierta la vida dormida de la tierra.",
-        "baseStats": { "hp": 110, "atk": 85, "def": 110, "spd": 65 },
-        "catchRate": 0.05,
-        "art": { "portrait": "🌿", "front": "🌿", "back": "🌿" },
+        "slug": "eldergrove",
+        "name": "Eldergrove",
+        "affinities": [
+            "GROVE"
+        ],
+        "rarity": "EPIC",
+        "description": "Anciano coloso del bosque, cubierto de musgo y flores eternas, protector sagrado de la vida salvaje en Mythara.",
+        "baseStats": {
+            "hp": 132,
+            "atk": 83,
+            "def": 116,
+            "spd": 69
+        },
+        "catchRate": 0.03,
+        "art": {
+            "portrait": "🌿",
+            "front": "🌿",
+            "back": "🌿"
+        },
         "moves": [
             {
-                "id": "grove_crush",
-                "name": "Abrazo de Raíces",
+                "id": "grove_barrage",
+                "name": "Embate de Roble",
                 "affinity": "GROVE",
-                "power": 70,
-                "accuracy": 0.95,
-                "description": "Aplasta al rival con raíces que emergen del suelo."
+                "power": 84,
+                "accuracy": 90,
+                "description": "Ataca con raíces y espinas endurecidas por la savia.",
+                "effect": null
             },
             {
-                "id": "grove_bloom",
-                "name": "Floración Tóxica",
+                "id": "grove_surge",
+                "name": "Selva Voraz",
                 "affinity": "GROVE",
-                "power": 90,
-                "accuracy": 0.85,
-                "description": "Libera esporas que dañan al inhalarlas."
+                "power": 108,
+                "accuracy": 82,
+                "description": "Golpea con la furia del bosque y astillas afiladas.",
+                "effect": null
             },
             {
-                "id": "grove_warden",
-                "name": "Ira del Guardián",
+                "id": "grove_blessing",
+                "name": "Pulso Vital",
                 "affinity": "GROVE",
-                "power": 100,
-                "accuracy": 0.8,
-                "description": "La ira del bosque hecha ataque devastador."
+                "power": 0,
+                "accuracy": 100,
+                "description": "Canaliza savia vital para regenerar parte de su energía.",
+                "effect": {
+                    "type": "heal",
+                    "value": 25,
+                    "target": "self"
+                }
             },
             {
-                "id": "grove_verdant",
-                "name": "Apocalipsis Verde",
+                "id": "grove_cathedral",
+                "name": "Néctar Letal",
                 "affinity": "GROVE",
-                "power": 120,
-                "accuracy": 0.7,
-                "description": "El bosque entero responde a su llamada para destruir al rival."
+                "power": 66,
+                "accuracy": 84,
+                "description": "Libera toxinas vegetales que dañan y envenenan al enemigo.",
+                "effect": {
+                    "type": "poison",
+                    "value": 2,
+                    "target": "enemy"
+                }
             }
         ]
     },
     {
         "id": "010",
-        "slug": "zephyn",
-        "name": "Zephyn",
-        "affinities": ["VOLT"],
+        "slug": "voltusk",
+        "name": "Voltusk",
+        "affinities": [
+            "VOLT"
+        ],
         "rarity": "COMMON",
-        "description": "Pequeña criatura eléctrica que almacena descargas en sus membranas translúcidas durante las tormentas.",
-        "baseStats": { "hp": 55, "atk": 65, "def": 35, "spd": 60 },
-        "catchRate": 0.55,
-        "evolution": { "evolvesTo": "011", "method": "LEVEL", "value": 20 },
-        "art": { "portrait": "⚡", "front": "⚡", "back": "⚡" },
+        "description": "Pequeña bestia eléctrica con colmillos cargados de energía estática y reflejos extremadamente rápidos.",
+        "baseStats": {
+            "hp": 80,
+            "atk": 75,
+            "def": 68,
+            "spd": 77
+        },
+        "catchRate": 0.6,
+        "evolution": {
+            "evolvesTo": "011",
+            "method": "LEVEL",
+            "value": 19
+        },
+        "art": {
+            "portrait": "⚡",
+            "front": "⚡",
+            "back": "⚡"
+        },
         "moves": [
             {
-                "id": "volt_static",
-                "name": "Carga Estática",
+                "id": "volt_zap",
+                "name": "Chispa Brusca",
                 "affinity": "VOLT",
-                "power": 40,
-                "accuracy": 0.95,
-                "description": "Una descarga ligera que eriza el pelaje del enemigo."
+                "power": 60,
+                "accuracy": 95,
+                "description": "Descarga electricidad salvaje en un impacto súbito y violento.",
+                "effect": null
             },
             {
-                "id": "volt_spark",
-                "name": "Chispa Fugaz",
+                "id": "volt_pulse",
+                "name": "Colmillo Relámpago",
                 "affinity": "VOLT",
-                "power": 55,
-                "accuracy": 0.9,
-                "description": "Un pequeño arco eléctrico dirigido al rival."
+                "power": 78,
+                "accuracy": 88,
+                "description": "Lanza un rayo concentrado que atraviesa al enemigo.",
+                "effect": null
             },
             {
-                "id": "volt_jolt",
-                "name": "Sacudida Galvánica",
+                "id": "volt_charge",
+                "name": "Acelerón Eléctrico",
                 "affinity": "VOLT",
-                "power": 70,
-                "accuracy": 0.85,
-                "description": "Un latigazo de energía que recorre el sistema nervioso."
+                "power": 0,
+                "accuracy": 100,
+                "description": "Sobrecarga sus músculos y aumenta drásticamente su velocidad.",
+                "effect": {
+                    "type": "boost_spd",
+                    "value": 30,
+                    "target": "self"
+                }
             },
             {
-                "id": "volt_surge",
-                "name": "Sobrecarga de Membrana",
+                "id": "volt_storm",
+                "name": "Impacto Paralizante",
                 "affinity": "VOLT",
-                "power": 85,
-                "accuracy": 0.75,
-                "description": "Libera toda la energía acumulada en un estallido."
+                "power": 50,
+                "accuracy": 90,
+                "description": "Una descarga intensa hiere al objetivo y puede dejarlo aturdido.",
+                "effect": {
+                    "type": "stun",
+                    "value": 1,
+                    "target": "enemy"
+                }
             }
         ]
     },
@@ -460,44 +718,67 @@
         "id": "011",
         "slug": "tharvel",
         "name": "Tharvel",
-        "affinities": ["VOLT"],
+        "affinities": [
+            "VOLT"
+        ],
         "rarity": "RARE",
         "description": "Sus alas generan campos electromagnéticos que interfieren con cualquier energía cercana.",
-        "baseStats": { "hp": 75, "atk": 95, "def": 50, "spd": 90 },
+        "baseStats": {
+            "hp": 95,
+            "atk": 91,
+            "def": 76,
+            "spd": 88
+        },
         "catchRate": 0.2,
-        "art": { "portrait": "⚡", "front": "⚡", "back": "⚡" },
+        "art": {
+            "portrait": "⚡",
+            "front": "⚡",
+            "back": "⚡"
+        },
         "moves": [
             {
                 "id": "volt_shock",
-                "name": "Choque de Alas",
+                "name": "Corte Eléctrico",
                 "affinity": "VOLT",
-                "power": 55,
-                "accuracy": 0.95,
-                "description": "Golpea con alas cargadas de electromagnetismo."
+                "power": 72,
+                "accuracy": 92,
+                "description": "Descarga un arco eléctrico directo que sacude el cuerpo rival.",
+                "effect": null
             },
             {
                 "id": "volt_arc",
-                "name": "Arco Voltaico",
+                "name": "Arco Luminoso",
                 "affinity": "VOLT",
-                "power": 75,
-                "accuracy": 0.88,
-                "description": "Un puente eléctrico que quema al contacto."
+                "power": 92,
+                "accuracy": 84,
+                "description": "Un relámpago veloz atraviesa al enemigo con violencia.",
+                "effect": null
             },
             {
                 "id": "volt_magnetic",
-                "name": "Tormenta Magnética",
+                "name": "Sobrecarga Nerviosa",
                 "affinity": "VOLT",
-                "power": 95,
-                "accuracy": 0.8,
-                "description": "Genera un campo que distorsiona los sentidos del rival."
+                "power": 0,
+                "accuracy": 100,
+                "description": "Acelera sus impulsos nerviosos para moverse mucho más rápido.",
+                "effect": {
+                    "type": "boost_spd",
+                    "value": 30,
+                    "target": "self"
+                }
             },
             {
                 "id": "volt_thunder",
-                "name": "Juicio del Relámpago",
+                "name": "Paso Centella",
                 "affinity": "VOLT",
-                "power": 110,
-                "accuracy": 0.72,
-                "description": "Un poderoso rayo que cae directamente desde el cielo."
+                "power": 58,
+                "accuracy": 86,
+                "description": "Una descarga precisa que hiere y puede dejar al rival aturdido.",
+                "effect": {
+                    "type": "stun",
+                    "value": 1,
+                    "target": "enemy"
+                }
             }
         ]
     },
@@ -505,45 +786,72 @@
         "id": "012",
         "slug": "dureth",
         "name": "Dureth",
-        "affinities": ["STONE"],
+        "affinities": [
+            "STONE"
+        ],
         "rarity": "COMMON",
         "description": "Bestia pétrea de movimientos lentos cuya coraza absorbe golpes que romperían la roca más dura.",
-        "baseStats": { "hp": 80, "atk": 55, "def": 80, "spd": 20 },
+        "baseStats": {
+            "hp": 94,
+            "atk": 66,
+            "def": 91,
+            "spd": 49
+        },
         "catchRate": 0.55,
-        "evolution": { "evolvesTo": "013", "method": "LEVEL", "value": 28 },
-        "art": { "portrait": "🪨", "front": "🪨", "back": "🪨" },
+        "evolution": {
+            "evolvesTo": "013",
+            "method": "LEVEL",
+            "value": 28
+        },
+        "art": {
+            "portrait": "🪨",
+            "front": "🪨",
+            "back": "🪨"
+        },
         "moves": [
             {
                 "id": "stone_throw",
-                "name": "Lanzamiento Rápido",
+                "name": "Golpe de Granito",
                 "affinity": "STONE",
-                "power": 40,
-                "accuracy": 0.95,
-                "description": "Arroja una roca sólida contra el adversario."
+                "power": 60,
+                "accuracy": 95,
+                "description": "Aplasta con roca densa y una fuerza imposible de frenar.",
+                "effect": null
             },
             {
                 "id": "stone_bash",
-                "name": "Golpe Pétreo",
+                "name": "Carga Basáltica",
                 "affinity": "STONE",
-                "power": 55,
-                "accuracy": 0.9,
-                "description": "Embiste con su coraza dura como el granito."
+                "power": 78,
+                "accuracy": 88,
+                "description": "Sacude el terreno con un impacto pétreo devastador.",
+                "effect": null
             },
             {
                 "id": "stone_slide",
-                "name": "Deslizamiento Rocoso",
+                "name": "Muralla Mineral",
                 "affinity": "STONE",
-                "power": 75,
-                "accuracy": 0.85,
-                "description": "Provoca un pequeño alud de piedras afiladas."
+                "power": 0,
+                "accuracy": 100,
+                "description": "Endurece su cuerpo mineral para reforzar su defensa.",
+                "effect": {
+                    "type": "boost_def",
+                    "value": 35,
+                    "target": "self"
+                }
             },
             {
                 "id": "stone_quake",
-                "name": "Temblor Menor",
+                "name": "Aplastamiento Sísmico",
                 "affinity": "STONE",
-                "power": 90,
-                "accuracy": 0.75,
-                "description": "Sacude la tierra bajo los pies del oponente."
+                "power": 50,
+                "accuracy": 90,
+                "description": "Embiste con peso tectónico mientras refuerza su coraza.",
+                "effect": {
+                    "type": "boost_def",
+                    "value": 20,
+                    "target": "self"
+                }
             }
         ]
     },
@@ -551,44 +859,67 @@
         "id": "013",
         "slug": "petraxis",
         "name": "Petraxis",
-        "affinities": ["STONE"],
+        "affinities": [
+            "STONE"
+        ],
         "rarity": "ELITE",
         "description": "Una fortaleza viviente cuya coraza acumula siglos de presión tectónica lista para estallar en un solo golpe.",
-        "baseStats": { "hp": 130, "atk": 85, "def": 140, "spd": 20 },
+        "baseStats": {
+            "hp": 131,
+            "atk": 83,
+            "def": 136,
+            "spd": 50
+        },
         "catchRate": 0.05,
-        "art": { "portrait": "🪨", "front": "🪨", "back": "🪨" },
+        "art": {
+            "portrait": "🪨",
+            "front": "🪨",
+            "back": "🪨"
+        },
         "moves": [
             {
                 "id": "stone_crush",
-                "name": "Aplastamiento Severo",
+                "name": "Losa Brutal",
                 "affinity": "STONE",
-                "power": 60,
-                "accuracy": 0.95,
-                "description": "Aplica una tremenda presión física sobre el rival."
+                "power": 84,
+                "accuracy": 90,
+                "description": "Aplasta con roca densa y una fuerza imposible de frenar.",
+                "effect": null
             },
             {
                 "id": "stone_pillar",
                 "name": "Pilar Tectónico",
                 "affinity": "STONE",
-                "power": 85,
-                "accuracy": 0.88,
-                "description": "Hace emerger una aguja de roca desde el subsuelo."
+                "power": 108,
+                "accuracy": 82,
+                "description": "Sacude el terreno con un impacto pétreo devastador.",
+                "effect": null
             },
             {
                 "id": "stone_avalanche",
-                "name": "Avalancha Mortal",
+                "name": "Coraza de Roca",
                 "affinity": "STONE",
-                "power": 105,
-                "accuracy": 0.78,
-                "description": "Sepulta al enemigo bajo toneladas de escombros."
+                "power": 0,
+                "accuracy": 100,
+                "description": "Endurece su cuerpo mineral para reforzar su defensa.",
+                "effect": {
+                    "type": "boost_def",
+                    "value": 35,
+                    "target": "self"
+                }
             },
             {
                 "id": "stone_tectonic",
-                "name": "Furia Tectónica",
+                "name": "Rodada de Obsidiana",
                 "affinity": "STONE",
-                "power": 120,
-                "accuracy": 0.7,
-                "description": "Rompe la corteza terrestre liberando poder puro."
+                "power": 66,
+                "accuracy": 84,
+                "description": "Embiste con peso tectónico mientras refuerza su coraza.",
+                "effect": {
+                    "type": "boost_def",
+                    "value": 20,
+                    "target": "self"
+                }
             }
         ]
     },
@@ -596,45 +927,72 @@
         "id": "014",
         "slug": "caleth",
         "name": "Caleth",
-        "affinities": ["FROST"],
+        "affinities": [
+            "FROST"
+        ],
         "rarity": "COMMON",
         "description": "Criatura de las cumbres heladas que exhala escarcha y paraliza a sus presas con el aliento.",
-        "baseStats": { "hp": 60, "atk": 55, "def": 55, "spd": 45 },
+        "baseStats": {
+            "hp": 86,
+            "atk": 70,
+            "def": 80,
+            "spd": 64
+        },
         "catchRate": 0.55,
-        "evolution": { "evolvesTo": "015", "method": "LEVEL", "value": 22 },
-        "art": { "portrait": "❄️", "front": "❄️", "back": "❄️" },
+        "evolution": {
+            "evolvesTo": "015",
+            "method": "LEVEL",
+            "value": 22
+        },
+        "art": {
+            "portrait": "❄️",
+            "front": "❄️",
+            "back": "❄️"
+        },
         "moves": [
             {
                 "id": "frost_breath",
-                "name": "Aliento Helado",
+                "name": "Filo Glacial",
                 "affinity": "FROST",
-                "power": 40,
-                "accuracy": 0.95,
-                "description": "Exhala una brisa que baja la temperatura bruscamente."
+                "power": 60,
+                "accuracy": 95,
+                "description": "Corta con hielo afilado que entumece al contacto.",
+                "effect": null
             },
             {
                 "id": "frost_shard",
-                "name": "Fragmento de Hielo",
+                "name": "Ráfaga de Escarcha",
                 "affinity": "FROST",
-                "power": 55,
-                "accuracy": 0.9,
-                "description": "Dispara una lasca cortante de hielo puro."
+                "power": 78,
+                "accuracy": 88,
+                "description": "Desata una ventisca compacta de escarcha penetrante.",
+                "effect": null
             },
             {
                 "id": "frost_bite",
-                "name": "Mordisco Invernizo",
+                "name": "Pulso Invernal",
                 "affinity": "FROST",
-                "power": 70,
-                "accuracy": 0.85,
-                "description": "Muerde con colmillos recubiertos de escarcha."
+                "power": 0,
+                "accuracy": 100,
+                "description": "Congela el aire alrededor del rival y reduce su velocidad.",
+                "effect": {
+                    "type": "boost_spd",
+                    "value": -30,
+                    "target": "enemy"
+                }
             },
             {
                 "id": "frost_wind",
-                "name": "Viento Glacial",
+                "name": "Prisión de Hielo",
                 "affinity": "FROST",
-                "power": 85,
-                "accuracy": 0.75,
-                "description": "Invoca una ráfaga que congela hasta los huesos."
+                "power": 50,
+                "accuracy": 90,
+                "description": "Un golpe helado que daña mientras vuelve más lento al enemigo.",
+                "effect": {
+                    "type": "boost_spd",
+                    "value": -20,
+                    "target": "enemy"
+                }
             }
         ]
     },
@@ -642,45 +1000,72 @@
         "id": "015",
         "slug": "hivrel",
         "name": "Hivrel",
-        "affinities": ["FROST"],
+        "affinities": [
+            "FROST"
+        ],
         "rarity": "RARE",
         "description": "Bestia de hielo vivo que congela el aire a su alrededor en un radio de varios metros.",
-        "baseStats": { "hp": 85, "atk": 75, "def": 90, "spd": 50 },
+        "baseStats": {
+            "hp": 102,
+            "atk": 79,
+            "def": 103,
+            "spd": 66
+        },
         "catchRate": 0.2,
-        "evolution": { "evolvesTo": "016", "method": "LEVEL", "value": 40 },
-        "art": { "portrait": "❄️", "front": "❄️", "back": "❄️" },
+        "evolution": {
+            "evolvesTo": "016",
+            "method": "LEVEL",
+            "value": 40
+        },
+        "art": {
+            "portrait": "❄️",
+            "front": "❄️",
+            "back": "❄️"
+        },
         "moves": [
             {
                 "id": "frost_pulse",
-                "name": "Pulso Criogénico",
+                "name": "Mordida Gélida",
                 "affinity": "FROST",
-                "power": 55,
-                "accuracy": 0.95,
-                "description": "Onda expansiva que ralentiza el flujo sanguíneo."
+                "power": 72,
+                "accuracy": 92,
+                "description": "Corta con hielo afilado que entumece al contacto.",
+                "effect": null
             },
             {
                 "id": "frost_spikes",
-                "name": "Púas de Escarcha",
+                "name": "Púa de Ventisca",
                 "affinity": "FROST",
-                "power": 75,
-                "accuracy": 0.88,
-                "description": "Forma agujas de hielo que empalan al enemigo."
+                "power": 92,
+                "accuracy": 84,
+                "description": "Desata una ventisca compacta de escarcha penetrante.",
+                "effect": null
             },
             {
                 "id": "frost_storm",
-                "name": "Ventisca Cegadora",
+                "name": "Paso Helante",
                 "affinity": "FROST",
-                "power": 95,
-                "accuracy": 0.8,
-                "description": "Desata una tormenta de nieve concentrada."
+                "power": 0,
+                "accuracy": 100,
+                "description": "Congela el aire alrededor del rival y reduce su velocidad.",
+                "effect": {
+                    "type": "boost_spd",
+                    "value": -30,
+                    "target": "enemy"
+                }
             },
             {
                 "id": "frost_zero",
-                "name": "Cero Absoluto",
+                "name": "Velo de Escarcha",
                 "affinity": "FROST",
-                "power": 110,
-                "accuracy": 0.72,
-                "description": "Congela el aire mismo alrededor del objetivo."
+                "power": 58,
+                "accuracy": 86,
+                "description": "Un golpe helado que daña mientras vuelve más lento al enemigo.",
+                "effect": {
+                    "type": "boost_spd",
+                    "value": -20,
+                    "target": "enemy"
+                }
             }
         ]
     },
@@ -688,44 +1073,67 @@
         "id": "016",
         "slug": "borelith",
         "name": "Borelith",
-        "affinities": ["FROST"],
+        "affinities": [
+            "FROST"
+        ],
         "rarity": "ELITE",
         "description": "Un coloso de hielo eterno cuyo rugido genera ventiscas que congelan todo en kilómetros a la redonda.",
-        "baseStats": { "hp": 120, "atk": 100, "def": 120, "spd": 55 },
+        "baseStats": {
+            "hp": 123,
+            "atk": 90,
+            "def": 120,
+            "spd": 67
+        },
         "catchRate": 0.05,
-        "art": { "portrait": "❄️", "front": "❄️", "back": "❄️" },
+        "art": {
+            "portrait": "❄️",
+            "front": "❄️",
+            "back": "❄️"
+        },
         "moves": [
             {
                 "id": "frost_armor",
-                "name": "Embestida de Témpano",
+                "name": "Filo Glacial",
                 "affinity": "FROST",
-                "power": 70,
-                "accuracy": 0.95,
-                "description": "Impacta con el peso de un iceberg."
+                "power": 84,
+                "accuracy": 90,
+                "description": "Corta con hielo afilado que entumece al contacto.",
+                "effect": null
             },
             {
                 "id": "frost_prison",
-                "name": "Prisión Glacial",
+                "name": "Ráfaga de Escarcha",
                 "affinity": "FROST",
-                "power": 90,
-                "accuracy": 0.85,
-                "description": "Encierra al rival en un bloque sólido de hielo."
+                "power": 108,
+                "accuracy": 82,
+                "description": "Desata una ventisca compacta de escarcha penetrante.",
+                "effect": null
             },
             {
                 "id": "frost_glacier",
-                "name": "Impacto Glaciar",
+                "name": "Pulso Invernal",
                 "affinity": "FROST",
-                "power": 105,
-                "accuracy": 0.78,
-                "description": "Lanza una mole de hielo irrompible."
+                "power": 0,
+                "accuracy": 100,
+                "description": "Congela el aire alrededor del rival y reduce su velocidad.",
+                "effect": {
+                    "type": "boost_spd",
+                    "value": -30,
+                    "target": "enemy"
+                }
             },
             {
                 "id": "frost_extinction",
-                "name": "Extinción Invernizo",
+                "name": "Prisión de Hielo",
                 "affinity": "FROST",
-                "power": 120,
-                "accuracy": 0.7,
-                "description": "El frío primigenio que acaba con toda forma de vida."
+                "power": 66,
+                "accuracy": 84,
+                "description": "Un golpe helado que daña mientras vuelve más lento al enemigo.",
+                "effect": {
+                    "type": "boost_spd",
+                    "value": -20,
+                    "target": "enemy"
+                }
             }
         ]
     },
@@ -733,44 +1141,68 @@
         "id": "017",
         "slug": "rumath",
         "name": "Rumath",
-        "affinities": ["STONE", "EMBER"],
+        "affinities": [
+            "STONE",
+            "EMBER"
+        ],
         "rarity": "RARE",
         "description": "Nacido en la frontera entre volcanes y montañas, su cuerpo de lava solidificada lo hace impredecible en combate.",
-        "baseStats": { "hp": 90, "atk": 85, "def": 85, "spd": 35 },
+        "baseStats": {
+            "hp": 107,
+            "atk": 85,
+            "def": 100,
+            "spd": 58
+        },
         "catchRate": 0.2,
-        "art": { "portrait": "🪨", "front": "🪨", "back": "🪨" },
+        "art": {
+            "portrait": "🪨",
+            "front": "🪨",
+            "back": "🪨"
+        },
         "moves": [
             {
                 "id": "stone_pebble",
-                "name": "Guijarro Cortante",
+                "name": "Golpe de Granito",
                 "affinity": "STONE",
-                "power": 45,
-                "accuracy": 0.95,
-                "description": "Arroja piedras volcánicas a gran velocidad."
+                "power": 72,
+                "accuracy": 92,
+                "description": "Aplasta con roca densa y una fuerza imposible de frenar.",
+                "effect": null
             },
             {
                 "id": "stone_magma",
-                "name": "Roca Fundida",
+                "name": "Carga Basáltica",
                 "affinity": "STONE",
-                "power": 65,
-                "accuracy": 0.88,
-                "description": "Golpea con escombros bañados en magma."
+                "power": 92,
+                "accuracy": 84,
+                "description": "Sacude el terreno con un impacto pétreo devastador.",
+                "effect": null
             },
             {
                 "id": "stone_eruption",
-                "name": "Erupción de Grieta",
+                "name": "Muralla Mineral",
                 "affinity": "STONE",
-                "power": 85,
-                "accuracy": 0.8,
-                "description": "Abre la tierra dejando escapar presión volcánica."
+                "power": 0,
+                "accuracy": 100,
+                "description": "Endurece su cuerpo mineral para reforzar su defensa.",
+                "effect": {
+                    "type": "boost_def",
+                    "value": 35,
+                    "target": "self"
+                }
             },
             {
                 "id": "ember_core",
-                "name": "Núcleo Ardiente",
+                "name": "Pira Reforzada",
                 "affinity": "EMBER",
-                "power": 100,
-                "accuracy": 0.72,
-                "description": "Libera el fuego atrapado dentro de su coraza."
+                "power": 58,
+                "accuracy": 86,
+                "description": "Lanza fuego inestable que hiere y puede dejar una quemadura prolongada.",
+                "effect": {
+                    "type": "burn",
+                    "value": 2,
+                    "target": "enemy"
+                }
             }
         ]
     },
@@ -778,44 +1210,67 @@
         "id": "018",
         "slug": "pyrath",
         "name": "Pyrath",
-        "affinities": ["EMBER"],
+        "affinities": [
+            "EMBER"
+        ],
         "rarity": "COMMON",
         "description": "Pequeño roedor ígneo que habita cerca de volcanes y lanza chispas al sentirse amenazado.",
-        "baseStats": { "hp": 50, "atk": 60, "def": 35, "spd": 65 },
+        "baseStats": {
+            "hp": 80,
+            "atk": 75,
+            "def": 67,
+            "spd": 78
+        },
         "catchRate": 0.6,
-        "art": { "portrait": "🔥", "front": "🔥", "back": "🔥" },
+        "art": {
+            "portrait": "🔥",
+            "front": "🔥",
+            "back": "🔥"
+        },
         "moves": [
             {
                 "id": "ember_spark",
-                "name": "Chispa Menor",
+                "name": "Erupción de Ceniza",
                 "affinity": "EMBER",
-                "power": 40,
-                "accuracy": 0.95,
-                "description": "Lanza ascuas pequeñas que queman al tacto."
+                "power": 60,
+                "accuracy": 95,
+                "description": "Golpea al rival con una llamarada feroz de calor abrasador.",
+                "effect": null
             },
             {
                 "id": "ember_flame",
-                "name": "Llama Rápida",
+                "name": "Colmillo de Ascua",
                 "affinity": "EMBER",
-                "power": 55,
-                "accuracy": 0.9,
-                "description": "Una llamarada corta y directa."
+                "power": 78,
+                "accuracy": 88,
+                "description": "Desata un impacto ígneo que calcina todo a su paso.",
+                "effect": null
             },
             {
                 "id": "ember_dash",
-                "name": "Embestida Ígnea",
+                "name": "Tajo Calcinante",
                 "affinity": "EMBER",
-                "power": 70,
-                "accuracy": 0.85,
-                "description": "Corre envuelto en fuego hacia el objetivo."
+                "power": 0,
+                "accuracy": 100,
+                "description": "Aviva sus llamas internas para dejar al rival ardiendo.",
+                "effect": {
+                    "type": "burn",
+                    "value": 2,
+                    "target": "enemy"
+                }
             },
             {
                 "id": "ember_blast",
-                "name": "Ráfaga de Ceniza",
+                "name": "Furia de Magma",
                 "affinity": "EMBER",
-                "power": 85,
-                "accuracy": 0.75,
-                "description": "Expulsa una ola de calor y cenizas asfixiantes."
+                "power": 50,
+                "accuracy": 90,
+                "description": "Lanza fuego inestable que hiere y puede dejar una quemadura prolongada.",
+                "effect": {
+                    "type": "burn",
+                    "value": 2,
+                    "target": "enemy"
+                }
             }
         ]
     },
@@ -823,45 +1278,72 @@
         "id": "019",
         "slug": "toxavel",
         "name": "Toxavel",
-        "affinities": ["VENOM"],
+        "affinities": [
+            "VENOM"
+        ],
         "rarity": "COMMON",
         "description": "Pequeño depredador cuyas garras segregan un veneno que debilita lentamente a sus enemigos.",
-        "baseStats": { "hp": 55, "atk": 70, "def": 40, "spd": 55 },
+        "baseStats": {
+            "hp": 83,
+            "atk": 78,
+            "def": 69,
+            "spd": 70
+        },
         "catchRate": 0.55,
-        "evolution": { "evolvesTo": "020", "method": "LEVEL", "value": 18 },
-        "art": { "portrait": "☠️", "front": "☠️", "back": "☠️" },
+        "evolution": {
+            "evolvesTo": "020",
+            "method": "LEVEL",
+            "value": 18
+        },
+        "art": {
+            "portrait": "☠️",
+            "front": "☠️",
+            "back": "☠️"
+        },
         "moves": [
             {
                 "id": "venom_sting",
-                "name": "Picotazo Tóxico",
+                "name": "Púa Tóxica",
                 "affinity": "VENOM",
-                "power": 40,
-                "accuracy": 0.95,
-                "description": "Inyecta una dosis pequeña de veneno paralizante."
+                "power": 60,
+                "accuracy": 95,
+                "description": "Hiere con toxinas agresivas que corroen el cuerpo rival.",
+                "effect": null
             },
             {
                 "id": "venom_spit",
-                "name": "Saliva Corrosiva",
+                "name": "Mordida Venenosa",
                 "affinity": "VENOM",
-                "power": 55,
-                "accuracy": 0.9,
-                "description": "Escupe un líquido que corroe las defensas."
+                "power": 78,
+                "accuracy": 88,
+                "description": "Lanza un veneno concentrado que impacta con brutalidad.",
+                "effect": null
             },
             {
                 "id": "venom_claw",
-                "name": "Garra Infecta",
+                "name": "Nube Nociva",
                 "affinity": "VENOM",
-                "power": 70,
-                "accuracy": 0.85,
-                "description": "Araña profundamente introduciendo toxinas en la herida."
+                "power": 0,
+                "accuracy": 100,
+                "description": "Inocula un veneno persistente que daña durante varios turnos.",
+                "effect": {
+                    "type": "poison",
+                    "value": 3,
+                    "target": "enemy"
+                }
             },
             {
                 "id": "venom_fang",
-                "name": "Colmillo Letal",
+                "name": "Drenaje Corrosivo",
                 "affinity": "VENOM",
-                "power": 85,
-                "accuracy": 0.75,
-                "description": "Una mordida profunda con sus glándulas venenosas al máximo."
+                "power": 50,
+                "accuracy": 90,
+                "description": "Absorbe vitalidad a través de toxinas parasitarias mientras hiere.",
+                "effect": {
+                    "type": "drain",
+                    "value": 20,
+                    "target": "enemy"
+                }
             }
         ]
     },
@@ -869,903 +1351,1386 @@
         "id": "020",
         "slug": "morduvex",
         "name": "Morduvex",
-        "affinities": ["VENOM"],
+        "affinities": [
+            "VENOM"
+        ],
         "rarity": "RARE",
         "description": "Depredador de los pantanos cuya picadura disuelve la voluntad de combatir en minutos.",
-        "baseStats": { "hp": 80, "atk": 100, "def": 55, "spd": 75 },
+        "baseStats": {
+            "hp": 98,
+            "atk": 93,
+            "def": 79,
+            "spd": 80
+        },
         "catchRate": 0.2,
-        "evolution": { "evolvesTo": "021", "method": "LEVEL", "value": 38 },
-        "art": { "portrait": "☠️", "front": "☠️", "back": "☠️" },
+        "evolution": {
+            "evolvesTo": "021",
+            "method": "LEVEL",
+            "value": 38
+        },
+        "art": {
+            "portrait": "☠️",
+            "front": "☠️",
+            "back": "☠️"
+        },
         "moves": [
             {
                 "id": "venom_splash",
-                "name": "Salpicadura Ácida",
+                "name": "Garra Infecciosa",
                 "affinity": "VENOM",
-                "power": 55,
-                "accuracy": 0.95,
-                "description": "Arroja veneno diluido que quema la piel."
+                "power": 72,
+                "accuracy": 92,
+                "description": "Hiere con toxinas agresivas que corroen el cuerpo rival.",
+                "effect": null
             },
             {
                 "id": "venom_bite",
-                "name": "Mordida Purulenta",
+                "name": "Veneno Latente",
                 "affinity": "VENOM",
-                "power": 75,
-                "accuracy": 0.88,
-                "description": "Hunde sus dientes liberando una neurotoxina fuerte."
+                "power": 92,
+                "accuracy": 84,
+                "description": "Lanza un veneno concentrado que impacta con brutalidad.",
+                "effect": null
             },
             {
                 "id": "venom_cloud",
-                "name": "Nube Miasmática",
+                "name": "Saliva Ácida",
                 "affinity": "VENOM",
-                "power": 95,
-                "accuracy": 0.8,
-                "description": "Exhala un gas tóxico que asfixia al oponente."
+                "power": 0,
+                "accuracy": 100,
+                "description": "Inocula un veneno persistente que daña durante varios turnos.",
+                "effect": {
+                    "type": "poison",
+                    "value": 3,
+                    "target": "enemy"
+                }
             },
             {
                 "id": "venom_acid",
-                "name": "Ácido Disolvente",
+                "name": "Parásito Tóxico",
                 "affinity": "VENOM",
-                "power": 110,
-                "accuracy": 0.72,
-                "description": "Dispara un compuesto capaz de derretir roca."
+                "power": 58,
+                "accuracy": 86,
+                "description": "Absorbe vitalidad a través de toxinas parasitarias mientras hiere.",
+                "effect": {
+                    "type": "drain",
+                    "value": 20,
+                    "target": "enemy"
+                }
             }
         ]
     },
     {
         "id": "021",
-        "slug": "velgrath",
-        "name": "Velgrath",
-        "affinities": ["VENOM"],
+        "slug": "venoxis",
+        "name": "Venoxis",
+        "affinities": [
+            "VENOM"
+        ],
         "rarity": "ELITE",
-        "description": "Señor de los venenos cuya mera presencia pudre la vegetación a su alrededor. Temido en todo Mythara.",
-        "baseStats": { "hp": 110, "atk": 135, "def": 70, "spd": 90 },
+        "description": "Señor de los pantanos tóxicos cuya sangre es veneno puro.",
+        "baseStats": {
+            "hp": 121,
+            "atk": 104,
+            "def": 90,
+            "spd": 85
+        },
         "catchRate": 0.05,
-        "art": { "portrait": "☠️", "front": "☠️", "back": "☠️" },
+        "art": {
+            "portrait": "☠️",
+            "front": "☠️",
+            "back": "☠️"
+        },
         "moves": [
             {
-                "id": "venom_strike",
-                "name": "Golpe Ponzoñoso",
+                "id": "venom_spike",
+                "name": "Aguijón Corrosivo",
                 "affinity": "VENOM",
-                "power": 70,
-                "accuracy": 0.95,
-                "description": "Un ataque físico cargado de letalidad."
+                "power": 84,
+                "accuracy": 90,
+                "description": "Clava un aguijón lleno de toxina devastadora.",
+                "effect": null
+            },
+            {
+                "id": "venom_flood",
+                "name": "Oleada Venenosa",
+                "affinity": "VENOM",
+                "power": 108,
+                "accuracy": 82,
+                "description": "Una explosión tóxica arrasa con el enemigo.",
+                "effect": null
             },
             {
                 "id": "venom_miasma",
-                "name": "Miasma Pútrido",
+                "name": "Miasma Mortal",
                 "affinity": "VENOM",
-                "power": 90,
-                "accuracy": 0.85,
-                "description": "Envuelve la zona en un aura de enfermedad."
+                "power": 0,
+                "accuracy": 100,
+                "description": "Libera una nube que envenena lentamente al enemigo.",
+                "effect": {
+                    "type": "poison",
+                    "value": 3,
+                    "target": "enemy"
+                }
             },
             {
-                "id": "venom_plague",
-                "name": "Plaga de Mythara",
+                "id": "venom_drain",
+                "name": "Parásito Tóxico",
                 "affinity": "VENOM",
-                "power": 105,
-                "accuracy": 0.78,
-                "description": "Desata una maldición tóxica que pudre todo."
-            },
-            {
-                "id": "venom_blight",
-                "name": "Deterioro Final",
-                "affinity": "VENOM",
-                "power": 120,
-                "accuracy": 0.7,
-                "description": "Inyecta un veneno legendario sin antídoto conocido."
+                "power": 66,
+                "accuracy": 84,
+                "description": "Drena energía vital a través de toxinas vivas.",
+                "effect": {
+                    "type": "drain",
+                    "value": 22,
+                    "target": "enemy"
+                }
             }
         ]
     },
     {
         "id": "022",
-        "slug": "solvareth",
-        "name": "Solvareth",
-        "affinities": ["EMBER", "ASTRAL"],
-        "rarity": "ELITE",
-        "description": "Un ser de fuego estelar que desciende de las constelaciones de Mythara para consumir todo a su paso.",
-        "baseStats": { "hp": 105, "atk": 140, "def": 60, "spd": 100 },
-        "catchRate": 0.05,
-        "art": { "portrait": "🔥", "front": "🔥", "back": "🔥" },
+        "slug": "astryn",
+        "name": "Astryn",
+        "affinities": [
+            "ASTRAL"
+        ],
+        "rarity": "COMMON",
+        "description": "Pequeño espíritu estelar nacido del polvo cósmico.",
+        "baseStats": {
+            "hp": 78,
+            "atk": 73,
+            "def": 73,
+            "spd": 76
+        },
+        "catchRate": 0.6,
+        "evolution": {
+            "evolvesTo": "023",
+            "method": "LEVEL",
+            "value": 20
+        },
+        "art": {
+            "portrait": "✨",
+            "front": "✨",
+            "back": "✨"
+        },
         "moves": [
             {
-                "id": "ember_flare",
-                "name": "Destello de Fuego",
-                "affinity": "EMBER",
-                "power": 60,
-                "accuracy": 0.95,
-                "description": "Una explosión rápida de llamas blancas."
-            },
-            {
-                "id": "ember_meteor",
-                "name": "Impacto Meteórico",
-                "affinity": "EMBER",
-                "power": 80,
-                "accuracy": 0.88,
-                "description": "Cae sobre el enemigo como una roca ardiente."
-            },
-            {
-                "id": "ember_nova",
-                "name": "Nova Consumidora",
-                "affinity": "EMBER",
-                "power": 100,
-                "accuracy": 0.8,
-                "description": "Expande una ola de fuego en todas direcciones."
-            },
-            {
-                "id": "astral_comet",
-                "name": "Cometa Estelar",
+                "id": "astral_burst",
+                "name": "Destello Cósmico",
                 "affinity": "ASTRAL",
-                "power": 120,
-                "accuracy": 0.7,
-                "description": "Canaliza energía astral para un impacto devastador."
+                "power": 60,
+                "accuracy": 95,
+                "description": "Dispara energía estelar concentrada.",
+                "effect": null
+            },
+            {
+                "id": "astral_shard",
+                "name": "Fragmento Celeste",
+                "affinity": "ASTRAL",
+                "power": 78,
+                "accuracy": 88,
+                "description": "Proyecta un fragmento de energía astral.",
+                "effect": null
+            },
+            {
+                "id": "astral_focus",
+                "name": "Alineación Estelar",
+                "affinity": "ASTRAL",
+                "power": 0,
+                "accuracy": 100,
+                "description": "Concentra su energía para aumentar su poder ofensivo.",
+                "effect": {
+                    "type": "boost_atk",
+                    "value": 30,
+                    "target": "self"
+                }
+            },
+            {
+                "id": "astral_pulse",
+                "name": "Pulso Nebuloso",
+                "affinity": "ASTRAL",
+                "power": 50,
+                "accuracy": 90,
+                "description": "Un golpe cósmico que aumenta su fuerza interior.",
+                "effect": {
+                    "type": "boost_atk",
+                    "value": 15,
+                    "target": "self"
+                }
             }
         ]
     },
     {
         "id": "023",
-        "slug": "duskrel",
-        "name": "Duskrel",
-        "affinities": ["SHADE"],
-        "rarity": "COMMON",
-        "description": "Criatura de penumbra que se funde con las sombras para emboscar a sus presas sin ser detectada.",
-        "baseStats": { "hp": 55, "atk": 65, "def": 40, "spd": 60 },
-        "catchRate": 0.5,
-        "evolution": { "evolvesTo": "024", "method": "LEVEL", "value": 20 },
-        "art": { "portrait": "🌑", "front": "🌑", "back": "🌑" },
+        "slug": "stellaris",
+        "name": "Stellaris",
+        "affinities": [
+            "ASTRAL"
+        ],
+        "rarity": "RARE",
+        "description": "Entidad nacida en la luz de las estrellas moribundas.",
+        "baseStats": {
+            "hp": 95,
+            "atk": 90,
+            "def": 80,
+            "spd": 85
+        },
+        "catchRate": 0.2,
+        "art": {
+            "portrait": "✨",
+            "front": "✨",
+            "back": "✨"
+        },
         "moves": [
             {
-                "id": "shade_sneak",
-                "name": "Golpe Sigiloso",
-                "affinity": "SHADE",
-                "power": 40,
-                "accuracy": 0.95,
-                "description": "Ataca desde un ángulo ciego en la penumbra."
+                "id": "astral_ray",
+                "name": "Rayo Estelar",
+                "affinity": "ASTRAL",
+                "power": 72,
+                "accuracy": 92,
+                "description": "Un rayo astral atraviesa al enemigo.",
+                "effect": null
             },
             {
-                "id": "shade_strike",
-                "name": "Corte de Sombra",
-                "affinity": "SHADE",
-                "power": 55,
-                "accuracy": 0.9,
-                "description": "Materializa oscuridad pura como una cuchilla."
+                "id": "astral_supernova",
+                "name": "Mini Supernova",
+                "affinity": "ASTRAL",
+                "power": 92,
+                "accuracy": 84,
+                "description": "Una explosión estelar golpea con fuerza brutal.",
+                "effect": null
             },
             {
-                "id": "shade_gloom",
-                "name": "Bruma Oscura",
-                "affinity": "SHADE",
-                "power": 70,
-                "accuracy": 0.85,
-                "description": "Desorienta con una capa de oscuridad tangible."
+                "id": "astral_boost",
+                "name": "Resonancia Cósmica",
+                "affinity": "ASTRAL",
+                "power": 0,
+                "accuracy": 100,
+                "description": "Amplifica su poder de ataque.",
+                "effect": {
+                    "type": "boost_atk",
+                    "value": 35,
+                    "target": "self"
+                }
             },
             {
-                "id": "shade_night",
-                "name": "Noche Eterna",
-                "affinity": "SHADE",
-                "power": 85,
-                "accuracy": 0.75,
-                "description": "Apaga las luces y ataca con brutalidad."
+                "id": "astral_comet",
+                "name": "Impacto de Cometa",
+                "affinity": "ASTRAL",
+                "power": 58,
+                "accuracy": 86,
+                "description": "Un golpe cósmico que fortalece su poder.",
+                "effect": {
+                    "type": "boost_atk",
+                    "value": 20,
+                    "target": "self"
+                }
             }
         ]
     },
     {
         "id": "024",
-        "slug": "vorath",
-        "name": "Vorath",
-        "affinities": ["SHADE"],
-        "rarity": "RARE",
-        "description": "Una sombra con voluntad propia que puede separarse de su huésped y atacar de forma independiente.",
-        "baseStats": { "hp": 80, "atk": 95, "def": 60, "spd": 85 },
-        "catchRate": 0.2,
-        "art": { "portrait": "🌑", "front": "🌑", "back": "🌑" },
+        "slug": "umbrix",
+        "name": "Umbrix",
+        "affinities": [
+            "SHADE"
+        ],
+        "rarity": "COMMON",
+        "description": "Criatura de sombras que se desliza entre la penumbra.",
+        "baseStats": {
+            "hp": 81,
+            "atk": 71,
+            "def": 71,
+            "spd": 77
+        },
+        "catchRate": 0.6,
+        "art": {
+            "portrait": "🌑",
+            "front": "🌑",
+            "back": "🌑"
+        },
         "moves": [
             {
-                "id": "shade_claw",
-                "name": "Garra de Penumbra",
+                "id": "shade_slash",
+                "name": "Corte Sombrío",
                 "affinity": "SHADE",
-                "power": 55,
-                "accuracy": 0.95,
-                "description": "Rasga el espacio absorbiendo la luz."
+                "power": 60,
+                "accuracy": 95,
+                "description": "Ataca con una cuchilla de oscuridad.",
+                "effect": null
             },
             {
-                "id": "shade_veil",
-                "name": "Velo Asfixiante",
+                "id": "shade_strike",
+                "name": "Embate de Sombra",
                 "affinity": "SHADE",
-                "power": 75,
-                "accuracy": 0.88,
-                "description": "Envuelve al rival en sombras densas."
+                "power": 78,
+                "accuracy": 88,
+                "description": "Un golpe oscuro surge desde la penumbra.",
+                "effect": null
             },
             {
-                "id": "shade_phantom",
-                "name": "Ataque Fantasmal",
+                "id": "shade_curse",
+                "name": "Maldición Lóbrega",
                 "affinity": "SHADE",
-                "power": 95,
-                "accuracy": 0.8,
-                "description": "Su sombra se separa y golpea desde atrás."
+                "power": 0,
+                "accuracy": 100,
+                "description": "Reduce la velocidad del enemigo con energía oscura.",
+                "effect": {
+                    "type": "boost_spd",
+                    "value": -25,
+                    "target": "enemy"
+                }
             },
             {
-                "id": "shade_abyss",
-                "name": "Llamada del Abismo",
+                "id": "shade_drain",
+                "name": "Absorción Sombría",
                 "affinity": "SHADE",
-                "power": 110,
-                "accuracy": 0.72,
-                "description": "Abre una fisura de oscuridad que desgarra al oponente."
+                "power": 50,
+                "accuracy": 90,
+                "description": "Drena parte de la energía vital del rival.",
+                "effect": {
+                    "type": "drain",
+                    "value": 18,
+                    "target": "enemy"
+                }
             }
         ]
     },
     {
         "id": "025",
-        "slug": "thoven",
-        "name": "Thoven",
-        "affinities": ["GROVE"],
-        "rarity": "COMMON",
-        "description": "Criatura arbórea que se camufla entre las raíces y usa lianas como látigos en combate.",
-        "baseStats": { "hp": 60, "atk": 50, "def": 65, "spd": 35 },
-        "catchRate": 0.6,
-        "art": { "portrait": "🌿", "front": "🌿", "back": "🌿" },
+        "slug": "noctyra",
+        "name": "Noctyra",
+        "affinities": [
+            "SHADE"
+        ],
+        "rarity": "RARE",
+        "description": "Predadora nocturna capaz de devorar la luz.",
+        "baseStats": {
+            "hp": 96,
+            "atk": 87,
+            "def": 80,
+            "spd": 87
+        },
+        "catchRate": 0.2,
+        "art": {
+            "portrait": "🌑",
+            "front": "🌑",
+            "back": "🌑"
+        },
         "moves": [
             {
-                "id": "grove_leaf",
-                "name": "Hoja Navaja",
-                "affinity": "GROVE",
-                "power": 40,
-                "accuracy": 0.95,
-                "description": "Lanza hojas afiladas que giran en el aire."
+                "id": "shade_blade",
+                "name": "Filo del Vacío",
+                "affinity": "SHADE",
+                "power": 72,
+                "accuracy": 92,
+                "description": "Una hoja de oscuridad atraviesa al enemigo.",
+                "effect": null
             },
             {
-                "id": "grove_vine",
-                "name": "Latigazo de Liana",
-                "affinity": "GROVE",
-                "power": 55,
-                "accuracy": 0.9,
-                "description": "Azota usando extensiones vegetales de su cuerpo."
+                "id": "shade_void",
+                "name": "Mordida del Abismo",
+                "affinity": "SHADE",
+                "power": 92,
+                "accuracy": 84,
+                "description": "Un ataque oscuro extremadamente potente.",
+                "effect": null
             },
             {
-                "id": "grove_branch",
-                "name": "Golpe de Rama",
-                "affinity": "GROVE",
-                "power": 70,
-                "accuracy": 0.85,
-                "description": "Golpea con madera endurecida por la savia."
+                "id": "shade_slow",
+                "name": "Niebla Tenebrosa",
+                "affinity": "SHADE",
+                "power": 0,
+                "accuracy": 100,
+                "description": "Debilita los reflejos del enemigo.",
+                "effect": {
+                    "type": "boost_spd",
+                    "value": -30,
+                    "target": "enemy"
+                }
             },
             {
-                "id": "grove_forest",
-                "name": "Crecimiento Salvaje",
-                "affinity": "GROVE",
-                "power": 85,
-                "accuracy": 0.75,
-                "description": "Hace brotar raíces que aplastan al enemigo."
+                "id": "shade_life",
+                "name": "Robaalmas",
+                "affinity": "SHADE",
+                "power": 58,
+                "accuracy": 86,
+                "description": "Absorbe vida a través de energía oscura.",
+                "effect": {
+                    "type": "drain",
+                    "value": 20,
+                    "target": "enemy"
+                }
             }
         ]
     },
     {
         "id": "026",
-        "slug": "caelindra",
-        "name": "Caelindra",
-        "affinities": ["ASTRAL"],
-        "rarity": "RARE",
-        "description": "Ser que existe simultáneamente en múltiples planos de Mythara, difícil de golpear y más difícil de atrapar.",
-        "baseStats": { "hp": 70, "atk": 90, "def": 55, "spd": 105 },
-        "catchRate": 0.15,
-        "art": { "portrait": "✨", "front": "✨", "back": "✨" },
+        "slug": "umbrion",
+        "name": "Umbrion",
+        "affinities": [
+            "SHADE"
+        ],
+        "rarity": "ELITE",
+        "description": "Entidad nacida de la oscuridad pura que devora la luz y la esperanza.",
+        "baseStats": {
+            "hp": 114,
+            "atk": 102,
+            "def": 95,
+            "spd": 89
+        },
+        "catchRate": 0.05,
+        "art": {
+            "portrait": "🌑",
+            "front": "🌑",
+            "back": "🌑"
+        },
         "moves": [
             {
-                "id": "astral_ray",
-                "name": "Rayo Etéreo",
-                "affinity": "ASTRAL",
-                "power": 50,
-                "accuracy": 0.95,
-                "description": "Dispara luz condensada de otras dimensiones."
+                "id": "shade_rend",
+                "name": "Desgarro Umbrío",
+                "affinity": "SHADE",
+                "power": 84,
+                "accuracy": 90,
+                "description": "Un zarpazo oscuro que rasga la energía del enemigo.",
+                "effect": null
             },
             {
-                "id": "astral_beam",
-                "name": "Haz de Estrellas",
-                "affinity": "ASTRAL",
-                "power": 70,
-                "accuracy": 0.88,
-                "description": "Un láser focalizado que quema el espíritu."
+                "id": "shade_cataclysm",
+                "name": "Cataclismo Sombrío",
+                "affinity": "SHADE",
+                "power": 108,
+                "accuracy": 82,
+                "description": "Un estallido de oscuridad arrasa con el rival.",
+                "effect": null
             },
             {
-                "id": "astral_pulse",
-                "name": "Pulso Cuántico",
-                "affinity": "ASTRAL",
-                "power": 90,
-                "accuracy": 0.8,
-                "description": "Onda de energía que ignora la defensa física."
+                "id": "shade_bind",
+                "name": "Abrazo de Tinieblas",
+                "affinity": "SHADE",
+                "power": 0,
+                "accuracy": 100,
+                "description": "La oscuridad ralentiza los movimientos del enemigo.",
+                "effect": {
+                    "type": "boost_spd",
+                    "value": -30,
+                    "target": "enemy"
+                }
             },
             {
-                "id": "astral_star",
-                "name": "Lluvia Astral",
-                "affinity": "ASTRAL",
-                "power": 105,
-                "accuracy": 0.72,
-                "description": "Invocación de meteoritos en miniatura."
+                "id": "shade_parasite",
+                "name": "Parásito Umbral",
+                "affinity": "SHADE",
+                "power": 66,
+                "accuracy": 84,
+                "description": "Drena energía vital mediante sombras vivas.",
+                "effect": {
+                    "type": "drain",
+                    "value": 22,
+                    "target": "enemy"
+                }
             }
         ]
     },
     {
         "id": "027",
-        "slug": "peluvax",
-        "name": "Peluvax",
-        "affinities": ["ASTRAL"],
+        "slug": "ferrox",
+        "name": "Ferrox",
+        "affinities": [
+            "IRON"
+        ],
         "rarity": "COMMON",
-        "description": "Criatura que absorbe energía de las estrellas y la libera en pulsos de luz cegadora.",
-        "baseStats": { "hp": 50, "atk": 65, "def": 35, "spd": 65 },
-        "catchRate": 0.5,
-        "evolution": { "evolvesTo": "028", "method": "LEVEL", "value": 30 },
-        "art": { "portrait": "✨", "front": "✨", "back": "✨" },
+        "description": "Criatura metálica que usa su cuerpo de hierro como arma contundente.",
+        "baseStats": {
+            "hp": 85,
+            "atk": 70,
+            "def": 89,
+            "spd": 56
+        },
+        "catchRate": 0.55,
+        "evolution": {
+            "evolvesTo": "028",
+            "method": "LEVEL",
+            "value": 26
+        },
+        "art": {
+            "portrait": "⚙️",
+            "front": "⚙️",
+            "back": "⚙️"
+        },
         "moves": [
             {
-                "id": "astral_glimmer",
-                "name": "Destello Lejano",
-                "affinity": "ASTRAL",
-                "power": 40,
-                "accuracy": 0.95,
-                "description": "Una luz palpitante que lastima la visión."
+                "id": "iron_slam",
+                "name": "Golpe de Acero",
+                "affinity": "IRON",
+                "power": 60,
+                "accuracy": 95,
+                "description": "Impacta con un brutal golpe metálico.",
+                "effect": null
             },
             {
-                "id": "astral_flash",
-                "name": "Fogonazo Cósmico",
-                "affinity": "ASTRAL",
-                "power": 55,
-                "accuracy": 0.9,
-                "description": "Explosión lumínica y de pura energía cinética."
+                "id": "iron_clash",
+                "name": "Embate Metálico",
+                "affinity": "IRON",
+                "power": 78,
+                "accuracy": 88,
+                "description": "Carga con todo su peso de hierro.",
+                "effect": null
             },
             {
-                "id": "astral_flare",
-                "name": "Erupción Solar",
-                "affinity": "ASTRAL",
-                "power": 70,
-                "accuracy": 0.85,
-                "description": "Despide partículas ardientes de luz estelar."
+                "id": "iron_guard",
+                "name": "Refuerzo Metálico",
+                "affinity": "IRON",
+                "power": 0,
+                "accuracy": 100,
+                "description": "Refuerza su estructura aumentando su defensa.",
+                "effect": {
+                    "type": "boost_def",
+                    "value": 30,
+                    "target": "self"
+                }
             },
             {
-                "id": "astral_burst",
-                "name": "Estallido Galáctico",
-                "affinity": "ASTRAL",
-                "power": 85,
-                "accuracy": 0.75,
-                "description": "Libera energía acumulada en un solo golpe devastador."
+                "id": "iron_crush",
+                "name": "Impacto Pesado",
+                "affinity": "IRON",
+                "power": 50,
+                "accuracy": 90,
+                "description": "Un golpe contundente que endurece su armadura.",
+                "effect": {
+                    "type": "boost_def",
+                    "value": 15,
+                    "target": "self"
+                }
             }
         ]
     },
     {
         "id": "028",
-        "slug": "aethenvorn",
-        "name": "Aethenvorn",
-        "affinities": ["ASTRAL"],
-        "rarity": "ELITE",
-        "description": "Entidad que ha transcendido el plano físico de Mythara. Su cuerpo es pura energía estelar condensada.",
-        "baseStats": { "hp": 100, "atk": 130, "def": 65, "spd": 115 },
-        "catchRate": 0.05,
-        "art": { "portrait": "✨", "front": "✨", "back": "✨" },
+        "slug": "ferrothor",
+        "name": "Ferrothor",
+        "affinities": [
+            "IRON"
+        ],
+        "rarity": "RARE",
+        "description": "Guerrero mecánico cuyas placas de hierro son casi impenetrables.",
+        "baseStats": {
+            "hp": 98,
+            "atk": 82,
+            "def": 112,
+            "spd": 58
+        },
+        "catchRate": 0.2,
+        "art": {
+            "portrait": "⚙️",
+            "front": "⚙️",
+            "back": "⚙️"
+        },
         "moves": [
             {
-                "id": "astral_shine",
-                "name": "Resplandor Castigador",
-                "affinity": "ASTRAL",
-                "power": 65,
-                "accuracy": 0.95,
-                "description": "Luz divina que quema a los impuros."
+                "id": "iron_edge",
+                "name": "Corte de Titanio",
+                "affinity": "IRON",
+                "power": 72,
+                "accuracy": 92,
+                "description": "Un corte metálico extremadamente preciso.",
+                "effect": null
             },
             {
-                "id": "astral_meteorite",
-                "name": "Impacto de Meteorito",
-                "affinity": "ASTRAL",
-                "power": 85,
-                "accuracy": 0.88,
-                "description": "Un ataque físico envuelto en aura espacial."
+                "id": "iron_breaker",
+                "name": "Martillo de Acero",
+                "affinity": "IRON",
+                "power": 92,
+                "accuracy": 84,
+                "description": "Un golpe brutal de metal macizo.",
+                "effect": null
             },
             {
-                "id": "astral_galaxy",
-                "name": "Vórtice Galáctico",
-                "affinity": "ASTRAL",
-                "power": 105,
-                "accuracy": 0.78,
-                "description": "Crea una anomalía gravitacional que tritura al rival."
+                "id": "iron_wall",
+                "name": "Muralla de Hierro",
+                "affinity": "IRON",
+                "power": 0,
+                "accuracy": 100,
+                "description": "Refuerza enormemente su defensa.",
+                "effect": {
+                    "type": "boost_def",
+                    "value": 35,
+                    "target": "self"
+                }
             },
             {
-                "id": "astral_supernova",
-                "name": "Supernova de Mythara",
-                "affinity": "ASTRAL",
-                "power": 120,
-                "accuracy": 0.7,
-                "description": "Su cuerpo detona como una estrella moribunda."
+                "id": "iron_counter",
+                "name": "Contraataque Metálico",
+                "affinity": "IRON",
+                "power": 58,
+                "accuracy": 86,
+                "description": "Golpea mientras fortalece su armadura.",
+                "effect": {
+                    "type": "boost_def",
+                    "value": 20,
+                    "target": "self"
+                }
             }
         ]
     },
     {
         "id": "029",
-        "slug": "corvael",
-        "name": "Corvael",
-        "affinities": ["TIDE"],
-        "rarity": "COMMON",
-        "description": "Criatura acuática que se desplaza en cardumen y genera corrientes que desorientan a sus rivales.",
-        "baseStats": { "hp": 60, "atk": 45, "def": 55, "spd": 50 },
-        "catchRate": 0.6,
-        "art": { "portrait": "💧", "front": "💧", "back": "💧" },
+        "slug": "aethera",
+        "name": "Aethera",
+        "affinities": [
+            "ASTRAL",
+            "VOLT"
+        ],
+        "rarity": "RARE",
+        "description": "Ser de energía estelar que canaliza relámpagos cósmicos.",
+        "baseStats": {
+            "hp": 90,
+            "atk": 91,
+            "def": 78,
+            "spd": 91
+        },
+        "catchRate": 0.15,
+        "art": {
+            "portrait": "✨",
+            "front": "✨",
+            "back": "✨"
+        },
         "moves": [
             {
-                "id": "tide_drop",
-                "name": "Gota Perforante",
-                "affinity": "TIDE",
-                "power": 40,
-                "accuracy": 0.95,
-                "description": "Un chorro de agua a muy alta presión."
+                "id": "astral_flash",
+                "name": "Destello Celeste",
+                "affinity": "ASTRAL",
+                "power": 72,
+                "accuracy": 92,
+                "description": "Un rayo cósmico impacta al enemigo.",
+                "effect": null
             },
             {
-                "id": "tide_stream",
-                "name": "Corriente Rápida",
-                "affinity": "TIDE",
-                "power": 55,
-                "accuracy": 0.9,
-                "description": "Un torrente de agua que empuja y daña."
+                "id": "volt_flash",
+                "name": "Rayo Estelar",
+                "affinity": "VOLT",
+                "power": 92,
+                "accuracy": 84,
+                "description": "Una descarga eléctrica amplificada por energía astral.",
+                "effect": null
             },
             {
-                "id": "tide_wave",
-                "name": "Choque de Ola",
-                "affinity": "TIDE",
-                "power": 70,
-                "accuracy": 0.85,
-                "description": "Una pared de agua dulce que se desploma."
+                "id": "astral_boost",
+                "name": "Convergencia Estelar",
+                "affinity": "ASTRAL",
+                "power": 0,
+                "accuracy": 100,
+                "description": "Incrementa enormemente su poder ofensivo.",
+                "effect": {
+                    "type": "boost_atk",
+                    "value": 30,
+                    "target": "self"
+                }
             },
             {
-                "id": "tide_current",
-                "name": "Resaca Peligrosa",
-                "affinity": "TIDE",
-                "power": 85,
-                "accuracy": 0.75,
-                "description": "Envuelve al rival en un remolino violento."
+                "id": "volt_stun",
+                "name": "Impacto Paralizante",
+                "affinity": "VOLT",
+                "power": 58,
+                "accuracy": 86,
+                "description": "Un rayo que puede dejar paralizado al rival.",
+                "effect": {
+                    "type": "stun",
+                    "value": 1,
+                    "target": "enemy"
+                }
             }
         ]
     },
     {
         "id": "030",
-        "slug": "quelvar",
-        "name": "Quelvar",
-        "affinities": ["VENOM", "TIDE"],
-        "rarity": "RARE",
-        "description": "Criatura anfibia que envenena el agua de los pantanos para debilitar a sus rivales antes del ataque.",
-        "baseStats": { "hp": 85, "atk": 80, "def": 75, "spd": 60 },
-        "catchRate": 0.2,
-        "art": { "portrait": "☠️", "front": "☠️", "back": "☠️" },
+        "slug": "celestigon",
+        "name": "Celestigon",
+        "affinities": [
+            "ASTRAL"
+        ],
+        "rarity": "EPIC",
+        "description": "Dragón cósmico que habita entre las estrellas.",
+        "baseStats": {
+            "hp": 114,
+            "atk": 103,
+            "def": 94,
+            "spd": 89
+        },
+        "catchRate": 0.03,
+        "art": {
+            "portrait": "✨",
+            "front": "✨",
+            "back": "✨"
+        },
         "moves": [
             {
-                "id": "venom_ooze",
-                "name": "Légamo Tóxico",
-                "affinity": "VENOM",
-                "power": 50,
-                "accuracy": 0.95,
-                "description": "Dispara lodo impregnado de veneno."
+                "id": "astral_claw",
+                "name": "Garra Nebular",
+                "affinity": "ASTRAL",
+                "power": 84,
+                "accuracy": 90,
+                "description": "Una garra cósmica desgarra al enemigo.",
+                "effect": null
             },
             {
-                "id": "venom_toxin",
-                "name": "Toxina de Pantano",
-                "affinity": "VENOM",
+                "id": "astral_supernova",
+                "name": "Supernova",
+                "affinity": "ASTRAL",
+                "power": 115,
+                "accuracy": 80,
+                "description": "Una explosión estelar de poder devastador.",
+                "effect": null
+            },
+            {
+                "id": "astral_alignment",
+                "name": "Alineación Universal",
+                "affinity": "ASTRAL",
+                "power": 0,
+                "accuracy": 100,
+                "description": "Incrementa enormemente su poder ofensivo.",
+                "effect": {
+                    "type": "boost_atk",
+                    "value": 40,
+                    "target": "self"
+                }
+            },
+            {
+                "id": "astral_comet",
+                "name": "Impacto de Cometa",
+                "affinity": "ASTRAL",
                 "power": 70,
-                "accuracy": 0.88,
-                "description": "Contamina el aire reduciendo la fuerza rival."
-            },
-            {
-                "id": "venom_swamp",
-                "name": "Ciénaga Mortal",
-                "affinity": "VENOM",
-                "power": 90,
-                "accuracy": 0.8,
-                "description": "Inunda el suelo con ácidos putrefactos."
-            },
-            {
-                "id": "tide_geyser",
-                "name": "Géiser Corrupto",
-                "affinity": "TIDE",
-                "power": 105,
-                "accuracy": 0.72,
-                "description": "Erupción de agua sucia y alta presión."
+                "accuracy": 82,
+                "description": "Un cometa astral golpea con fuerza brutal.",
+                "effect": {
+                    "type": "boost_atk",
+                    "value": 20,
+                    "target": "self"
+                }
             }
         ]
     },
     {
         "id": "031",
-        "slug": "brimdal",
-        "name": "Brimdal",
-        "affinities": ["VOLT", "GROVE"],
-        "rarity": "COMMON",
-        "description": "Sus cuernos actúan como pararrayos que acumulan energía eléctrica lista para ser descargada entre la maleza.",
-        "baseStats": { "hp": 60, "atk": 70, "def": 45, "spd": 50 },
-        "catchRate": 0.55,
-        "art": { "portrait": "⚡", "front": "⚡", "back": "⚡" },
+        "slug": "mirelurk",
+        "name": "Mirelurk",
+        "affinities": [
+            "TIDE",
+            "VENOM"
+        ],
+        "rarity": "RARE",
+        "description": "Depredador anfibio que acecha en aguas pantanosas cargadas de toxinas naturales.",
+        "baseStats": {
+            "hp": 102,
+            "atk": 87,
+            "def": 90,
+            "spd": 71
+        },
+        "catchRate": 0.2,
+        "art": {
+            "portrait": "💧",
+            "front": "💧",
+            "back": "💧"
+        },
         "moves": [
             {
-                "id": "volt_zap",
-                "name": "Calambre Breve",
-                "affinity": "VOLT",
-                "power": 40,
-                "accuracy": 0.95,
-                "description": "Electrocuta levemente con sus cuernos."
+                "id": "tide_bite",
+                "name": "Mandíbula Marina",
+                "affinity": "TIDE",
+                "power": 72,
+                "accuracy": 92,
+                "description": "Muerde con presión acuática capaz de desgarrar la defensa rival.",
+                "effect": null
             },
             {
-                "id": "volt_wire",
-                "name": "Cable Vivo",
-                "affinity": "VOLT",
-                "power": 55,
-                "accuracy": 0.9,
-                "description": "Usa una corriente que atrapa al enemigo."
+                "id": "venom_surge",
+                "name": "Oleada Tóxica",
+                "affinity": "VENOM",
+                "power": 92,
+                "accuracy": 84,
+                "description": "Una crecida venenosa golpea con brutalidad al enemigo.",
+                "effect": null
             },
             {
-                "id": "volt_bolt",
-                "name": "Rayo Penetrante",
-                "affinity": "VOLT",
-                "power": 70,
-                "accuracy": 0.85,
-                "description": "Descarga eléctrica dirigida con exactitud."
+                "id": "venom_mist",
+                "name": "Bruma Nociva",
+                "affinity": "VENOM",
+                "power": 0,
+                "accuracy": 100,
+                "description": "Extiende una niebla tóxica que envenena al enemigo durante varios turnos.",
+                "effect": {
+                    "type": "poison",
+                    "value": 3,
+                    "target": "enemy"
+                }
             },
             {
-                "id": "grove_root",
-                "name": "Raíz Conductiva",
-                "affinity": "GROVE",
-                "power": 85,
-                "accuracy": 0.75,
-                "description": "Lianas que atrapan y conducen el daño."
+                "id": "tide_leech",
+                "name": "Marea Vampírica",
+                "affinity": "TIDE",
+                "power": 58,
+                "accuracy": 86,
+                "description": "Absorbe vitalidad mediante una corriente oscura de agua densa.",
+                "effect": {
+                    "type": "drain",
+                    "value": 20,
+                    "target": "enemy"
+                }
             }
         ]
     },
     {
         "id": "032",
-        "slug": "obsivun",
-        "name": "Obsivun",
-        "affinities": ["STONE", "SHADE"],
-        "rarity": "ELITE",
-        "description": "Criatura que imita la forma de una roca en penumbra, invisible hasta que ataca con una fuerza devastadora.",
-        "baseStats": { "hp": 115, "atk": 110, "def": 115, "spd": 25 },
-        "catchRate": 0.05,
-        "art": { "portrait": "🪨", "front": "🪨", "back": "🪨" },
+        "slug": "bramblisk",
+        "name": "Bramblisk",
+        "affinities": [
+            "GROVE",
+            "STONE"
+        ],
+        "rarity": "RARE",
+        "description": "Criatura espinosa que fusiona raíces vivas con una coraza de roca antigua.",
+        "baseStats": {
+            "hp": 107,
+            "atk": 80,
+            "def": 107,
+            "spd": 56
+        },
+        "catchRate": 0.18,
+        "art": {
+            "portrait": "🌿",
+            "front": "🌿",
+            "back": "🌿"
+        },
         "moves": [
             {
-                "id": "stone_rock",
-                "name": "Lanzaroca Ciega",
-                "affinity": "STONE",
-                "power": 60,
-                "accuracy": 0.95,
-                "description": "Golpea con una piedra densa salida de la nada."
+                "id": "grove_ram",
+                "name": "Embate de Zarzas",
+                "affinity": "GROVE",
+                "power": 72,
+                "accuracy": 92,
+                "description": "Carga con ramas espinosas endurecidas por la savia.",
+                "effect": null
             },
             {
-                "id": "stone_boulder",
-                "name": "Canto Rodado",
+                "id": "stone_spike",
+                "name": "Púa de Basalto",
                 "affinity": "STONE",
-                "power": 80,
-                "accuracy": 0.88,
-                "description": "Arrolla al rival con su cuerpo masivo."
+                "power": 92,
+                "accuracy": 84,
+                "description": "Proyecta una lanza pétrea con fuerza demoledora.",
+                "effect": null
             },
             {
-                "id": "stone_meteor",
-                "name": "Meteoro Subterráneo",
+                "id": "stone_shell",
+                "name": "Caparazón Mineral",
                 "affinity": "STONE",
-                "power": 100,
-                "accuracy": 0.8,
-                "description": "Proyectil de roca disparado a velocidad límite."
+                "power": 0,
+                "accuracy": 100,
+                "description": "Refuerza su coraza rocosa para elevar su defensa.",
+                "effect": {
+                    "type": "boost_def",
+                    "value": 35,
+                    "target": "self"
+                }
             },
             {
-                "id": "shade_eclipse",
-                "name": "Eclipse de Piedra",
-                "affinity": "SHADE",
-                "power": 115,
-                "accuracy": 0.7,
-                "description": "Sombra pura que aplasta con el peso de la roca."
+                "id": "grove_sap",
+                "name": "Savia Vital",
+                "affinity": "GROVE",
+                "power": 0,
+                "accuracy": 100,
+                "description": "Canaliza la energía del bosque para restaurar parte de su vida.",
+                "effect": {
+                    "type": "heal",
+                    "value": 25,
+                    "target": "self"
+                }
             }
         ]
     },
     {
         "id": "033",
-        "slug": "ferrith",
-        "name": "Ferrith",
-        "affinities": ["EMBER"],
-        "rarity": "COMMON",
-        "description": "Criatura alada que deja una estela de ceniza incandescente al surcar el cielo de Mythara.",
-        "baseStats": { "hp": 50, "atk": 65, "def": 35, "spd": 70 },
-        "catchRate": 0.55,
-        "evolution": { "evolvesTo": "034", "method": "LEVEL", "value": 25 },
-        "art": { "portrait": "🔥", "front": "🔥", "back": "🔥" },
+        "slug": "volcryst",
+        "name": "Volcryst",
+        "affinities": [
+            "VOLT",
+            "FROST"
+        ],
+        "rarity": "RARE",
+        "description": "Ser inestable de rayos helados cuyos cristales cargados crujen antes de estallar.",
+        "baseStats": {
+            "hp": 90,
+            "atk": 87,
+            "def": 85,
+            "spd": 88
+        },
+        "catchRate": 0.16,
+        "art": {
+            "portrait": "⚡",
+            "front": "⚡",
+            "back": "⚡"
+        },
         "moves": [
             {
-                "id": "ember_ash",
-                "name": "Soplo de Ceniza",
-                "affinity": "EMBER",
-                "power": 40,
-                "accuracy": 0.95,
-                "description": "Ciega y quema con polvo caliente."
+                "id": "volt_jolt",
+                "name": "Descarga Cortante",
+                "affinity": "VOLT",
+                "power": 72,
+                "accuracy": 92,
+                "description": "Lanza una descarga afilada que atraviesa al enemigo.",
+                "effect": null
             },
             {
-                "id": "ember_smoke",
-                "name": "Humo Sofocante",
-                "affinity": "EMBER",
-                "power": 55,
-                "accuracy": 0.9,
-                "description": "Envuelve en un humo tóxico ardiente."
+                "id": "frost_crack",
+                "name": "Estallido de Escarcha",
+                "affinity": "FROST",
+                "power": 92,
+                "accuracy": 84,
+                "description": "Una explosión gélida sacude el cuerpo rival con violencia.",
+                "effect": null
             },
             {
-                "id": "ember_burn",
-                "name": "Quemadura de Ala",
-                "affinity": "EMBER",
-                "power": 70,
-                "accuracy": 0.85,
-                "description": "Impacta con plumas sobrecalentadas."
+                "id": "volt_surge",
+                "name": "Acelerón de Chispa",
+                "affinity": "VOLT",
+                "power": 0,
+                "accuracy": 100,
+                "description": "Sobrecarga sus reflejos para aumentar mucho su velocidad.",
+                "effect": {
+                    "type": "boost_spd",
+                    "value": 30,
+                    "target": "self"
+                }
             },
             {
-                "id": "ember_fire",
-                "name": "Lluvia de Ascuas",
-                "affinity": "EMBER",
-                "power": 85,
-                "accuracy": 0.75,
-                "description": "Deja caer fuego concentrado desde arriba."
+                "id": "frost_static",
+                "name": "Prisión Conductiva",
+                "affinity": "FROST",
+                "power": 58,
+                "accuracy": 86,
+                "description": "Un golpe helado y eléctrico que entumece y ralentiza al enemigo.",
+                "effect": {
+                    "type": "boost_spd",
+                    "value": -20,
+                    "target": "enemy"
+                }
             }
         ]
     },
     {
         "id": "034",
-        "slug": "cendrath",
-        "name": "Cendrath",
-        "affinities": ["EMBER"],
-        "rarity": "RARE",
-        "description": "Ave de fuego cuyas plumas son brasas vivas que caen como lluvia de llamas sobre sus enemigos.",
-        "baseStats": { "hp": 75, "atk": 100, "def": 50, "spd": 95 },
-        "catchRate": 0.2,
-        "art": { "portrait": "🔥", "front": "🔥", "back": "🔥" },
+        "slug": "ironjaw",
+        "name": "Ironjaw",
+        "affinities": [
+            "IRON"
+        ],
+        "rarity": "COMMON",
+        "description": "Bestia mecánica de fauces prensiles capaz de triturar armaduras con facilidad.",
+        "baseStats": {
+            "hp": 84,
+            "atk": 76,
+            "def": 85,
+            "spd": 55
+        },
+        "catchRate": 0.55,
+        "evolution": {
+            "evolvesTo": "035",
+            "method": "LEVEL",
+            "value": 27
+        },
+        "art": {
+            "portrait": "⚙️",
+            "front": "⚙️",
+            "back": "⚙️"
+        },
         "moves": [
             {
-                "id": "ember_cinder",
-                "name": "Ráfaga de Brasas",
-                "affinity": "EMBER",
-                "power": 55,
-                "accuracy": 0.95,
-                "description": "Dispara ascuas hirvientes en rápida sucesión."
+                "id": "iron_bite",
+                "name": "Mordida de Acero",
+                "affinity": "IRON",
+                "power": 60,
+                "accuracy": 95,
+                "description": "Clava sus fauces metálicas con una presión brutal.",
+                "effect": null
             },
             {
-                "id": "ember_scorch",
-                "name": "Calcinación Rápida",
-                "affinity": "EMBER",
-                "power": 75,
-                "accuracy": 0.88,
-                "description": "Quema la piel con un toque incandescente."
+                "id": "iron_maul",
+                "name": "Mazazo Ferrum",
+                "affinity": "IRON",
+                "power": 78,
+                "accuracy": 88,
+                "description": "Golpea con todo el peso de su cuerpo reforzado.",
+                "effect": null
             },
             {
-                "id": "ember_blaze",
-                "name": "Incendio Feroz",
-                "affinity": "EMBER",
-                "power": 95,
-                "accuracy": 0.8,
-                "description": "Envuelve todo en llamas incontrolables."
+                "id": "iron_plating",
+                "name": "Blindaje Reforzado",
+                "affinity": "IRON",
+                "power": 0,
+                "accuracy": 100,
+                "description": "Cierra sus placas externas para aumentar su defensa.",
+                "effect": {
+                    "type": "boost_def",
+                    "value": 30,
+                    "target": "self"
+                }
             },
             {
-                "id": "ember_infernal",
-                "name": "Vuelo Infernal",
-                "affinity": "EMBER",
-                "power": 110,
-                "accuracy": 0.72,
-                "description": "Embestida envuelta en fuego puro a máxima velocidad."
+                "id": "iron_press",
+                "name": "Prensa Metálica",
+                "affinity": "IRON",
+                "power": 50,
+                "accuracy": 90,
+                "description": "Aplasta al objetivo mientras endurece su estructura.",
+                "effect": {
+                    "type": "boost_def",
+                    "value": 15,
+                    "target": "self"
+                }
             }
         ]
     },
     {
         "id": "035",
-        "slug": "mireth",
-        "name": "Mireth",
-        "affinities": ["SHADE", "FROST"],
+        "slug": "steelmaw",
+        "name": "Steelmaw",
+        "affinities": [
+            "IRON"
+        ],
         "rarity": "RARE",
-        "description": "Criatura que habita en cavernas heladas de penumbra, su toque congela y oscurece a la vez.",
-        "baseStats": { "hp": 80, "atk": 85, "def": 80, "spd": 65 },
-        "catchRate": 0.2,
-        "art": { "portrait": "🌑", "front": "🌑", "back": "🌑" },
+        "description": "Depredador blindado cuyo rugido metálico hace temblar el campo de batalla.",
+        "baseStats": {
+            "hp": 98,
+            "atk": 87,
+            "def": 107,
+            "spd": 58
+        },
+        "catchRate": 0.18,
+        "art": {
+            "portrait": "⚙️",
+            "front": "⚙️",
+            "back": "⚙️"
+        },
         "moves": [
             {
-                "id": "shade_dark",
-                "name": "Toque Oscuro",
-                "affinity": "SHADE",
-                "power": 50,
-                "accuracy": 0.95,
-                "description": "Un roce que succiona la energía vital."
+                "id": "iron_fang",
+                "name": "Colmillo de Titanio",
+                "affinity": "IRON",
+                "power": 72,
+                "accuracy": 92,
+                "description": "Muerde con una hoja metálica forjada en hierro puro.",
+                "effect": null
             },
             {
-                "id": "shade_shadow",
-                "name": "Sombras Danzantes",
-                "affinity": "SHADE",
-                "power": 70,
-                "accuracy": 0.88,
-                "description": "Confunde y ataca desde múltiples ángulos."
+                "id": "iron_hammer",
+                "name": "Martillo de Hierro",
+                "affinity": "IRON",
+                "power": 92,
+                "accuracy": 84,
+                "description": "Un golpe contundente de metal cae sobre el enemigo.",
+                "effect": null
             },
             {
-                "id": "shade_void",
-                "name": "Vacío Absoluto",
-                "affinity": "SHADE",
-                "power": 90,
-                "accuracy": 0.8,
-                "description": "Un hoyo negro momentáneo que devora la luz."
+                "id": "iron_bastion",
+                "name": "Bastión de Acero",
+                "affinity": "IRON",
+                "power": 0,
+                "accuracy": 100,
+                "description": "Fortifica su chasis para elevar aún más su defensa.",
+                "effect": {
+                    "type": "boost_def",
+                    "value": 35,
+                    "target": "self"
+                }
             },
             {
-                "id": "frost_chill",
-                "name": "Escalofrío Sepulcral",
-                "affinity": "FROST",
-                "power": 105,
-                "accuracy": 0.72,
-                "description": "Congela el alma reduciendo las temperaturas a cero."
+                "id": "iron_ram",
+                "name": "Ariete Metálico",
+                "affinity": "IRON",
+                "power": 58,
+                "accuracy": 86,
+                "description": "Embiste con brutalidad mientras endurece sus placas externas.",
+                "effect": {
+                    "type": "boost_def",
+                    "value": 20,
+                    "target": "self"
+                }
             }
         ]
     },
     {
         "id": "036",
-        "slug": "oriven",
-        "name": "Oriven",
-        "affinities": ["ASTRAL"],
-        "rarity": "COMMON",
-        "description": "Ser luminoso que flota entre dimensiones, dejando rastros de luz etérea a su paso.",
-        "baseStats": { "hp": 50, "atk": 60, "def": 40, "spd": 65 },
-        "catchRate": 0.5,
-        "art": { "portrait": "✨", "front": "✨", "back": "✨" },
+        "slug": "shadefin",
+        "name": "Shadefin",
+        "affinities": [
+            "SHADE",
+            "TIDE"
+        ],
+        "rarity": "RARE",
+        "description": "Cazador abisal que emerge desde aguas negras donde no llega la luz.",
+        "baseStats": {
+            "hp": 97,
+            "atk": 88,
+            "def": 84,
+            "spd": 81
+        },
+        "catchRate": 0.17,
+        "art": {
+            "portrait": "🌑",
+            "front": "🌑",
+            "back": "🌑"
+        },
         "moves": [
             {
-                "id": "astral_light",
-                "name": "Luz Fragmentada",
-                "affinity": "ASTRAL",
-                "power": 40,
-                "accuracy": 0.95,
-                "description": "Un haz de luz que corta como un bisturí."
+                "id": "shade_fin",
+                "name": "Aleta Umbría",
+                "affinity": "SHADE",
+                "power": 72,
+                "accuracy": 92,
+                "description": "Corta al rival con una cuchilla nacida de la penumbra marina.",
+                "effect": null
             },
             {
-                "id": "astral_glow",
-                "name": "Resplandor Ciego",
-                "affinity": "ASTRAL",
-                "power": 55,
-                "accuracy": 0.9,
-                "description": "Deslumbra y golpea psíquicamente."
+                "id": "tide_rush",
+                "name": "Corriente Abisal",
+                "affinity": "TIDE",
+                "power": 92,
+                "accuracy": 84,
+                "description": "Una corriente profunda golpea con fuerza asfixiante.",
+                "effect": null
             },
             {
-                "id": "astral_spark",
-                "name": "Chispa Dimensional",
-                "affinity": "ASTRAL",
-                "power": 70,
-                "accuracy": 0.85,
-                "description": "Ataque veloz proveniente de una grieta espacial."
+                "id": "shade_current",
+                "name": "Remanso Oscuro",
+                "affinity": "SHADE",
+                "power": 0,
+                "accuracy": 100,
+                "description": "Sume al enemigo en sombras líquidas que reducen su velocidad.",
+                "effect": {
+                    "type": "boost_spd",
+                    "value": -25,
+                    "target": "enemy"
+                }
             },
             {
-                "id": "astral_nebula",
-                "name": "Explosión Nebulosa",
-                "affinity": "ASTRAL",
-                "power": 85,
-                "accuracy": 0.75,
-                "description": "Una nube de polvo de estrellas destructivo."
+                "id": "tide_drain",
+                "name": "Succión de Marea",
+                "affinity": "TIDE",
+                "power": 58,
+                "accuracy": 86,
+                "description": "Absorbe vitalidad con una espiral de agua oscura.",
+                "effect": {
+                    "type": "drain",
+                    "value": 20,
+                    "target": "enemy"
+                }
             }
         ]
     },
     {
         "id": "037",
-        "slug": "keluvon",
-        "name": "Keluvon",
-        "affinities": ["TIDE", "GROVE"],
+        "slug": "emberhorn",
+        "name": "Emberhorn",
+        "affinities": [
+            "EMBER",
+            "IRON"
+        ],
         "rarity": "RARE",
-        "description": "Habitante de manglares que usa sus raíces acuáticas para atrapar a sus presas bajo el agua.",
-        "baseStats": { "hp": 90, "atk": 70, "def": 90, "spd": 45 },
-        "catchRate": 0.2,
-        "art": { "portrait": "💧", "front": "💧", "back": "💧" },
+        "description": "Bestia acorazada cuyos cuernos candentes pueden perforar metal y roca.",
+        "baseStats": {
+            "hp": 104,
+            "atk": 91,
+            "def": 94,
+            "spd": 61
+        },
+        "catchRate": 0.14,
+        "art": {
+            "portrait": "🔥",
+            "front": "🔥",
+            "back": "🔥"
+        },
         "moves": [
             {
-                "id": "tide_ripple",
-                "name": "Ondulación Rápida",
-                "affinity": "TIDE",
-                "power": 50,
-                "accuracy": 0.95,
-                "description": "Una onda expansiva en el agua."
+                "id": "ember_gore",
+                "name": "Cornada Ígnea",
+                "affinity": "EMBER",
+                "power": 72,
+                "accuracy": 92,
+                "description": "Embiste con cuernos al rojo vivo que abrasan al contacto.",
+                "effect": null
             },
             {
-                "id": "tide_flow",
-                "name": "Caudal Violento",
-                "affinity": "TIDE",
-                "power": 70,
-                "accuracy": 0.88,
-                "description": "Un chorro de agua densa difícil de parar."
+                "id": "iron_trample",
+                "name": "Pisotón Blindado",
+                "affinity": "IRON",
+                "power": 92,
+                "accuracy": 84,
+                "description": "Descarga todo su peso metálico en un impacto devastador.",
+                "effect": null
             },
             {
-                "id": "tide_tsunami",
-                "name": "Tsunami de Manglar",
-                "affinity": "TIDE",
-                "power": 90,
-                "accuracy": 0.8,
-                "description": "Ola gigante que arrastra lodo y escombros."
+                "id": "iron_hide",
+                "name": "Coraza Forjada",
+                "affinity": "IRON",
+                "power": 0,
+                "accuracy": 100,
+                "description": "Refuerza su armadura templada para aumentar su defensa.",
+                "effect": {
+                    "type": "boost_def",
+                    "value": 35,
+                    "target": "self"
+                }
             },
             {
-                "id": "grove_timber",
-                "name": "Tronco Hundido",
-                "affinity": "GROVE",
-                "power": 105,
-                "accuracy": 0.72,
-                "description": "Impacta con raíces acuáticas macizas."
+                "id": "ember_brand",
+                "name": "Marca de Brasa",
+                "affinity": "EMBER",
+                "power": 58,
+                "accuracy": 86,
+                "description": "Golpea con fuego denso y deja al enemigo ardiendo tras el impacto.",
+                "effect": {
+                    "type": "burn",
+                    "value": 2,
+                    "target": "enemy"
+                }
             }
         ]
     },
     {
         "id": "038",
-        "slug": "cruven",
-        "name": "Cruven",
-        "affinities": ["VENOM"],
-        "rarity": "COMMON",
-        "description": "Ser rastrero cuya piel exuda toxinas que se absorben con el mero contacto.",
-        "baseStats": { "hp": 60, "atk": 60, "def": 50, "spd": 45 },
-        "catchRate": 0.55,
-        "art": { "portrait": "☠️", "front": "☠️", "back": "☠️" },
+        "slug": "bloomora",
+        "name": "Bloomora",
+        "affinities": [
+            "GROVE",
+            "ASTRAL"
+        ],
+        "rarity": "RARE",
+        "description": "Entidad floral iluminada por polvo estelar que sana lo que toca y castiga a quien profana el bosque.",
+        "baseStats": {
+            "hp": 101,
+            "atk": 83,
+            "def": 90,
+            "spd": 76
+        },
+        "catchRate": 0.16,
+        "art": {
+            "portrait": "🌿",
+            "front": "🌿",
+            "back": "🌿"
+        },
         "moves": [
             {
-                "id": "venom_dart",
-                "name": "Dardo Segregado",
-                "affinity": "VENOM",
-                "power": 40,
-                "accuracy": 0.95,
-                "description": "Dispara una púa cubierta de neurotoxina."
+                "id": "grove_blast",
+                "name": "Ráfaga de Pétalos",
+                "affinity": "GROVE",
+                "power": 72,
+                "accuracy": 92,
+                "description": "Lanza pétalos cortantes cargados de savia brillante.",
+                "effect": null
             },
             {
-                "id": "venom_smog",
-                "name": "Humo Corrosivo",
-                "affinity": "VENOM",
-                "power": 55,
-                "accuracy": 0.9,
-                "description": "Expele un gas que irrita los pulmones."
+                "id": "astral_glow",
+                "name": "Destello Floral",
+                "affinity": "ASTRAL",
+                "power": 92,
+                "accuracy": 84,
+                "description": "Una explosión de luz estelar y polen golpea al rival.",
+                "effect": null
             },
             {
-                "id": "venom_sludge",
-                "name": "Lodo Infecto",
-                "affinity": "VENOM",
-                "power": 70,
-                "accuracy": 0.85,
-                "description": "Lanza una bola de fango altamente contaminado."
+                "id": "grove_restore",
+                "name": "Flor de Vida",
+                "affinity": "GROVE",
+                "power": 0,
+                "accuracy": 100,
+                "description": "Absorbe energía natural para restaurar una parte de su salud.",
+                "effect": {
+                    "type": "heal",
+                    "value": 25,
+                    "target": "self"
+                }
             },
             {
-                "id": "venom_decay",
-                "name": "Toque de Descomposición",
-                "affinity": "VENOM",
-                "power": 85,
-                "accuracy": 0.75,
-                "description": "Acelera la muerte celular donde impacta."
+                "id": "astral_bloom",
+                "name": "Polen Ascendente",
+                "affinity": "ASTRAL",
+                "power": 58,
+                "accuracy": 86,
+                "description": "Un estallido brillante que refuerza su poder ofensivo.",
+                "effect": {
+                    "type": "boost_atk",
+                    "value": 20,
+                    "target": "self"
+                }
             }
         ]
     },
     {
         "id": "039",
-        "slug": "valdruun",
-        "name": "Valdruun",
-        "affinities": ["VOLT", "SHADE"],
-        "rarity": "ELITE",
-        "description": "Un predador que combina oscuridad y electricidad para cazar en silencio absoluto antes de descargar toda su energía.",
-        "baseStats": { "hp": 100, "atk": 125, "def": 70, "spd": 110 },
-        "catchRate": 0.05,
-        "art": { "portrait": "⚡", "front": "⚡", "back": "⚡" },
+        "slug": "stormeid",
+        "name": "Stormeid",
+        "affinities": [
+            "VOLT"
+        ],
+        "rarity": "RARE",
+        "description": "Ave tempestuosa que surca tormentas eléctricas para alimentarse de rayos puros.",
+        "baseStats": {
+            "hp": 93,
+            "atk": 88,
+            "def": 77,
+            "spd": 92
+        },
+        "catchRate": 0.18,
+        "art": {
+            "portrait": "⚡",
+            "front": "⚡",
+            "back": "⚡"
+        },
         "moves": [
             {
-                "id": "volt_flash",
-                "name": "Relámpago Oscuro",
+                "id": "volt_talon",
+                "name": "Garra de Trueno",
                 "affinity": "VOLT",
-                "power": 60,
-                "accuracy": 0.95,
-                "description": "Una descarga repentina, silenciosa e imperceptible."
+                "power": 72,
+                "accuracy": 92,
+                "description": "Ataca con una garra electrificada de precisión letal.",
+                "effect": null
             },
             {
-                "id": "volt_strike",
-                "name": "Golpe de Voltaje",
+                "id": "volt_bolt",
+                "name": "Rayo de Tormenta",
                 "affinity": "VOLT",
-                "power": 80,
-                "accuracy": 0.88,
-                "description": "Acumula iones y los libera de un zarpazo."
+                "power": 92,
+                "accuracy": 84,
+                "description": "Descarga un relámpago violento que sacude al objetivo.",
+                "effect": null
             },
             {
-                "id": "volt_lightning",
-                "name": "Tormenta de Caza",
+                "id": "volt_haste",
+                "name": "Impulso Centella",
                 "affinity": "VOLT",
-                "power": 100,
-                "accuracy": 0.8,
-                "description": "Rayos continuos que persiguen al enemigo."
+                "power": 0,
+                "accuracy": 100,
+                "description": "Excita su cuerpo con electricidad pura y eleva mucho su velocidad.",
+                "effect": {
+                    "type": "boost_spd",
+                    "value": 30,
+                    "target": "self"
+                }
             },
             {
-                "id": "shade_terror",
-                "name": "Terror Nocturno",
-                "affinity": "SHADE",
-                "power": 115,
-                "accuracy": 0.7,
-                "description": "Miedo paralizante seguido de energía brutal."
+                "id": "volt_lock",
+                "name": "Chispa Aturdidora",
+                "affinity": "VOLT",
+                "power": 58,
+                "accuracy": 86,
+                "description": "Una descarga precisa que hiere y puede dejar paralizado al rival.",
+                "effect": {
+                    "type": "stun",
+                    "value": 1,
+                    "target": "enemy"
+                }
             }
         ]
     },
@@ -1773,45 +2738,72 @@
         "id": "040",
         "slug": "tidalp",
         "name": "Tidalp",
-        "affinities": ["TIDE"],
+        "affinities": [
+            "TIDE"
+        ],
         "rarity": "COMMON",
         "description": "Criatura marina que genera minimareas a su alrededor para desestabilizar a sus rivales en combate.",
-        "baseStats": { "hp": 65, "atk": 50, "def": 60, "spd": 45 },
+        "baseStats": {
+            "hp": 88,
+            "atk": 66,
+            "def": 82,
+            "spd": 64
+        },
         "catchRate": 0.6,
-        "evolution": { "evolvesTo": "041", "method": "LEVEL", "value": 24 },
-        "art": { "portrait": "💧", "front": "💧", "back": "💧" },
+        "evolution": {
+            "evolvesTo": "041",
+            "method": "LEVEL",
+            "value": 24
+        },
+        "art": {
+            "portrait": "💧",
+            "front": "💧",
+            "back": "💧"
+        },
         "moves": [
             {
                 "id": "tide_water",
-                "name": "Chorro a Presión",
+                "name": "Latigazo Marino",
                 "affinity": "TIDE",
-                "power": 40,
-                "accuracy": 0.95,
-                "description": "Un golpe básico con agua dulce."
+                "power": 60,
+                "accuracy": 95,
+                "description": "Azota al enemigo con una corriente cortante de agua comprimida.",
+                "effect": null
             },
             {
                 "id": "tide_pool",
-                "name": "Charco Trampa",
+                "name": "Remolino Profundo",
                 "affinity": "TIDE",
-                "power": 55,
-                "accuracy": 0.9,
-                "description": "Crea inestabilidad bajo los pies del rival."
+                "power": 78,
+                "accuracy": 88,
+                "description": "Invoca una marea violenta que golpea con presión marina.",
+                "effect": null
             },
             {
                 "id": "tide_crash",
-                "name": "Embestida Marina",
+                "name": "Pulso de Corriente",
                 "affinity": "TIDE",
-                "power": 70,
-                "accuracy": 0.85,
-                "description": "Golpea recubierto en una esfera de agua dura."
+                "power": 0,
+                "accuracy": 100,
+                "description": "Roba humedad vital y recupera fuerzas con el flujo del combate.",
+                "effect": {
+                    "type": "drain",
+                    "value": 18,
+                    "target": "enemy"
+                }
             },
             {
                 "id": "tide_flood",
-                "name": "Inundación Menor",
+                "name": "Marea Drenante",
                 "affinity": "TIDE",
-                "power": 85,
-                "accuracy": 0.75,
-                "description": "El terreno se llena de agua arrastrando al rival."
+                "power": 50,
+                "accuracy": 90,
+                "description": "Un remolino drenante que hiere mientras absorbe vida del objetivo.",
+                "effect": {
+                    "type": "drain",
+                    "value": 22,
+                    "target": "enemy"
+                }
             }
         ]
     },
@@ -1819,44 +2811,67 @@
         "id": "041",
         "slug": "abysvel",
         "name": "Abysvel",
-        "affinities": ["TIDE"],
+        "affinities": [
+            "TIDE"
+        ],
         "rarity": "RARE",
         "description": "Leviatán de aguas profundas cuya presencia distorsiona las corrientes oceánicas de Mythara.",
-        "baseStats": { "hp": 100, "atk": 80, "def": 95, "spd": 55 },
+        "baseStats": {
+            "hp": 106,
+            "atk": 78,
+            "def": 100,
+            "spd": 66
+        },
         "catchRate": 0.2,
-        "art": { "portrait": "💧", "front": "💧", "back": "💧" },
+        "art": {
+            "portrait": "💧",
+            "front": "💧",
+            "back": "💧"
+        },
         "moves": [
             {
                 "id": "tide_dive",
-                "name": "Embestida Abisal",
+                "name": "Corte de Marea",
                 "affinity": "TIDE",
-                "power": 55,
-                "accuracy": 0.95,
-                "description": "Carga desde las profundidades invisibles."
+                "power": 72,
+                "accuracy": 92,
+                "description": "Azota al enemigo con una corriente cortante de agua comprimida.",
+                "effect": null
             },
             {
                 "id": "tide_whirl",
-                "name": "Remolino Cautivo",
+                "name": "Chorro Abisal",
                 "affinity": "TIDE",
-                "power": 75,
-                "accuracy": 0.88,
-                "description": "Encierra al rival en una prisión giratoria."
+                "power": 92,
+                "accuracy": 84,
+                "description": "Invoca una marea violenta que golpea con presión marina.",
+                "effect": null
             },
             {
                 "id": "tide_ocean",
-                "name": "Presión Oceánica",
+                "name": "Flujo Sereno",
                 "affinity": "TIDE",
-                "power": 95,
-                "accuracy": 0.8,
-                "description": "Aplica la presión aplastante del fondo marino."
+                "power": 0,
+                "accuracy": 100,
+                "description": "Roba humedad vital y recupera fuerzas con el flujo del combate.",
+                "effect": {
+                    "type": "drain",
+                    "value": 18,
+                    "target": "enemy"
+                }
             },
             {
                 "id": "tide_maelstrom",
-                "name": "Maelstrom Leviatán",
+                "name": "Oleada Vampírica",
                 "affinity": "TIDE",
-                "power": 110,
-                "accuracy": 0.72,
-                "description": "Un vórtice de destrucción de agua pesada."
+                "power": 58,
+                "accuracy": 86,
+                "description": "Un remolino drenante que hiere mientras absorbe vida del objetivo.",
+                "effect": {
+                    "type": "drain",
+                    "value": 22,
+                    "target": "enemy"
+                }
             }
         ]
     },
@@ -1864,44 +2879,67 @@
         "id": "042",
         "slug": "sprivok",
         "name": "Sprivok",
-        "affinities": ["GROVE"],
+        "affinities": [
+            "GROVE"
+        ],
         "rarity": "COMMON",
         "description": "Criatura que se camufla entre las raíces del bosque y usa lianas como látigos en combate.",
-        "baseStats": { "hp": 60, "atk": 50, "def": 65, "spd": 35 },
+        "baseStats": {
+            "hp": 86,
+            "atk": 67,
+            "def": 88,
+            "spd": 59
+        },
         "catchRate": 0.6,
-        "art": { "portrait": "🌿", "front": "🌿", "back": "🌿" },
+        "art": {
+            "portrait": "🌿",
+            "front": "🌿",
+            "back": "🌿"
+        },
         "moves": [
             {
                 "id": "grove_bud",
-                "name": "Brote Violento",
+                "name": "Savia Sanadora",
                 "affinity": "GROVE",
-                "power": 40,
-                "accuracy": 0.95,
-                "description": "Raíces pequeñas que pinchan desde abajo."
+                "power": 60,
+                "accuracy": 95,
+                "description": "Ataca con raíces y espinas endurecidas por la savia.",
+                "effect": null
             },
             {
                 "id": "grove_stem",
-                "name": "Tallo Furtivo",
+                "name": "Floración Venenosa",
                 "affinity": "GROVE",
-                "power": 55,
-                "accuracy": 0.9,
-                "description": "Un látigo delgado y filoso como hierba."
+                "power": 78,
+                "accuracy": 88,
+                "description": "Golpea con la furia del bosque y astillas afiladas.",
+                "effect": null
             },
             {
                 "id": "grove_log",
-                "name": "Impacto de Madera",
+                "name": "Raíz Cruel",
                 "affinity": "GROVE",
-                "power": 70,
-                "accuracy": 0.85,
-                "description": "Arroja un trozo macizo de corteza."
+                "power": 0,
+                "accuracy": 100,
+                "description": "Canaliza savia vital para regenerar parte de su energía.",
+                "effect": {
+                    "type": "heal",
+                    "value": 25,
+                    "target": "self"
+                }
             },
             {
                 "id": "grove_jungle",
-                "name": "Espesura Ahogante",
+                "name": "Rama Férrea",
                 "affinity": "GROVE",
-                "power": 85,
-                "accuracy": 0.75,
-                "description": "Lianas que atan e infligen daño por constricción."
+                "power": 50,
+                "accuracy": 90,
+                "description": "Libera toxinas vegetales que dañan y envenenan al enemigo.",
+                "effect": {
+                    "type": "poison",
+                    "value": 2,
+                    "target": "enemy"
+                }
             }
         ]
     },
@@ -1909,44 +2947,68 @@
         "id": "043",
         "slug": "scoravel",
         "name": "Scoravel",
-        "affinities": ["EMBER", "STONE"],
+        "affinities": [
+            "EMBER",
+            "STONE"
+        ],
         "rarity": "RARE",
         "description": "Escorpión de lava solidificada cuyo aguijón inyecta magma fundido directamente en sus presas.",
-        "baseStats": { "hp": 85, "atk": 95, "def": 80, "spd": 50 },
+        "baseStats": {
+            "hp": 100,
+            "atk": 89,
+            "def": 95,
+            "spd": 66
+        },
         "catchRate": 0.2,
-        "art": { "portrait": "🔥", "front": "🔥", "back": "🔥" },
+        "art": {
+            "portrait": "🔥",
+            "front": "🔥",
+            "back": "🔥"
+        },
         "moves": [
             {
                 "id": "ember_heat",
-                "name": "Calor Punzante",
+                "name": "Ala Incandescente",
                 "affinity": "EMBER",
-                "power": 50,
-                "accuracy": 0.95,
-                "description": "Ataque con tenazas al rojo vivo."
+                "power": 72,
+                "accuracy": 92,
+                "description": "Golpea al rival con una llamarada feroz de calor abrasador.",
+                "effect": null
             },
             {
                 "id": "ember_melt",
-                "name": "Derrite-Rocas",
+                "name": "Mordisco de Horno",
                 "affinity": "EMBER",
-                "power": 70,
-                "accuracy": 0.88,
-                "description": "Inyecta magma que funde defensas."
+                "power": 92,
+                "accuracy": 84,
+                "description": "Desata un impacto ígneo que calcina todo a su paso.",
+                "effect": null
             },
             {
                 "id": "ember_volcano",
-                "name": "Furia del Volcán",
+                "name": "Garra de Brasa",
                 "affinity": "EMBER",
-                "power": 90,
-                "accuracy": 0.8,
-                "description": "Dispara ráfagas de lava en estado puro."
+                "power": 0,
+                "accuracy": 100,
+                "description": "Aviva sus llamas internas para dejar al rival ardiendo.",
+                "effect": {
+                    "type": "burn",
+                    "value": 2,
+                    "target": "enemy"
+                }
             },
             {
                 "id": "stone_fossil",
-                "name": "Aguijón de Obsidiana",
+                "name": "Coraza de Roca",
                 "affinity": "STONE",
-                "power": 105,
-                "accuracy": 0.72,
-                "description": "Empala con una cola de roca vítrea cortante."
+                "power": 58,
+                "accuracy": 86,
+                "description": "Embiste con peso tectónico mientras refuerza su coraza.",
+                "effect": {
+                    "type": "boost_def",
+                    "value": 20,
+                    "target": "self"
+                }
             }
         ]
     },
@@ -1954,44 +3016,67 @@
         "id": "044",
         "slug": "grimveil",
         "name": "Grimveil",
-        "affinities": ["SHADE"],
+        "affinities": [
+            "SHADE"
+        ],
         "rarity": "COMMON",
         "description": "Un ser envuelto en un manto de oscuridad perpetua que absorbe toda la luz a su alrededor.",
-        "baseStats": { "hp": 60, "atk": 55, "def": 50, "spd": 50 },
+        "baseStats": {
+            "hp": 86,
+            "atk": 70,
+            "def": 77,
+            "spd": 67
+        },
         "catchRate": 0.5,
-        "art": { "portrait": "🌑", "front": "🌑", "back": "🌑" },
+        "art": {
+            "portrait": "🌑",
+            "front": "🌑",
+            "back": "🌑"
+        },
         "moves": [
             {
                 "id": "shade_murk",
-                "name": "Bruma Engañosa",
+                "name": "Niebla Lóbrega",
                 "affinity": "SHADE",
-                "power": 40,
-                "accuracy": 0.95,
-                "description": "Ataque veloz en medio de tinieblas."
+                "power": 60,
+                "accuracy": 95,
+                "description": "Rasga con oscuridad condensada nacida de la penumbra.",
+                "effect": null
             },
             {
                 "id": "shade_dusk",
-                "name": "Zarpazo de Ocaso",
+                "name": "Sello Sombrío",
                 "affinity": "SHADE",
-                "power": 55,
-                "accuracy": 0.9,
-                "description": "Corta con la esencia de la luz agonizante."
+                "power": 78,
+                "accuracy": 88,
+                "description": "Golpea desde las sombras con un impacto difícil de prever.",
+                "effect": null
             },
             {
                 "id": "shade_creep",
-                "name": "Sombra Rastrera",
+                "name": "Eco de Tinieblas",
                 "affinity": "SHADE",
-                "power": 70,
-                "accuracy": 0.85,
-                "description": "Picos de sombra surgen del suelo sorpresivamente."
+                "power": 0,
+                "accuracy": 100,
+                "description": "Debilita el cuerpo del rival y reduce su velocidad entre tinieblas.",
+                "effect": {
+                    "type": "boost_spd",
+                    "value": -25,
+                    "target": "enemy"
+                }
             },
             {
                 "id": "shade_haunt",
-                "name": "Aparición Tenebrosa",
+                "name": "Zarpazo Umbrío",
                 "affinity": "SHADE",
-                "power": 85,
-                "accuracy": 0.75,
-                "description": "Un terrorífico ataque que drena energía."
+                "power": 50,
+                "accuracy": 90,
+                "description": "Una embestida umbría que hiere y drena parte de la energía enemiga.",
+                "effect": {
+                    "type": "drain",
+                    "value": 18,
+                    "target": "enemy"
+                }
             }
         ]
     },
@@ -1999,44 +3084,68 @@
         "id": "045",
         "slug": "lumivex",
         "name": "Lumivex",
-        "affinities": ["ASTRAL", "VOLT"],
+        "affinities": [
+            "ASTRAL",
+            "VOLT"
+        ],
         "rarity": "RARE",
         "description": "Criatura que canaliza energía estelar en descargas eléctricas de precisión quirúrgica.",
-        "baseStats": { "hp": 75, "atk": 100, "def": 55, "spd": 95 },
+        "baseStats": {
+            "hp": 93,
+            "atk": 91,
+            "def": 77,
+            "spd": 89
+        },
         "catchRate": 0.15,
-        "art": { "portrait": "✨", "front": "✨", "back": "✨" },
+        "art": {
+            "portrait": "✨",
+            "front": "✨",
+            "back": "✨"
+        },
         "moves": [
             {
                 "id": "astral_wisp",
-                "name": "Fuego Fatuo Cósmico",
+                "name": "Pulso Cósmico",
                 "affinity": "ASTRAL",
-                "power": 50,
-                "accuracy": 0.95,
-                "description": "Proyectiles de luz errática pero precisa."
+                "power": 72,
+                "accuracy": 92,
+                "description": "Golpea con energía cósmica condensada de brillo devastador.",
+                "effect": null
             },
             {
                 "id": "astral_lunar",
-                "name": "Rayo Lunar",
+                "name": "Auge Celeste",
                 "affinity": "ASTRAL",
-                "power": 70,
-                "accuracy": 0.88,
-                "description": "Un haz de luz plateada de energía fría."
+                "power": 92,
+                "accuracy": 84,
+                "description": "Invoca un estallido estelar que perfora cuerpo y espíritu.",
+                "effect": null
             },
             {
                 "id": "astral_solar",
-                "name": "Llamarada Solar",
+                "name": "Cometa del Vacío",
                 "affinity": "ASTRAL",
-                "power": 90,
-                "accuracy": 0.8,
-                "description": "Calor estelar concentrado en un punto."
+                "power": 0,
+                "accuracy": 100,
+                "description": "Alinea su energía astral para aumentar notablemente su ataque.",
+                "effect": {
+                    "type": "boost_atk",
+                    "value": 30,
+                    "target": "self"
+                }
             },
             {
                 "id": "volt_emp",
-                "name": "Pulso Estelar",
+                "name": "Sobrecarga Nerviosa",
                 "affinity": "VOLT",
-                "power": 105,
-                "accuracy": 0.72,
-                "description": "Electromagnetismo que fríe circuitos y nervios."
+                "power": 58,
+                "accuracy": 86,
+                "description": "Una descarga precisa que hiere y puede dejar al rival aturdido.",
+                "effect": {
+                    "type": "stun",
+                    "value": 1,
+                    "target": "enemy"
+                }
             }
         ]
     },
@@ -2044,44 +3153,67 @@
         "id": "046",
         "slug": "thornax",
         "name": "Thornax",
-        "affinities": ["GROVE"],
+        "affinities": [
+            "GROVE"
+        ],
         "rarity": "COMMON",
         "description": "Sus espinas segregan una savia que ralentiza los reflejos de cualquier criatura que las toque.",
-        "baseStats": { "hp": 65, "atk": 55, "def": 70, "spd": 30 },
+        "baseStats": {
+            "hp": 87,
+            "atk": 69,
+            "def": 89,
+            "spd": 55
+        },
         "catchRate": 0.6,
-        "art": { "portrait": "🌿", "front": "🌿", "back": "🌿" },
+        "art": {
+            "portrait": "🌿",
+            "front": "🌿",
+            "back": "🌿"
+        },
         "moves": [
             {
                 "id": "grove_prick",
-                "name": "Pinchazo Venoso",
+                "name": "Abrazo del Bosque",
                 "affinity": "GROVE",
-                "power": 40,
-                "accuracy": 0.95,
-                "description": "Púas diminutas lanzadas a gran velocidad."
+                "power": 60,
+                "accuracy": 95,
+                "description": "Ataca con raíces y espinas endurecidas por la savia.",
+                "effect": null
             },
             {
                 "id": "grove_shrub",
-                "name": "Follaje Hiriente",
+                "name": "Brote Vital",
                 "affinity": "GROVE",
-                "power": 55,
-                "accuracy": 0.9,
-                "description": "Hojas endurecidas que actúan como cuchillos."
+                "power": 78,
+                "accuracy": 88,
+                "description": "Golpea con la furia del bosque y astillas afiladas.",
+                "effect": null
             },
             {
                 "id": "grove_thicket",
-                "name": "Zarza Asesina",
+                "name": "Espina Salvaje",
                 "affinity": "GROVE",
-                "power": 70,
-                "accuracy": 0.85,
-                "description": "Enreda en espinas que desgarran al moverse."
+                "power": 0,
+                "accuracy": 100,
+                "description": "Canaliza savia vital para regenerar parte de su energía.",
+                "effect": {
+                    "type": "heal",
+                    "value": 25,
+                    "target": "self"
+                }
             },
             {
                 "id": "grove_canopy",
-                "name": "Caída del Dosel",
+                "name": "Látigo de Lianas",
                 "affinity": "GROVE",
-                "power": 85,
-                "accuracy": 0.75,
-                "description": "Invoca ramas gruesas cayendo sobre el objetivo."
+                "power": 50,
+                "accuracy": 90,
+                "description": "Libera toxinas vegetales que dañan y envenenan al enemigo.",
+                "effect": {
+                    "type": "poison",
+                    "value": 2,
+                    "target": "enemy"
+                }
             }
         ]
     },
@@ -2089,44 +3221,68 @@
         "id": "047",
         "slug": "cryoveth",
         "name": "Cryoveth",
-        "affinities": ["FROST", "SHADE"],
+        "affinities": [
+            "FROST",
+            "SHADE"
+        ],
         "rarity": "RARE",
         "description": "Criatura que congela las sombras para crear trampas invisibles que atrapan a sus enemigos.",
-        "baseStats": { "hp": 80, "atk": 85, "def": 85, "spd": 60 },
+        "baseStats": {
+            "hp": 97,
+            "atk": 84,
+            "def": 98,
+            "spd": 71
+        },
         "catchRate": 0.2,
-        "art": { "portrait": "❄️", "front": "❄️", "back": "❄️" },
+        "art": {
+            "portrait": "❄️",
+            "front": "❄️",
+            "back": "❄️"
+        },
         "moves": [
             {
                 "id": "frost_nip",
-                "name": "Mordida Helada",
+                "name": "Púa de Ventisca",
                 "affinity": "FROST",
-                "power": 50,
-                "accuracy": 0.95,
-                "description": "Un frío cortante que adormece los nervios."
+                "power": 72,
+                "accuracy": 92,
+                "description": "Corta con hielo afilado que entumece al contacto.",
+                "effect": null
             },
             {
                 "id": "frost_hail",
-                "name": "Granizo Sombrío",
+                "name": "Paso Helante",
                 "affinity": "FROST",
-                "power": 70,
-                "accuracy": 0.88,
-                "description": "Cristales de hielo que caen de la oscuridad."
+                "power": 92,
+                "accuracy": 84,
+                "description": "Desata una ventisca compacta de escarcha penetrante.",
+                "effect": null
             },
             {
                 "id": "frost_tundra",
-                "name": "Tundra de la Noche",
+                "name": "Velo de Escarcha",
                 "affinity": "FROST",
-                "power": 90,
-                "accuracy": 0.8,
-                "description": "Congela el piso creando agujas de hielo oscurecido."
+                "power": 0,
+                "accuracy": 100,
+                "description": "Congela el aire alrededor del rival y reduce su velocidad.",
+                "effect": {
+                    "type": "boost_spd",
+                    "value": -30,
+                    "target": "enemy"
+                }
             },
             {
                 "id": "shade_shiver",
-                "name": "Escalofrío de Sombra",
+                "name": "Corte del Ocaso",
                 "affinity": "SHADE",
-                "power": 105,
-                "accuracy": 0.72,
-                "description": "Ataca directamente al espíritu bajando su temperatura."
+                "power": 58,
+                "accuracy": 86,
+                "description": "Una embestida umbría que hiere y drena parte de la energía enemiga.",
+                "effect": {
+                    "type": "drain",
+                    "value": 18,
+                    "target": "enemy"
+                }
             }
         ]
     },
@@ -2134,44 +3290,67 @@
         "id": "048",
         "slug": "stoven",
         "name": "Stoven",
-        "affinities": ["STONE"],
+        "affinities": [
+            "STONE"
+        ],
         "rarity": "COMMON",
         "description": "Criatura que habita cuevas profundas y usa su cuerpo pétreo como proyectil rodante de alto impacto.",
-        "baseStats": { "hp": 70, "atk": 60, "def": 70, "spd": 25 },
+        "baseStats": {
+            "hp": 90,
+            "atk": 70,
+            "def": 88,
+            "spd": 52
+        },
         "catchRate": 0.55,
-        "art": { "portrait": "🪨", "front": "🪨", "back": "🪨" },
+        "art": {
+            "portrait": "🪨",
+            "front": "🪨",
+            "back": "🪨"
+        },
         "moves": [
             {
                 "id": "stone_gravel",
-                "name": "Lluvia de Grava",
+                "name": "Rodada de Obsidiana",
                 "affinity": "STONE",
-                "power": 40,
-                "accuracy": 0.95,
-                "description": "Pequeñas piedrecitas disparadas a alta presión."
+                "power": 60,
+                "accuracy": 95,
+                "description": "Aplasta con roca densa y una fuerza imposible de frenar.",
+                "effect": null
             },
             {
                 "id": "stone_cobble",
-                "name": "Adoquín Letal",
+                "name": "Golpe de Granito",
                 "affinity": "STONE",
-                "power": 55,
-                "accuracy": 0.9,
-                "description": "Lanza un bloque de piedra sólido."
+                "power": 78,
+                "accuracy": 88,
+                "description": "Sacude el terreno con un impacto pétreo devastador.",
+                "effect": null
             },
             {
                 "id": "stone_slab",
-                "name": "Placa de Caída",
+                "name": "Carga Basáltica",
                 "affinity": "STONE",
-                "power": 70,
-                "accuracy": 0.85,
-                "description": "Deja caer un trozo del techo sobre el rival."
+                "power": 0,
+                "accuracy": 100,
+                "description": "Endurece su cuerpo mineral para reforzar su defensa.",
+                "effect": {
+                    "type": "boost_def",
+                    "value": 35,
+                    "target": "self"
+                }
             },
             {
                 "id": "stone_monument",
-                "name": "Rodada de Monolito",
+                "name": "Muralla Mineral",
                 "affinity": "STONE",
-                "power": 85,
-                "accuracy": 0.75,
-                "description": "Gira sobre sí mismo para aplastar al enemigo."
+                "power": 50,
+                "accuracy": 90,
+                "description": "Embiste con peso tectónico mientras refuerza su coraza.",
+                "effect": {
+                    "type": "boost_def",
+                    "value": 20,
+                    "target": "self"
+                }
             }
         ]
     },
@@ -2179,44 +3358,68 @@
         "id": "049",
         "slug": "embralith",
         "name": "Embralith",
-        "affinities": ["EMBER", "GROVE"],
+        "affinities": [
+            "EMBER",
+            "GROVE"
+        ],
         "rarity": "ELITE",
         "description": "Guardián ancestral de los bosques volcánicos de Mythara, su cuerpo es madera viva impregnada de magma.",
-        "baseStats": { "hp": 120, "atk": 115, "def": 100, "spd": 70 },
+        "baseStats": {
+            "hp": 122,
+            "atk": 97,
+            "def": 106,
+            "spd": 75
+        },
         "catchRate": 0.05,
-        "art": { "portrait": "🔥", "front": "🔥", "back": "🔥" },
+        "art": {
+            "portrait": "🔥",
+            "front": "🔥",
+            "back": "🔥"
+        },
         "moves": [
             {
                 "id": "ember_char",
-                "name": "Corteza Carbonizada",
+                "name": "Llama Voraz",
                 "affinity": "EMBER",
-                "power": 60,
-                "accuracy": 0.95,
-                "description": "Golpea con brazos cubiertos de madera ardiente."
+                "power": 84,
+                "accuracy": 90,
+                "description": "Golpea al rival con una llamarada feroz de calor abrasador.",
+                "effect": null
             },
             {
                 "id": "ember_pyre",
-                "name": "Pira Funeraria",
+                "name": "Pira Reforzada",
                 "affinity": "EMBER",
-                "power": 80,
-                "accuracy": 0.88,
-                "description": "Lanza fuego que consume lentamente todo a su paso."
+                "power": 108,
+                "accuracy": 82,
+                "description": "Desata un impacto ígneo que calcina todo a su paso.",
+                "effect": null
             },
             {
                 "id": "ember_cremate",
-                "name": "Cremación Natural",
+                "name": "Erupción de Ceniza",
                 "affinity": "EMBER",
-                "power": 100,
-                "accuracy": 0.8,
-                "description": "Ignición masiva de savia hirviente."
+                "power": 0,
+                "accuracy": 100,
+                "description": "Aviva sus llamas internas para dejar al rival ardiendo.",
+                "effect": {
+                    "type": "burn",
+                    "value": 2,
+                    "target": "enemy"
+                }
             },
             {
                 "id": "grove_petrified",
-                "name": "Bosque Petrificado",
+                "name": "Savia Sanadora",
                 "affinity": "GROVE",
-                "power": 115,
-                "accuracy": 0.7,
-                "description": "Raíces volcánicas que atrapan y aplastan con fuerza."
+                "power": 66,
+                "accuracy": 84,
+                "description": "Libera toxinas vegetales que dañan y envenenan al enemigo.",
+                "effect": {
+                    "type": "poison",
+                    "value": 2,
+                    "target": "enemy"
+                }
             }
         ]
     },
@@ -2224,44 +3427,68 @@
         "id": "050",
         "slug": "nyxareth",
         "name": "Nyxareth",
-        "affinities": ["SHADE", "ASTRAL"],
+        "affinities": [
+            "SHADE",
+            "ASTRAL"
+        ],
         "rarity": "LEGENDARY",
         "description": "El Devorador de Ecos. Una entidad nacida en el vacío entre las estrellas muertas de Mythara, cuya sola presencia apaga la luz y borra los recuerdos de quienes lo contemplan.",
-        "baseStats": { "hp": 150, "atk": 160, "def": 100, "spd": 120 },
+        "baseStats": {
+            "hp": 136,
+            "atk": 115,
+            "def": 103,
+            "spd": 96
+        },
         "catchRate": 0.01,
-        "art": { "portrait": "🌑", "front": "🌑", "back": "🌑" },
+        "art": {
+            "portrait": "🌑",
+            "front": "🌑",
+            "back": "🌑"
+        },
         "moves": [
             {
                 "id": "shade_echo",
-                "name": "Eco del Vacío",
+                "name": "Velo Opresivo",
                 "affinity": "SHADE",
-                "power": 70,
-                "accuracy": 0.95,
-                "description": "Un zumbido de oscuridad que rompe la mente."
+                "power": 95,
+                "accuracy": 88,
+                "description": "Rasga con oscuridad condensada nacida de la penumbra.",
+                "effect": null
             },
             {
                 "id": "shade_oblivion",
-                "name": "Olvido Perpetuo",
+                "name": "Mordida del Vacío",
                 "affinity": "SHADE",
-                "power": 90,
-                "accuracy": 0.85,
-                "description": "Golpe que borra recuerdos y drena vida."
+                "power": 115,
+                "accuracy": 80,
+                "description": "Golpea desde las sombras con un impacto difícil de prever.",
+                "effect": null
             },
             {
                 "id": "shade_singularity",
-                "name": "Singularidad Umbría",
+                "name": "Golpe de Penumbra",
                 "affinity": "SHADE",
-                "power": 110,
-                "accuracy": 0.75,
-                "description": "Agujero negro que devora espacio y tiempo."
+                "power": 0,
+                "accuracy": 100,
+                "description": "Debilita el cuerpo del rival y reduce su velocidad entre tinieblas.",
+                "effect": {
+                    "type": "boost_spd",
+                    "value": -25,
+                    "target": "enemy"
+                }
             },
             {
                 "id": "astral_void",
-                "name": "Aniquilación Cósmica",
+                "name": "Destello Nebuloso",
                 "affinity": "ASTRAL",
-                "power": 120,
-                "accuracy": 0.7,
-                "description": "Colapso estelar absoluto borrando al rival de la existencia."
+                "power": 70,
+                "accuracy": 82,
+                "description": "Un impacto celeste que daña y amplifica aún más su poder ofensivo.",
+                "effect": {
+                    "type": "boost_atk",
+                    "value": 20,
+                    "target": "self"
+                }
             }
         ]
     }

@@ -2,6 +2,7 @@ import { prisma } from "./prisma.js";
 import { createBattleSession, getSession, getUserSession, deleteSession } from "./battleStore.js";
 import { getCreature } from "./creatureService.js";
 import { addXp } from "./trainerService.js";
+import creaturesData from "../data/creatures.json" with { type: "json" };
 
 // ─────────────────────────────────────────
 // Types
@@ -122,14 +123,18 @@ function calcDamage(
     const stabMult = isStab ? 1.5 : 1;
     const critMult = isCrit ? 1.5 : 1;
 
+    // ✅ CORREGIDO: (attack/defense) * (power/50) + 2
+    const levelFactor = (2 * attacker.level) / 5 + 2;
+    const baseDmg = (attacker.attack / defender.defense) * (move.power / 50) + 2;
+
     let dmg = Math.floor(
-        ((2 * attacker.level) / 5 + 2) *
-        move.power *
-        (attacker.attack / defender.defense / 50 + 2) *
+        levelFactor *
+        baseDmg *
         stabMult *
         mult *
         critMult
     );
+
     if (Math.random() > move.accuracy / 100) dmg = 0;
     return { damage: dmg, mult, crit: isCrit, stab: isStab };
 }
@@ -243,7 +248,7 @@ export async function startNpcBattle(
 
     // Equipo NPC — mismo número que el jugador (nunca >doble)
     const enemyCount = Math.min(playerTeam.length, 3);
-    const creatures = (await import("../data/creatures.json", { assert: { type: "json" } })).default as any[];
+    const creatures = creaturesData as any[];
     const pool = creatures
         .filter((c) => c.id && Array.isArray(c.moves) && c.moves.length >= 1)
         .sort(() => Math.random() - 0.5)

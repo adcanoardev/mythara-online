@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import TrainerSidebar from "../components/TrainerSidebar";
@@ -8,29 +8,19 @@ import { api } from "../lib/api";
 // Types
 // ─────────────────────────────────────────
 
-type Affinity = "EMBER" | "TIDE" | "GROVE" | "VOLT" | "STONE" | "FROST" | "VENOM" | "ASTRAL" | "IRON" | "SHADE";
+type Affinity =
+    | "EMBER" | "TIDE" | "GROVE" | "VOLT" | "STONE"
+    | "FROST" | "VENOM" | "ASTRAL" | "IRON" | "SHADE";
 
 interface Move {
-    id: string;
-    name: string;
-    affinity: Affinity;
-    power: number;
-    accuracy: number;
-    description: string;
+    id: string; name: string; affinity: Affinity;
+    power: number; accuracy: number; description: string;
 }
 
 interface BattleMyth {
-    instanceId: string;
-    speciesId: string;
-    name: string;
-    level: number;
-    hp: number;
-    maxHp: number;
-    attack: number;
-    defense: number;
-    speed: number;
-    affinities: Affinity[];
-    moves: Move[];
+    instanceId: string; speciesId: string; name: string; level: number;
+    hp: number; maxHp: number; attack: number; defense: number; speed: number;
+    affinities: Affinity[]; moves: Move[];
     art: { portrait: string; front: string; back: string };
     status: null | "poisoned" | "burned" | "stunned";
     defeated: boolean;
@@ -44,117 +34,63 @@ interface BattleSession {
     status: "ongoing" | "win" | "lose";
 }
 
-// ─────────────────────────────────────────
-// Animation queue
-// ─────────────────────────────────────────
-
-type AnimStep =
-    | { type: "attack-out"; side: "player" | "npc"; mythId: string; affinity: Affinity }
-    | {
-          type: "impact";
-          side: "player" | "npc";
-          mythId: string;
-          affinity: Affinity;
-          damage: number;
-          crit: boolean;
-          mult: number;
-      }
-    | { type: "hp-update"; session: BattleSession }
-    | { type: "defeated"; mythId: string }
-    | { type: "log"; text: string };
+// Deep clone para forzar re-render en React (CRÍTICO para que el HP se actualice visualmente)
+function cloneSession(s: any): BattleSession {
+    return JSON.parse(JSON.stringify(s));
+}
 
 // ─────────────────────────────────────────
-// Affinity config
+// Affinity config — colores, emojis y efectos de proyectil
 // ─────────────────────────────────────────
 
-const AFFINITY_CONFIG: Record<Affinity, { color: string; bg: string; flash: string; emoji: string; label: string }> = {
-    EMBER: {
-        color: "text-orange-400",
-        bg: "bg-orange-500/20",
-        flash: "shadow-orange-500/80",
-        emoji: "🔥",
-        label: "Brasa",
-    },
-    TIDE: { color: "text-blue-400", bg: "bg-blue-500/20", flash: "shadow-blue-500/80", emoji: "🌊", label: "Marea" },
-    GROVE: {
-        color: "text-green-400",
-        bg: "bg-green-500/20",
-        flash: "shadow-green-500/80",
-        emoji: "🌿",
-        label: "Bosque",
-    },
-    VOLT: {
-        color: "text-yellow-300",
-        bg: "bg-yellow-400/20",
-        flash: "shadow-yellow-400/80",
-        emoji: "⚡",
-        label: "Voltio",
-    },
-    STONE: {
-        color: "text-stone-400",
-        bg: "bg-stone-500/20",
-        flash: "shadow-stone-400/80",
-        emoji: "🪨",
-        label: "Piedra",
-    },
-    FROST: {
-        color: "text-cyan-300",
-        bg: "bg-cyan-500/20",
-        flash: "shadow-cyan-400/80",
-        emoji: "❄️",
-        label: "Escarcha",
-    },
-    VENOM: {
-        color: "text-purple-400",
-        bg: "bg-purple-500/20",
-        flash: "shadow-purple-500/80",
-        emoji: "🧪",
-        label: "Veneno",
-    },
-    ASTRAL: {
-        color: "text-indigo-300",
-        bg: "bg-indigo-500/20",
-        flash: "shadow-indigo-400/80",
-        emoji: "✨",
-        label: "Astral",
-    },
-    IRON: {
-        color: "text-slate-300",
-        bg: "bg-slate-500/20",
-        flash: "shadow-slate-400/80",
-        emoji: "⚙️",
-        label: "Hierro",
-    },
-    SHADE: {
-        color: "text-violet-400",
-        bg: "bg-violet-700/20",
-        flash: "shadow-violet-600/80",
-        emoji: "🌑",
-        label: "Sombra",
-    },
-};
-
-const RARITY_COLOR: Record<string, string> = {
-    COMMON: "border-slate-500",
-    RARE: "border-sky-400",
-    ELITE: "border-violet-400",
-    LEGENDARY: "border-yellow-400",
-    MYTHIC: "border-pink-400",
+const AFFINITY_CONFIG: Record<Affinity, {
+    color: string; bg: string; glow: string; emoji: string;
+    label: string; projEmoji: string; projTrail: string;
+}> = {
+    EMBER:  { color: "text-orange-400",  bg: "bg-orange-500/20",  glow: "#f97316", emoji: "🔥", label: "Brasa",    projEmoji: "🔥", projTrail: "rgba(249,115,22,0.6)"  },
+    TIDE:   { color: "text-blue-400",    bg: "bg-blue-500/20",    glow: "#3b82f6", emoji: "🌊", label: "Marea",    projEmoji: "💧", projTrail: "rgba(59,130,246,0.6)"   },
+    GROVE:  { color: "text-green-400",   bg: "bg-green-500/20",   glow: "#22c55e", emoji: "🌿", label: "Bosque",   projEmoji: "🍃", projTrail: "rgba(34,197,94,0.6)"    },
+    VOLT:   { color: "text-yellow-300",  bg: "bg-yellow-400/20",  glow: "#fde047", emoji: "⚡", label: "Voltio",   projEmoji: "⚡", projTrail: "rgba(253,224,71,0.8)"   },
+    STONE:  { color: "text-stone-400",   bg: "bg-stone-500/20",   glow: "#a8a29e", emoji: "🪨", label: "Piedra",   projEmoji: "🪨", projTrail: "rgba(168,162,158,0.6)"  },
+    FROST:  { color: "text-cyan-300",    bg: "bg-cyan-500/20",    glow: "#67e8f9", emoji: "❄️", label: "Escarcha", projEmoji: "❄️", projTrail: "rgba(103,232,249,0.7)"  },
+    VENOM:  { color: "text-purple-400",  bg: "bg-purple-500/20",  glow: "#a855f7", emoji: "🧪", label: "Veneno",   projEmoji: "☠️", projTrail: "rgba(168,85,247,0.6)"   },
+    ASTRAL: { color: "text-indigo-300",  bg: "bg-indigo-500/20",  glow: "#818cf8", emoji: "✨", label: "Astral",   projEmoji: "✨", projTrail: "rgba(129,140,248,0.7)"  },
+    IRON:   { color: "text-slate-300",   bg: "bg-slate-500/20",   glow: "#94a3b8", emoji: "⚙️", label: "Hierro",   projEmoji: "⚙️", projTrail: "rgba(148,163,184,0.6)"  },
+    SHADE:  { color: "text-violet-400",  bg: "bg-violet-700/20",  glow: "#7c3aed", emoji: "🌑", label: "Sombra",   projEmoji: "🌑", projTrail: "rgba(124,58,237,0.7)"   },
 };
 
 // ─────────────────────────────────────────
 // HP Bar
 // ─────────────────────────────────────────
 
-function HpBar({ hp, maxHp, animate }: { hp: number; maxHp: number; animate?: boolean }) {
+function HpBar({ hp, maxHp }: { hp: number; maxHp: number }) {
     const pct = maxHp > 0 ? Math.max(0, (hp / maxHp) * 100) : 0;
-    const color = pct > 50 ? "bg-green-400" : pct > 25 ? "bg-yellow-400" : "bg-red-500";
+    const color = pct > 50 ? "bg-emerald-400" : pct > 25 ? "bg-yellow-400" : "bg-red-500";
     return (
-        <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
-            <div
-                className={`h-full rounded-full ${color} ${animate ? "transition-all duration-500 ease-out" : ""}`}
-                style={{ width: `${pct}%` }}
-            />
+        <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+            <div className={`h-full rounded-full ${color} transition-all duration-700 ease-out`}
+                style={{ width: `${pct}%` }} />
+        </div>
+    );
+}
+
+// ─────────────────────────────────────────
+// Projectile — viaja de un lado a otro
+// ─────────────────────────────────────────
+
+interface ProjectileState {
+    affinity: Affinity;
+    direction: "ltr" | "rtl"; // ltr = player → enemy, rtl = enemy → player
+}
+
+function Projectile({ proj }: { proj: ProjectileState }) {
+    const cfg = AFFINITY_CONFIG[proj.affinity];
+    return (
+        <div
+            className={`absolute top-1/2 z-50 pointer-events-none text-3xl
+                ${proj.direction === "ltr" ? "animate-proj-ltr left-8" : "animate-proj-rtl right-8"}`}
+            style={{ filter: `drop-shadow(0 0 10px ${cfg.glow}) drop-shadow(0 0 20px ${cfg.glow})` }}>
+            {cfg.projEmoji}
         </div>
     );
 }
@@ -165,221 +101,188 @@ function HpBar({ hp, maxHp, animate }: { hp: number; maxHp: number; animate?: bo
 
 interface MythSlotProps {
     myth: BattleMyth;
-    side: "player" | "enemy";
     selected?: boolean;
     targeted?: boolean;
-    impactAffinity?: Affinity | null;
-    attacking?: boolean;
+    flashAffinity?: Affinity | null;
     floatingDmg?: { value: number; crit: boolean; mult: number } | null;
     onClick?: () => void;
-    disabled?: boolean;
 }
 
-function MythSlot({
-    myth,
-    side,
-    selected,
-    targeted,
-    impactAffinity,
-    attacking,
-    floatingDmg,
-    onClick,
-    disabled,
-}: MythSlotProps) {
-    const cfg = impactAffinity ? AFFINITY_CONFIG[impactAffinity] : null;
+function MythSlot({ myth, selected, targeted, flashAffinity, floatingDmg, onClick }: MythSlotProps) {
+    const cfg = flashAffinity ? AFFINITY_CONFIG[flashAffinity] : null;
+    const canClick = onClick && !myth.defeated;
 
     return (
-        <div className="relative flex flex-col items-center gap-1 w-24 select-none">
-            {/* Floating damage */}
+        <div className="relative flex flex-col items-center gap-1 w-24">
+            {/* Daño flotante */}
             {floatingDmg && (
-                <div
-                    className={`absolute -top-8 left-1/2 -translate-x-1/2 z-20 font-display font-black text-lg
-            pointer-events-none animate-float-up
-            ${floatingDmg.crit ? "text-yellow scale-125" : floatingDmg.mult > 1 ? "text-orange-400" : floatingDmg.mult < 1 ? "text-blue-300" : "text-white"}`}
-                >
+                <div className={`absolute -top-8 left-1/2 z-30 font-black text-sm pointer-events-none animate-float-dmg
+                    ${floatingDmg.crit ? "text-yellow-300 scale-125" : floatingDmg.mult >= 2 ? "text-orange-400" : floatingDmg.mult <= 0.5 ? "text-blue-300" : "text-white"}`}>
                     {floatingDmg.value > 0 ? `-${floatingDmg.value}` : "¡Fallo!"}
-                    {floatingDmg.crit && <span className="text-xs ml-1 text-yellow">CRÍTICO</span>}
-                    {floatingDmg.mult >= 2 && <span className="text-xs ml-1 text-orange-300">×{floatingDmg.mult}</span>}
+                    {floatingDmg.crit && <span className="text-xs ml-0.5">!</span>}
                 </div>
             )}
 
-            {/* Card */}
+            {/* Tarjeta del Myth */}
             <div
-                onClick={!disabled && !myth.defeated && onClick ? onClick : undefined}
-                className={`
-          relative w-20 h-20 rounded-xl border-2 flex items-center justify-center
-          transition-all duration-200 overflow-hidden
-          ${
-              myth.defeated
-                  ? "border-slate-700 bg-slate-800/40 grayscale opacity-50 cursor-not-allowed"
-                  : selected
-                    ? "border-blue/80 bg-blue/10 shadow-lg shadow-blue/30 scale-105 cursor-pointer"
-                    : targeted
-                      ? "border-red/80 bg-red/10 shadow-lg shadow-red/40 scale-105 cursor-pointer animate-pulse-border"
-                      : onClick && !disabled
-                        ? "border-border bg-card hover:border-white/30 hover:scale-105 cursor-pointer"
-                        : "border-border bg-card"
-          }
-          ${impactAffinity && cfg ? `shadow-xl ${cfg.flash}` : ""}
-          ${attacking ? (side === "player" ? "translate-x-6" : "-translate-x-6") : ""}
-        `}
-                style={{ transition: attacking ? "transform 0.15s ease-out" : "transform 0.2s ease-in" }}
-            >
-                {myth.defeated && (
-                    <span className="absolute inset-0 flex items-center justify-center text-2xl z-10">❌</span>
-                )}
-                <span className={`text-4xl ${myth.defeated ? "opacity-30" : ""}`}>{myth.art?.front ?? "❓"}</span>
+                onClick={canClick ? onClick : undefined}
+                className={`relative w-20 h-20 rounded-xl border-2 flex items-center justify-center overflow-hidden
+                    transition-all duration-200
+                    ${myth.defeated
+                        ? "border-slate-700 bg-slate-900/60 grayscale opacity-30 cursor-not-allowed"
+                        : selected
+                            ? "border-blue-400 bg-blue-500/10 shadow-lg cursor-pointer scale-110"
+                            : targeted
+                                ? "border-red-400 bg-red-500/10 shadow-lg cursor-pointer scale-110"
+                                : canClick
+                                    ? "border-slate-600 bg-slate-800/60 hover:border-slate-400 hover:scale-105 cursor-pointer"
+                                    : "border-slate-700 bg-slate-800/40"
+                    }`}
+                style={{
+                    boxShadow: selected
+                        ? "0 0 16px rgba(96,165,250,0.5)"
+                        : targeted
+                            ? "0 0 16px rgba(248,113,113,0.5), 0 0 4px rgba(248,113,113,0.8)"
+                            : cfg
+                                ? `0 0 20px ${cfg.glow}`
+                                : undefined,
+                }}>
 
-                {/* Impact flash overlay */}
-                {impactAffinity && cfg && (
-                    <div className={`absolute inset-0 ${cfg.bg} animate-flash pointer-events-none rounded-xl`} />
-                )}
+                {/* Flash de impacto */}
+                {cfg && <div className="absolute inset-0 rounded-xl animate-impact-flash pointer-events-none"
+                    style={{ background: `${cfg.glow}55` }} />}
 
-                {/* Selected glow ring */}
+                {/* Pulso de selección */}
                 {selected && !myth.defeated && (
-                    <div className="absolute inset-0 rounded-xl border-2 border-blue/60 animate-pulse pointer-events-none" />
+                    <div className="absolute inset-0 rounded-xl border-2 border-blue-400/50 animate-pulse pointer-events-none" />
                 )}
                 {targeted && !myth.defeated && (
-                    <div className="absolute inset-0 rounded-xl border-2 border-red/60 animate-pulse pointer-events-none" />
+                    <div className="absolute inset-0 rounded-xl border-2 border-red-400/60 animate-pulse pointer-events-none" />
                 )}
+
+                {myth.defeated
+                    ? <span className="text-3xl opacity-40">💀</span>
+                    : <span className={`text-4xl ${cfg ? "animate-myth-shake" : ""}`}>{myth.art?.front ?? "❓"}</span>
+                }
             </div>
 
-            {/* Name + level */}
-            <div className="text-center">
-                <p
-                    className={`font-display text-xs font-bold truncate w-20 text-center
-          ${myth.defeated ? "text-slate-600" : selected ? "text-blue" : targeted ? "text-red" : "text-white"}`}
-                >
-                    {myth.name}
-                </p>
-                <p className="text-muted text-xs">Nv.{myth.level}</p>
-            </div>
+            <p className={`text-xs font-bold truncate w-20 text-center font-mono
+                ${myth.defeated ? "text-slate-600" : selected ? "text-blue-300" : targeted ? "text-red-400" : "text-slate-200"}`}>
+                {myth.name}
+            </p>
+            <p className="text-slate-500 text-xs font-mono">Nv.{myth.level}</p>
 
-            {/* HP bar */}
             {!myth.defeated && (
                 <div className="w-20">
-                    <HpBar hp={myth.hp} maxHp={myth.maxHp} animate />
-                    <p className="text-muted text-xs text-center mt-0.5">
-                        {myth.hp}/{myth.maxHp}
+                    <HpBar hp={myth.hp} maxHp={myth.maxHp} />
+                    <p className="text-slate-500 text-xs text-center mt-0.5 font-mono tabular-nums">
+                        {myth.hp}<span className="text-slate-700">/{myth.maxHp}</span>
                     </p>
                 </div>
             )}
 
-            {/* Affinity badge */}
-            {!myth.defeated && myth.affinities?.[0] && (
-                <span
-                    className={`text-xs px-1.5 py-0.5 rounded-full font-display
-          ${AFFINITY_CONFIG[myth.affinities[0] as Affinity]?.bg ?? "bg-white/10"}
-          ${AFFINITY_CONFIG[myth.affinities[0] as Affinity]?.color ?? "text-white"}`}
-                >
-                    {AFFINITY_CONFIG[myth.affinities[0] as Affinity]?.emoji} {myth.affinities[0]}
-                </span>
-            )}
+            {!myth.defeated && myth.affinities?.[0] && (() => {
+                const ac = AFFINITY_CONFIG[myth.affinities[0] as Affinity];
+                return ac ? (
+                    <span className={`text-xs px-1.5 py-0.5 rounded-full ${ac.bg} ${ac.color} font-mono`}>
+                        {ac.emoji} {myth.affinities[0]}
+                    </span>
+                ) : null;
+            })()}
         </div>
     );
 }
 
 // ─────────────────────────────────────────
-// Preparation screen — drag & drop
+// Prep screen — drag & drop con equipo + almacén
 // ─────────────────────────────────────────
 
-interface PrepScreenProps {
-    myths: any[];
-    onStart: (order: string[]) => void;
-    loading: boolean;
-}
-
-function PrepScreen({ myths, onStart, loading }: PrepScreenProps) {
+function PrepScreen({ myths, onStart, loading }: { myths: any[]; onStart: (order: string[]) => void; loading: boolean }) {
     const [slots, setSlots] = useState<(any | null)[]>([null, null, null]);
-    const [bench, setBench] = useState<any[]>(myths);
-    const dragRef = useRef<{ myth: any; from: "slot" | "bench"; index: number } | null>(null);
+    const [bench, setBench] = useState<any[]>([]);
+    const [ready, setReady] = useState(false);
+    const dragRef = useRef<{ myth: any; from: "slot" | "bench"; slotIdx: number } | null>(null);
 
-    const handleDragStart = (myth: any, from: "slot" | "bench", index: number) => {
-        dragRef.current = { myth, from, index };
+    useEffect(() => {
+        if (myths.length > 0 && !ready) {
+            setBench(myths);
+            setReady(true);
+        }
+    }, [myths, ready]);
+
+    const mythId = (m: any): string => m.id ?? m.instanceId ?? "";
+
+    const handleDragStart = (myth: any, from: "slot" | "bench", slotIdx: number) => {
+        dragRef.current = { myth, from, slotIdx };
     };
 
-    const handleDropOnSlot = (slotIdx: number) => {
+    const handleDropSlot = (idx: number) => {
         if (!dragRef.current) return;
-        const { myth, from, index } = dragRef.current;
-        const newSlots = [...slots];
-        const newBench = [...bench];
+        const { myth, from, slotIdx } = dragRef.current;
+        const ns = [...slots];
+        const nb = [...bench];
 
         if (from === "bench") {
-            // Si ya hay algo en el slot, lo manda al bench
-            if (newSlots[slotIdx]) newBench.push(newSlots[slotIdx]);
-            newSlots[slotIdx] = myth;
-            setBench(newBench.filter((m) => m.id !== myth.id));
+            const displaced = ns[idx];
+            ns[idx] = myth;
+            if (displaced) nb.push(displaced);
+            setBench(nb.filter((m) => mythId(m) !== mythId(myth)));
         } else {
-            // Swap de slot a slot
-            const prev = newSlots[slotIdx];
-            newSlots[slotIdx] = myth;
-            newSlots[index] = prev;
+            const tmp = ns[idx];
+            ns[idx] = myth;
+            ns[slotIdx] = tmp;
         }
-        setSlots(newSlots);
+        setSlots(ns);
         dragRef.current = null;
     };
 
-    const handleDropOnBench = () => {
-        if (!dragRef.current) return;
-        const { myth, from, index } = dragRef.current;
-        if (from === "slot") {
-            const newSlots = [...slots];
-            newSlots[index] = null;
-            setSlots(newSlots);
-            setBench((b) => [...b, myth]);
-        }
+    const handleDropBench = () => {
+        if (!dragRef.current || dragRef.current.from !== "slot") { dragRef.current = null; return; }
+        const { myth, slotIdx } = dragRef.current;
+        const ns = [...slots];
+        ns[slotIdx] = null;
+        setSlots(ns);
+        setBench((b) => [...b, myth]);
         dragRef.current = null;
     };
 
-    const order = slots.filter(Boolean).map((m) => m.id);
+    const order = slots.filter(Boolean).map(mythId);
     const canStart = order.length >= 1;
+    const partyMyths = bench.filter((m) => m.isInParty);
+    const storeMyths = bench.filter((m) => !m.isInParty);
 
     return (
-        <div className="flex-1 flex flex-col items-center justify-center gap-8 p-6 overflow-hidden">
-            {/* Title */}
+        <div className="flex-1 flex flex-col items-center justify-center gap-6 p-6 overflow-auto">
             <div className="text-center">
-                <h2 className="font-display text-2xl font-black tracking-widest text-yellow uppercase">
-                    ⚔️ Preparación
-                </h2>
-                <p className="text-muted text-sm mt-1">Arrastra tus Myths a los slots de combate (máx. 3)</p>
+                <h2 className="font-mono text-xl font-black tracking-widest text-yellow-400 uppercase">⚔️ Preparación de combate</h2>
+                <p className="text-slate-400 text-sm mt-1">Arrastra hasta 3 Myths a los slots para combatir</p>
             </div>
 
-            {/* Battle slots */}
+            {/* Slots */}
             <div className="flex gap-4">
                 {slots.map((myth, i) => (
-                    <div
-                        key={i}
-                        onDragOver={(e) => e.preventDefault()}
-                        onDrop={() => handleDropOnSlot(i)}
-                        className={`w-24 h-32 rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-1
-              transition-all duration-200
-              ${myth ? "border-blue/60 bg-blue/5" : "border-border/50 bg-card/30 hover:border-border"}`}
-                    >
+                    <div key={i} onDragOver={(e) => e.preventDefault()} onDrop={() => handleDropSlot(i)}
+                        className={`w-24 h-36 rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-1 transition-all
+                            ${myth ? "border-blue-500/60 bg-blue-500/5" : "border-slate-700 bg-slate-800/30 hover:border-slate-500"}`}>
                         {myth ? (
-                            <div
-                                draggable
-                                onDragStart={() => handleDragStart(myth, "slot", i)}
-                                className="flex flex-col items-center gap-1 cursor-grab active:cursor-grabbing"
-                            >
+                            <div draggable onDragStart={() => handleDragStart(myth, "slot", i)}
+                                className="flex flex-col items-center gap-1 cursor-grab px-2 w-full">
                                 <span className="text-4xl">{myth.art?.front ?? "❓"}</span>
-                                <p className="font-display text-xs text-white font-bold truncate w-20 text-center">
-                                    {myth.name}
-                                </p>
-                                <p className="text-muted text-xs">Nv.{myth.level}</p>
-                                {myth.affinities?.[0] && (
-                                    <span
-                                        className={`text-xs px-1.5 py-0.5 rounded-full
-                    ${AFFINITY_CONFIG[myth.affinities[0] as Affinity]?.bg ?? "bg-white/10"}
-                    ${AFFINITY_CONFIG[myth.affinities[0] as Affinity]?.color ?? "text-white"}`}
-                                    >
-                                        {AFFINITY_CONFIG[myth.affinities[0] as Affinity]?.emoji}
-                                    </span>
-                                )}
+                                <p className="font-mono text-xs text-white font-bold truncate w-full text-center">{myth.name}</p>
+                                <p className="text-slate-400 text-xs font-mono">Nv.{myth.level}</p>
+                                {myth.affinities?.[0] && (() => {
+                                    const ac = AFFINITY_CONFIG[myth.affinities[0] as Affinity];
+                                    return ac ? (
+                                        <span className={`text-xs px-1.5 py-0.5 rounded-full ${ac.bg} ${ac.color} font-mono`}>
+                                            {ac.emoji}
+                                        </span>
+                                    ) : null;
+                                })()}
                             </div>
                         ) : (
-                            <div className="flex flex-col items-center gap-1 opacity-30">
+                            <div className="flex flex-col items-center gap-1 opacity-25">
                                 <span className="text-2xl">＋</span>
-                                <p className="font-display text-xs text-muted">Slot {i + 1}</p>
+                                <p className="font-mono text-xs text-slate-500">Slot {i + 1}</p>
                             </div>
                         )}
                     </div>
@@ -387,63 +290,64 @@ function PrepScreen({ myths, onStart, loading }: PrepScreenProps) {
             </div>
 
             {/* Bench */}
-            <div onDragOver={(e) => e.preventDefault()} onDrop={handleDropOnBench} className="w-full max-w-lg">
-                <p className="font-display text-xs text-muted uppercase tracking-widest mb-3 text-center">
-                    — Equipo disponible —
-                </p>
-                <div className="flex flex-wrap gap-3 justify-center min-h-16 p-3 rounded-xl border border-dashed border-border/40 bg-card/20">
+            <div className="w-full max-w-2xl" onDragOver={(e) => e.preventDefault()} onDrop={handleDropBench}>
+                <p className="font-mono text-xs text-slate-500 uppercase tracking-widest mb-2 text-center">— Myths disponibles —</p>
+                <div className="rounded-xl border border-dashed border-slate-700 bg-slate-900/40 p-4 min-h-20">
                     {bench.length === 0 && (
-                        <p className="text-muted text-xs self-center">Todos los Myths en posición</p>
+                        <p className="text-slate-600 text-xs text-center font-mono">Todos los Myths en posición de combate</p>
                     )}
-                    {bench.map((myth) => (
-                        <div
-                            key={myth.id}
-                            draggable
-                            onDragStart={() => handleDragStart(myth, "bench", -1)}
-                            className="flex flex-col items-center gap-1 w-20 cursor-grab active:cursor-grabbing
-                p-2 rounded-lg border border-border bg-card hover:border-white/20 transition-all"
-                        >
-                            <span className="text-3xl">{myth.art?.front ?? "❓"}</span>
-                            <p className="font-display text-xs text-white font-bold truncate w-full text-center">
-                                {myth.name}
+                    {partyMyths.length > 0 && (
+                        <div className="mb-3">
+                            <p className="font-mono text-xs text-slate-500 uppercase tracking-widest mb-2">
+                                ⚔️ Equipo <span className="text-slate-600">({partyMyths.length})</span>
                             </p>
-                            <p className="text-muted text-xs">Nv.{myth.level}</p>
+                            <div className="flex flex-wrap gap-2">
+                                {partyMyths.map((m) => (
+                                    <BenchCard key={mythId(m)} myth={m} onDragStart={handleDragStart} />
+                                ))}
+                            </div>
                         </div>
-                    ))}
+                    )}
+                    {storeMyths.length > 0 && (
+                        <div>
+                            <p className="font-mono text-xs text-slate-500 uppercase tracking-widest mb-2">
+                                📦 Almacén <span className="text-slate-600">({storeMyths.length})</span>
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                                {storeMyths.map((m) => (
+                                    <BenchCard key={mythId(m)} myth={m} onDragStart={handleDragStart} />
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
-            {/* Start button */}
-            <button
-                onClick={() => canStart && onStart(order)}
-                disabled={!canStart || loading}
-                className={`px-10 py-3 rounded-xl font-display font-black text-base tracking-widest uppercase
-          transition-all duration-200
-          ${
-              canStart && !loading
-                  ? "bg-red text-white hover:bg-red/80 hover:scale-105 shadow-lg shadow-red/30"
-                  : "bg-border text-muted cursor-not-allowed opacity-50"
-          }`}
-            >
+            <button onClick={() => canStart && onStart(order)} disabled={!canStart || loading}
+                className={`px-12 py-3 rounded-xl font-mono font-black text-sm tracking-widest uppercase transition-all
+                    ${canStart && !loading
+                        ? "bg-red-600 text-white hover:bg-red-500 hover:scale-105 shadow-lg shadow-red-900/50"
+                        : "bg-slate-800 text-slate-600 cursor-not-allowed"}`}>
                 {loading ? "Iniciando..." : `⚔️ Combatir (${order.length} Myth${order.length !== 1 ? "s" : ""})`}
             </button>
         </div>
     );
 }
 
-// ─────────────────────────────────────────
-// Battle log line
-// ─────────────────────────────────────────
-
-function LogLine({ text, index }: { text: string; index: number }) {
+function BenchCard({ myth, onDragStart }: { myth: any; onDragStart: (m: any, from: "bench", idx: number) => void }) {
+    const mythId = (m: any) => m.id ?? m.instanceId ?? "";
     return (
-        <p
-            className="text-xs font-mono text-white/70 leading-relaxed animate-fade-in"
-            style={{ animationDelay: `${index * 50}ms` }}
-        >
-            <span className="text-muted mr-1">›</span>
-            {text}
-        </p>
+        <div draggable onDragStart={() => onDragStart(myth, "bench", -1)}
+            className="flex flex-col items-center gap-1 w-20 cursor-grab active:cursor-grabbing
+                p-2 rounded-lg border border-slate-700 bg-slate-800/60 hover:border-slate-500 transition-all select-none">
+            <span className="text-3xl">{myth.art?.front ?? "❓"}</span>
+            <p className="font-mono text-xs text-white font-bold truncate w-full text-center">{myth.name}</p>
+            <p className="text-slate-500 text-xs font-mono">Nv.{myth.level}</p>
+            {myth.isInParty
+                ? <span className="text-xs text-blue-400 font-mono">equipo</span>
+                : <span className="text-xs text-slate-500 font-mono">almacén</span>
+            }
+        </div>
     );
 }
 
@@ -458,7 +362,6 @@ export default function BattlePage() {
     const location = useLocation();
     const navigate = useNavigate();
 
-    // Mode from location state or search params
     const searchParams = new URLSearchParams(location.search);
     const initialMode: BattleMode =
         (location.state as any)?.mode === "pvp" || searchParams.get("mode") === "pvp" ? "pvp" : "npc";
@@ -469,300 +372,227 @@ export default function BattlePage() {
         if (m === "pvp" || m === "npc") setMode(m);
     }, [location.state]);
 
-    // State
     const [phase, setPhase] = useState<Phase>("prep");
-    const [myths, setMyths] = useState<any[]>([]);
+    const [allMyths, setAllMyths] = useState<any[]>([]);
     const [session, setSession] = useState<BattleSession | null>(null);
     const [loadingStart, setLoadingStart] = useState(false);
-    const [loadingTurn, setLoadingTurn] = useState(false);
+    const [animating, setAnimating] = useState(false);
 
-    // Selection
     const [activePlayerMythId, setActivePlayerMythId] = useState<string | null>(null);
     const [targetEnemyMythId, setTargetEnemyMythId] = useState<string | null>(null);
 
-    // Animation state
-    const [animating, setAnimating] = useState(false);
-    const [attackingMythId, setAttackingMythId] = useState<string | null>(null);
-    const [impactMap, setImpactMap] = useState<Record<string, Affinity | null>>({});
-    const [floatingDmgMap, setFloatingDmgMap] = useState<
-        Record<string, { value: number; crit: boolean; mult: number } | null>
-    >({});
+    // Animaciones
+    const [projectile, setProjectile] = useState<ProjectileState | null>(null);
+    const [flashMap, setFlashMap] = useState<Record<string, Affinity>>({});
+    const [floatMap, setFloatMap] = useState<Record<string, { value: number; crit: boolean; mult: number }>>({});
 
-    // Log
-    const [log, setLog] = useState<string[]>([]);
+    const [log, setLog] = useState<{ text: string; type: "normal" | "good" | "bad" | "crit" | "miss" | "system" }[]>([]);
     const logRef = useRef<HTMLDivElement>(null);
-
-    // Result
     const [result, setResult] = useState<{ status: "win" | "lose"; xp?: number; coins?: number } | null>(null);
 
-    // Load party on mount
     useEffect(() => {
-        api.party()
-            .then((data) => setMyths(data ?? []))
-            .catch(() => {});
-
-        // Try to recover active session
-        api.battleNpcActive()
-            .then((s: any) => {
-                if (s?.status === "ongoing") {
-                    setSession(s);
-                    setPhase("battle");
-                    autoSelectFirst(s);
-                }
-            })
-            .catch(() => {});
+        api.creatures().then((d) => setAllMyths(d ?? [])).catch(() => {});
+        api.battleNpcActive().then((s: any) => {
+            if (s?.status === "ongoing") {
+                setSession(cloneSession(s));
+                setPhase("battle");
+                autoSelect(s);
+            }
+        }).catch(() => {});
     }, []);
 
     useEffect(() => {
         if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
     }, [log]);
 
-    function autoSelectFirst(s: BattleSession) {
-        const firstPlayer = s.playerTeam.find((m) => !m.defeated);
-        const firstEnemy = s.enemyTeam.find((m) => !m.defeated);
-        if (firstPlayer) setActivePlayerMythId(firstPlayer.instanceId);
-        if (firstEnemy) setTargetEnemyMythId(firstEnemy.instanceId);
+    function autoSelect(s: BattleSession) {
+        const fp = s.playerTeam.find((m) => !m.defeated);
+        const fe = s.enemyTeam.find((m) => !m.defeated);
+        if (fp) setActivePlayerMythId(fp.instanceId);
+        if (fe) setTargetEnemyMythId(fe.instanceId);
     }
 
-    // ── Start battle ──
+    type LogType = "normal" | "good" | "bad" | "crit" | "miss" | "system";
+    function addLog(text: string, type: LogType = "normal") {
+        setLog((l) => [...l.slice(-50), { text, type }]);
+    }
+
+    function sleep(ms: number) { return new Promise<void>((r) => setTimeout(r, ms)); }
+
+    async function flashAndFloat(instanceId: string, affinity: Affinity, dmg: number, crit: boolean, mult: number) {
+        setFlashMap((m) => ({ ...m, [instanceId]: affinity }));
+        setFloatMap((m) => ({ ...m, [instanceId]: { value: dmg, crit, mult } }));
+        await sleep(600);
+        setFlashMap((m) => { const n = { ...m }; delete n[instanceId]; return n; });
+        await sleep(400);
+        setFloatMap((m) => { const n = { ...m }; delete n[instanceId]; return n; });
+    }
+
     async function handleStart(order: string[]) {
         setLoadingStart(true);
         try {
-            const s: BattleSession = await api.battleNpcStart(order);
-            setSession(s);
+            const s = await api.battleNpcStart(order);
+            setSession(cloneSession(s));
             setPhase("battle");
-            autoSelectFirst(s);
-            addLog("⚔️ ¡Comienza el combate 3v3!");
+            autoSelect(s);
+            addLog("⚔️ ¡Comienza el combate 3v3!", "system");
         } catch (e: any) {
-            alert(e.message);
+            alert(e.message ?? "Error al iniciar combate");
         } finally {
             setLoadingStart(false);
         }
     }
 
-    function addLog(text: string) {
-        setLog((l) => [...l.slice(-30), text]);
-    }
-
-    // ── Animation queue processor ──
-    async function runAnimQueue(steps: AnimStep[]) {
-        setAnimating(true);
-        for (const step of steps) {
-            if (step.type === "attack-out") {
-                setAttackingMythId(step.mythId);
-                await delay(200);
-                setAttackingMythId(null);
-                await delay(100);
-            } else if (step.type === "impact") {
-                setImpactMap((m) => ({ ...m, [step.mythId]: step.affinity }));
-                setFloatingDmgMap((m) => ({
-                    ...m,
-                    [step.mythId]: { value: step.damage, crit: step.crit, mult: step.mult },
-                }));
-                await delay(600);
-                setImpactMap((m) => ({ ...m, [step.mythId]: null }));
-                await delay(200);
-                setFloatingDmgMap((m) => ({ ...m, [step.mythId]: null }));
-            } else if (step.type === "hp-update") {
-                setSession(step.session);
-            } else if (step.type === "defeated") {
-                await delay(300);
-            } else if (step.type === "log") {
-                addLog(step.text);
-                await delay(80);
-            }
-        }
-        setAnimating(false);
-    }
-
-    function delay(ms: number) {
-        return new Promise<void>((r) => setTimeout(r, ms));
-    }
-
-    // ── Execute turn ──
     async function handleMove(moveId: string) {
-        if (!session || !activePlayerMythId || animating || loadingTurn) return;
+        if (!session || !activePlayerMythId || animating) return;
 
         const playerMyth = session.playerTeam.find((m) => m.instanceId === activePlayerMythId);
         const targetMyth = session.enemyTeam.find((m) => m.instanceId === targetEnemyMythId);
         if (!playerMyth || !targetMyth) return;
-
         const move = playerMyth.moves.find((mv) => mv.id === moveId);
         if (!move) return;
 
-        setLoadingTurn(true);
+        setAnimating(true);
         try {
             const res = await api.battleNpcTurn(
                 session.battleId,
                 activePlayerMythId,
                 moveId,
-                targetEnemyMythId ?? undefined,
+                targetEnemyMythId ?? undefined
             );
-            const { session: newSession, playerAction, npcAction, xpGained, coinsGained } = res;
+            const { session: rawSession, playerAction, npcAction, xpGained, coinsGained } = res;
+            const newSession: BattleSession = cloneSession(rawSession);
 
-            // Build animation queue
-            const steps: AnimStep[] = [];
+            // ── 1. Log acción del jugador ──
+            addLog(`${playerAction.myth} → ${playerAction.move} → ${playerAction.target}`, "normal");
 
-            // Player attacks
-            steps.push({
-                type: "log",
-                text: `${playerAction.myth} usa ${playerAction.move}${playerAction.stab ? " (STAB)" : ""}`,
+            // ── 2. Proyectil player → enemy ──
+            setProjectile({ affinity: playerAction.moveAffinity as Affinity, direction: "ltr" });
+            await sleep(480);
+            setProjectile(null);
+            await sleep(80);
+
+            // ── 3. Flash + daño en el enemigo objetivo ──
+            const eTarget = newSession.enemyTeam.find((m: BattleMyth) => m.name === playerAction.target);
+            if (eTarget) {
+                await flashAndFloat(eTarget.instanceId, playerAction.moveAffinity as Affinity, playerAction.damage, playerAction.crit, playerAction.mult);
+            }
+
+            if (playerAction.mult >= 2)   addLog(`¡Súper eficaz! ×${playerAction.mult}`, "good");
+            else if (playerAction.mult < 1) addLog(`Poco eficaz... ×${playerAction.mult}`, "bad");
+            if (playerAction.crit)         addLog("💥 ¡Golpe crítico!", "crit");
+            if (playerAction.damage === 0) addLog("El ataque falló", "miss");
+
+            // ── 4. Actualizar HP parcial del enemigo impactado ──
+            setSession((prev) => {
+                if (!prev) return prev;
+                const next = cloneSession(prev);
+                const updated = newSession.enemyTeam.find((m: BattleMyth) => m.instanceId === eTarget?.instanceId);
+                if (updated) {
+                    const t = next.enemyTeam.find((m: BattleMyth) => m.instanceId === updated.instanceId);
+                    if (t) { t.hp = updated.hp; t.defeated = updated.defeated; }
+                }
+                return next;
             });
-            steps.push({
-                type: "attack-out",
-                side: "player",
-                mythId: playerMyth.instanceId,
-                affinity: playerAction.moveAffinity,
-            });
-            steps.push({
-                type: "impact",
-                side: "npc",
-                mythId: targetMyth.instanceId,
-                affinity: playerAction.moveAffinity,
-                damage: playerAction.damage,
-                crit: playerAction.crit,
-                mult: playerAction.mult,
-            });
-            if (playerAction.mult >= 2) steps.push({ type: "log", text: `¡Es muy eficaz! (×${playerAction.mult})` });
-            if (playerAction.mult < 1) steps.push({ type: "log", text: `No es muy eficaz... (×${playerAction.mult})` });
-            if (playerAction.crit) steps.push({ type: "log", text: "¡Golpe crítico!" });
-            if (playerAction.damage === 0) steps.push({ type: "log", text: "¡El ataque falló!" });
+            await sleep(200);
 
-            // NPC attacks
-            steps.push({ type: "log", text: `${npcAction.myth} usa ${npcAction.move} contra ${npcAction.target}` });
-            const npcAttackerInst = session.enemyTeam.find((m) => m.name === npcAction.myth);
-            const npcTargetInst = session.playerTeam.find((m) => m.name === npcAction.target);
-            if (npcAttackerInst)
-                steps.push({
-                    type: "attack-out",
-                    side: "npc",
-                    mythId: npcAttackerInst.instanceId,
-                    affinity: npcAction.moveAffinity,
-                });
-            if (npcTargetInst)
-                steps.push({
-                    type: "impact",
-                    side: "player",
-                    mythId: npcTargetInst.instanceId,
-                    affinity: npcAction.moveAffinity,
-                    damage: npcAction.damage,
-                    crit: npcAction.crit,
-                    mult: npcAction.mult,
-                });
-            if (npcAction.mult >= 2) steps.push({ type: "log", text: `¡Es muy eficaz! (×${npcAction.mult})` });
-            if (npcAction.mult < 1) steps.push({ type: "log", text: "No es muy eficaz..." });
-            if (npcAction.crit) steps.push({ type: "log", text: "¡Golpe crítico del enemigo!" });
+            // ── 5. NPC contraataca ──
+            addLog(`${npcAction.myth} → ${npcAction.move} → ${npcAction.target}`, "normal");
+            setProjectile({ affinity: npcAction.moveAffinity as Affinity, direction: "rtl" });
+            await sleep(480);
+            setProjectile(null);
+            await sleep(80);
 
-            // HP update after animations
-            steps.push({ type: "hp-update", session: newSession });
+            const pTarget = newSession.playerTeam.find((m: BattleMyth) => m.name === npcAction.target);
+            if (pTarget) {
+                await flashAndFloat(pTarget.instanceId, npcAction.moveAffinity as Affinity, npcAction.damage, npcAction.crit, npcAction.mult);
+            }
 
-            await runAnimQueue(steps);
+            if (npcAction.mult >= 2)   addLog(`¡Rival súper eficaz! ×${npcAction.mult}`, "bad");
+            else if (npcAction.mult < 1) addLog(`Rival poco eficaz ×${npcAction.mult}`, "good");
+            if (npcAction.crit)         addLog("💥 ¡Crítico del rival!", "crit");
+            if (npcAction.damage === 0) addLog("El rival falló", "miss");
 
-            // After animations: check result
+            // ── 6. Aplicar sesión completa (actualiza TODOS los HP) ──
+            setSession(newSession);
+            await sleep(150);
+
+            // ── 7. Fin de combate ──
             if (newSession.status === "win" || newSession.status === "lose") {
+                addLog(newSession.status === "win" ? "🏆 ¡Victoria!" : "💀 Derrota...", newSession.status === "win" ? "good" : "bad");
                 setResult({ status: newSession.status, xp: xpGained, coins: coinsGained });
                 setPhase("result");
                 window.dispatchEvent(new Event("sidebar:reload"));
             } else {
-                // Auto-reselect first alive
-                const updatedSession = newSession as BattleSession;
-                const fp = updatedSession.playerTeam.find((m: BattleMyth) => !m.defeated);
-                const fe = updatedSession.enemyTeam.find((m: BattleMyth) => !m.defeated);
-                if (fp && fp.instanceId !== activePlayerMythId) setActivePlayerMythId(fp.instanceId);
-                if (fe && fe.instanceId !== targetEnemyMythId) setTargetEnemyMythId(fe.instanceId);
+                // Auto-reselect primer vivo
+                const np = newSession.playerTeam.find((m: BattleMyth) => !m.defeated);
+                const ne = newSession.enemyTeam.find((m: BattleMyth) => !m.defeated);
+                if (np) setActivePlayerMythId(np.instanceId);
+                if (ne) setTargetEnemyMythId(ne.instanceId);
             }
         } catch (e: any) {
-            addLog(`Error: ${e.message}`);
+            addLog(`Error: ${e.message}`, "bad");
         } finally {
-            setLoadingTurn(false);
+            setAnimating(false);
         }
     }
 
-    // ── Capture ──
     async function handleCapture() {
         if (!session || !targetEnemyMythId || animating) return;
-        setLoadingTurn(true);
+        setAnimating(true);
         try {
             const res = await api.battleNpcCapture(session.battleId, targetEnemyMythId);
             if (res.success) {
-                addLog(`✅ ¡Captura exitosa!`);
-                setSession(res.session);
-                if (res.session.status === "win") {
+                addLog("✅ ¡Captura exitosa!", "good");
+                const ns = cloneSession(res.session);
+                setSession(ns);
+                if (ns.status === "win") {
                     setResult({ status: "win" });
                     setPhase("result");
                     window.dispatchEvent(new Event("sidebar:reload"));
                 }
             } else {
-                addLog(
-                    `❌ ¡La captura falló! El Myth recuperó HP${res.counterDamage ? ` y contraatacó por ${res.counterDamage}` : ""}`,
-                );
-                setSession(res.session);
-                if (res.session.status === "lose") {
-                    setResult({ status: "lose" });
-                    setPhase("result");
-                }
+                addLog(`❌ Captura fallida${res.counterDamage ? ` — contraataque: ${res.counterDamage} dmg` : ""}`, "bad");
+                const ns = cloneSession(res.session);
+                setSession(ns);
+                if (ns.status === "lose") { setResult({ status: "lose" }); setPhase("result"); }
             }
         } catch (e: any) {
-            addLog(`Error: ${e.message}`);
+            addLog(`Error: ${e.message}`, "bad");
         } finally {
-            setLoadingTurn(false);
+            setAnimating(false);
         }
     }
 
-    // ── Flee ──
     async function handleFlee() {
-        if (!session) return;
+        if (!session || animating) return;
         try {
             await api.battleNpcFlee(session.battleId);
+            addLog("🏃 Huiste del combate", "bad");
             setResult({ status: "lose" });
             setPhase("result");
         } catch (e: any) {
-            addLog(`Error: ${e.message}`);
+            addLog(`Error: ${e.message}`, "bad");
         }
     }
-
-    // ─────────────────────────────────────────
-    // Render helpers
-    // ─────────────────────────────────────────
 
     const activePlayerMyth = session?.playerTeam.find((m) => m.instanceId === activePlayerMythId);
     const targetEnemy = session?.enemyTeam.find((m) => m.instanceId === targetEnemyMythId);
     const canCapture = targetEnemy && !targetEnemy.defeated && targetEnemy.hp / targetEnemy.maxHp < 0.25;
 
-    // ─────────────────────────────────────────
-    // PvP tab
-    // ─────────────────────────────────────────
-
+    // ── PvP ──
     if (mode === "pvp") {
         return (
             <Layout sidebar={<TrainerSidebar />}>
                 <div className="flex-1 flex flex-col overflow-hidden">
-                    {/* Tabs */}
-                    <div className="flex border-b border-border flex-shrink-0">
-                        <button
-                            onClick={() => setMode("npc")}
-                            className="px-6 py-3 font-display text-sm tracking-widest uppercase text-muted hover:text-white transition-colors"
-                        >
-                            ⚔️ NPC
-                        </button>
-                        <button className="px-6 py-3 font-display text-sm tracking-widest uppercase text-red border-b-2 border-red">
-                            👥 PvP
-                        </button>
-                    </div>
-
+                    <TabBar mode={mode} onSwitch={setMode} />
                     <div className="flex-1 flex items-center justify-center">
                         <div className="text-center max-w-sm">
                             <div className="text-6xl mb-4">⚔️</div>
-                            <h2 className="font-display text-2xl font-black text-yellow tracking-widest mb-3">
-                                PvP en desarrollo
-                            </h2>
-                            <p className="text-muted text-sm leading-relaxed">
-                                El combate entre Binders está en construcción.
-                                <br />
-                                Próximamente podrás desafiar a otros jugadores en tiempo real.
-                            </p>
-                            <div className="mt-6 px-4 py-2 rounded-lg border border-border/50 bg-card/50 text-muted text-xs font-display tracking-wider">
-                                🔒 Próximamente
+                            <h2 className="font-mono text-2xl font-black text-yellow-400 tracking-widest mb-3">PvP — Próximamente</h2>
+                            <p className="text-slate-400 text-sm leading-relaxed">El combate entre Binders está en construcción.</p>
+                            <div className="mt-6 px-4 py-2 rounded-lg border border-slate-700 text-slate-500 text-xs font-mono tracking-wider">
+                                🔒 En desarrollo
                             </div>
                         </div>
                     </div>
@@ -771,54 +601,39 @@ export default function BattlePage() {
         );
     }
 
-    // ─────────────────────────────────────────
-    // RESULT screen
-    // ─────────────────────────────────────────
-
+    // ── Resultado ──
     if (phase === "result" && result) {
         return (
             <Layout sidebar={<TrainerSidebar />}>
                 <div className="flex-1 flex items-center justify-center">
                     <div className="text-center max-w-sm">
                         <div className="text-7xl mb-4 animate-bounce">{result.status === "win" ? "🏆" : "💀"}</div>
-                        <h2
-                            className={`font-display text-3xl font-black tracking-widest mb-2
-              ${result.status === "win" ? "text-yellow" : "text-red"}`}
-                        >
+                        <h2 className={`font-mono text-3xl font-black tracking-widest mb-2 ${result.status === "win" ? "text-yellow-400" : "text-red-500"}`}>
                             {result.status === "win" ? "¡VICTORIA!" : "DERROTA"}
                         </h2>
                         {result.status === "win" && (
                             <div className="flex gap-4 justify-center mt-4 mb-6">
                                 {result.xp && (
-                                    <div className="px-4 py-2 rounded-lg bg-blue/10 border border-blue/30">
-                                        <p className="text-blue font-display font-black text-lg">+{result.xp}</p>
-                                        <p className="text-muted text-xs">XP</p>
+                                    <div className="px-4 py-2 rounded-lg border border-blue-500/40 bg-blue-500/10">
+                                        <p className="font-mono font-black text-lg text-blue-300">+{result.xp}</p>
+                                        <p className="text-slate-500 text-xs font-mono">XP</p>
                                     </div>
                                 )}
                                 {result.coins && (
-                                    <div className="px-4 py-2 rounded-lg bg-yellow/10 border border-yellow/30">
-                                        <p className="text-yellow font-display font-black text-lg">+{result.coins}</p>
-                                        <p className="text-muted text-xs">Monedas</p>
+                                    <div className="px-4 py-2 rounded-lg border border-yellow-500/40 bg-yellow-500/10">
+                                        <p className="font-mono font-black text-lg text-yellow-300">+{result.coins}</p>
+                                        <p className="text-slate-500 text-xs font-mono">Monedas</p>
                                     </div>
                                 )}
                             </div>
                         )}
                         <div className="flex gap-3 justify-center mt-4">
-                            <button
-                                onClick={() => {
-                                    setPhase("prep");
-                                    setSession(null);
-                                    setLog([]);
-                                    setResult(null);
-                                }}
-                                className="px-6 py-2.5 rounded-xl bg-red text-white font-display font-black text-sm tracking-widest uppercase hover:bg-red/80 transition-all"
-                            >
+                            <button onClick={() => { setPhase("prep"); setSession(null); setLog([]); setResult(null); }}
+                                className="px-6 py-2.5 rounded-xl bg-red-700 text-white font-mono font-black text-sm tracking-widest uppercase hover:bg-red-600 transition-all">
                                 ⚔️ Volver a combatir
                             </button>
-                            <button
-                                onClick={() => navigate("/")}
-                                className="px-6 py-2.5 rounded-xl border border-border text-muted font-display text-sm tracking-widest uppercase hover:border-white/30 hover:text-white transition-all"
-                            >
+                            <button onClick={() => navigate("/")}
+                                className="px-6 py-2.5 rounded-xl border border-slate-700 text-slate-400 font-mono text-sm tracking-widest uppercase hover:border-slate-500 hover:text-white transition-all">
                                 🏡 Posada
                             </button>
                         </div>
@@ -828,242 +643,235 @@ export default function BattlePage() {
         );
     }
 
-    // ─────────────────────────────────────────
-    // PREP screen
-    // ─────────────────────────────────────────
-
+    // ── Prep ──
     if (phase === "prep") {
         return (
             <Layout sidebar={<TrainerSidebar />}>
                 <div className="flex-1 flex flex-col overflow-hidden">
-                    {/* Tabs */}
-                    <div className="flex border-b border-border flex-shrink-0">
-                        <button className="px-6 py-3 font-display text-sm tracking-widest uppercase text-red border-b-2 border-red">
-                            ⚔️ NPC
-                        </button>
-                        <button
-                            onClick={() => setMode("pvp")}
-                            className="px-6 py-3 font-display text-sm tracking-widest uppercase text-muted hover:text-white transition-colors"
-                        >
-                            👥 PvP
-                        </button>
-                    </div>
-                    <PrepScreen myths={myths} onStart={handleStart} loading={loadingStart} />
+                    <TabBar mode={mode} onSwitch={setMode} />
+                    <PrepScreen myths={allMyths} onStart={handleStart} loading={loadingStart} />
                 </div>
             </Layout>
         );
     }
 
-    // ─────────────────────────────────────────
-    // BATTLE screen
-    // ─────────────────────────────────────────
-
+    // ── Arena ──
     return (
         <Layout sidebar={<TrainerSidebar />}>
             <style>{`
-        @keyframes floatUp {
-          0%   { opacity: 1; transform: translateX(-50%) translateY(0); }
-          100% { opacity: 0; transform: translateX(-50%) translateY(-40px); }
-        }
-        @keyframes flash {
-          0%, 100% { opacity: 0; }
-          30%, 70% { opacity: 1; }
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(4px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes pulseBorder {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(230,57,70,0.4); }
-          50%       { box-shadow: 0 0 0 6px rgba(230,57,70,0); }
-        }
-        .animate-float-up  { animation: floatUp 0.9s ease-out forwards; }
-        .animate-flash      { animation: flash 0.5s ease-in-out; }
-        .animate-fade-in    { animation: fadeIn 0.3s ease-out both; }
-        .animate-pulse-border { animation: pulseBorder 1s infinite; }
-      `}</style>
+                @keyframes projLtr {
+                    0%   { opacity:0; transform:translateY(-50%) scale(0.5) translateX(0px); }
+                    15%  { opacity:1; transform:translateY(-50%) scale(1.2) translateX(20px); }
+                    85%  { opacity:1; transform:translateY(-50%) scale(1) translateX(240px); }
+                    100% { opacity:0; transform:translateY(-50%) scale(0.8) translateX(280px); }
+                }
+                @keyframes projRtl {
+                    0%   { opacity:0; transform:translateY(-50%) scale(0.5) translateX(0px); }
+                    15%  { opacity:1; transform:translateY(-50%) scale(1.2) translateX(-20px); }
+                    85%  { opacity:1; transform:translateY(-50%) scale(1) translateX(-240px); }
+                    100% { opacity:0; transform:translateY(-50%) scale(0.8) translateX(-280px); }
+                }
+                @keyframes floatDmg {
+                    0%   { opacity:0; transform:translateX(-50%) translateY(0) scale(0.8); }
+                    15%  { opacity:1; transform:translateX(-50%) translateY(-4px) scale(1.1); }
+                    80%  { opacity:1; transform:translateX(-50%) translateY(-20px) scale(1); }
+                    100% { opacity:0; transform:translateX(-50%) translateY(-32px) scale(0.9); }
+                }
+                @keyframes impactFlash {
+                    0%,100% { opacity:0; }
+                    20%,70% { opacity:1; }
+                }
+                @keyframes mythShake {
+                    0%,100% { transform:translateX(0) rotate(0deg); }
+                    20%     { transform:translateX(-5px) rotate(-2deg); }
+                    40%     { transform:translateX(5px) rotate(2deg); }
+                    60%     { transform:translateX(-3px) rotate(-1deg); }
+                    80%     { transform:translateX(3px) rotate(1deg); }
+                }
+                @keyframes logFadeIn {
+                    from { opacity:0; transform:translateX(-6px); }
+                    to   { opacity:1; transform:translateX(0); }
+                }
+                .animate-proj-ltr { animation: projLtr 0.52s cubic-bezier(0.4,0,0.2,1) forwards; }
+                .animate-proj-rtl { animation: projRtl 0.52s cubic-bezier(0.4,0,0.2,1) forwards; }
+                .animate-float-dmg { animation: floatDmg 0.9s ease-out forwards; }
+                .animate-impact-flash { animation: impactFlash 0.55s ease-in-out; }
+                .animate-myth-shake { animation: mythShake 0.45s ease-in-out; }
+                .animate-log-in { animation: logFadeIn 0.2s ease-out both; }
+            `}</style>
 
             <div className="flex-1 flex flex-col overflow-hidden">
-                {/* Tabs */}
-                <div className="flex border-b border-border flex-shrink-0">
-                    <button className="px-6 py-3 font-display text-sm tracking-widest uppercase text-red border-b-2 border-red">
-                        ⚔️ NPC
-                    </button>
-                    <button
-                        onClick={() => setMode("pvp")}
-                        className="px-6 py-3 font-display text-sm tracking-widest uppercase text-muted hover:text-white transition-colors"
-                    >
-                        👥 PvP
-                    </button>
-                </div>
+                <TabBar mode={mode} onSwitch={setMode} />
 
                 <div className="flex-1 flex overflow-hidden">
-                    {/* ── Arena + controls (left/center) ── */}
-                    <div className="flex-1 flex flex-col overflow-hidden p-4 gap-3">
-                        {/* Turn counter */}
+                    {/* ── Arena + controles ── */}
+                    <div className="flex-1 flex flex-col p-4 gap-3 overflow-auto min-w-0">
+
                         <div className="flex items-center justify-between flex-shrink-0">
-                            <span className="font-display text-xs text-muted tracking-widest uppercase">
-                                Turno {session?.turn ?? 0}
-                            </span>
+                            <span className="font-mono text-xs text-slate-500 tracking-widest">Turno {session?.turn ?? 0}</span>
                             {animating && (
-                                <span className="font-display text-xs text-yellow animate-pulse tracking-widest">
-                                    ⚡ Resolviendo...
+                                <span className="font-mono text-xs text-yellow-400 animate-pulse tracking-widest">
+                                    ⚡ Resolviendo turno...
                                 </span>
                             )}
                         </div>
 
-                        {/* ── Enemy row ── */}
+                        {/* Rivales */}
                         <div className="flex-shrink-0">
-                            <p className="font-display text-xs text-muted tracking-widest uppercase mb-2 text-center">
-                                — Rivales —
-                            </p>
-                            <div className="flex gap-4 justify-center">
+                            <p className="font-mono text-xs text-slate-500 tracking-widest uppercase mb-2 text-center">▲ Rivales</p>
+                            <div className="relative flex gap-4 justify-center min-h-32">
+                                {projectile?.direction === "ltr" && <Projectile proj={projectile} />}
                                 {session?.enemyTeam.map((myth) => (
-                                    <MythSlot
-                                        key={myth.instanceId}
-                                        myth={myth}
-                                        side="enemy"
+                                    <MythSlot key={myth.instanceId} myth={myth}
                                         targeted={myth.instanceId === targetEnemyMythId}
-                                        impactAffinity={impactMap[myth.instanceId] ?? null}
-                                        attacking={attackingMythId === myth.instanceId}
-                                        floatingDmg={floatingDmgMap[myth.instanceId]}
-                                        onClick={() => {
-                                            if (!myth.defeated && !animating) setTargetEnemyMythId(myth.instanceId);
-                                        }}
-                                        disabled={animating || myth.defeated}
+                                        flashAffinity={flashMap[myth.instanceId]}
+                                        floatingDmg={floatMap[myth.instanceId]}
+                                        onClick={() => { if (!myth.defeated && !animating) setTargetEnemyMythId(myth.instanceId); }}
                                     />
                                 ))}
                             </div>
                         </div>
 
-                        {/* Divider */}
+                        {/* Divisor VS */}
                         <div className="flex-shrink-0 flex items-center gap-3 px-4">
-                            <div className="flex-1 h-px bg-border/60" />
-                            <span className="text-muted text-xs font-display tracking-widest">VS</span>
-                            <div className="flex-1 h-px bg-border/60" />
+                            <div className="flex-1 h-px bg-slate-800" />
+                            <span className="text-slate-600 text-xs font-mono tracking-widest">— VS —</span>
+                            <div className="flex-1 h-px bg-slate-800" />
                         </div>
 
-                        {/* ── Player row ── */}
+                        {/* Jugador */}
                         <div className="flex-shrink-0">
-                            <p className="font-display text-xs text-muted tracking-widest uppercase mb-2 text-center">
-                                — Tu equipo —
-                            </p>
-                            <div className="flex gap-4 justify-center">
+                            <p className="font-mono text-xs text-slate-500 tracking-widest uppercase mb-2 text-center">▼ Tu equipo</p>
+                            <div className="relative flex gap-4 justify-center min-h-32">
+                                {projectile?.direction === "rtl" && <Projectile proj={projectile} />}
                                 {session?.playerTeam.map((myth) => (
-                                    <MythSlot
-                                        key={myth.instanceId}
-                                        myth={myth}
-                                        side="player"
+                                    <MythSlot key={myth.instanceId} myth={myth}
                                         selected={myth.instanceId === activePlayerMythId}
-                                        impactAffinity={impactMap[myth.instanceId] ?? null}
-                                        attacking={attackingMythId === myth.instanceId}
-                                        floatingDmg={floatingDmgMap[myth.instanceId]}
-                                        onClick={() => {
-                                            if (!myth.defeated && !animating) setActivePlayerMythId(myth.instanceId);
-                                        }}
-                                        disabled={animating || myth.defeated}
+                                        flashAffinity={flashMap[myth.instanceId]}
+                                        floatingDmg={floatMap[myth.instanceId]}
+                                        onClick={() => { if (!myth.defeated && !animating) setActivePlayerMythId(myth.instanceId); }}
                                     />
                                 ))}
                             </div>
                         </div>
 
-                        {/* ── Selección activa info ── */}
-                        <div className="flex-shrink-0 flex items-center justify-center gap-6 text-xs font-display tracking-wide">
-                            <span className={`${activePlayerMyth ? "text-blue" : "text-muted"}`}>
-                                {activePlayerMyth ? `🔵 ${activePlayerMyth.name}` : "🔵 Selecciona tu Myth"}
+                        {/* Indicador selección */}
+                        <div className="flex-shrink-0 flex items-center justify-center gap-4 text-xs font-mono">
+                            <span className={activePlayerMyth ? "text-blue-400" : "text-slate-600"}>
+                                {activePlayerMyth ? `🔵 ${activePlayerMyth.name}` : "🔵 Elige tu Myth"}
                             </span>
-                            <span className="text-border">→</span>
-                            <span className={`${targetEnemy ? "text-red" : "text-muted"}`}>
-                                {targetEnemy ? `🔴 ${targetEnemy.name}` : "🔴 Selecciona objetivo"}
+                            <span className="text-slate-700">→ ataca →</span>
+                            <span className={targetEnemy ? "text-red-400" : "text-slate-600"}>
+                                {targetEnemy ? `🔴 ${targetEnemy.name}` : "🔴 Elige objetivo"}
                             </span>
                         </div>
 
-                        {/* ── Moves panel ── */}
+                        {/* Moves */}
                         <div className="flex-shrink-0">
                             {activePlayerMyth && !activePlayerMyth.defeated ? (
                                 <div className="grid grid-cols-2 gap-2">
                                     {activePlayerMyth.moves.map((move) => {
                                         const cfg = AFFINITY_CONFIG[move.affinity];
-                                        const ready =
-                                            !animating && !loadingTurn && !!targetEnemy && !targetEnemy.defeated;
+                                        const ok = !animating && !!targetEnemy && !targetEnemy.defeated;
                                         return (
-                                            <button
-                                                key={move.id}
-                                                onClick={() => ready && handleMove(move.id)}
-                                                disabled={!ready}
+                                            <button key={move.id} onClick={() => ok && handleMove(move.id)} disabled={!ok}
                                                 title={move.description}
-                                                className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-left
-                          transition-all duration-150 group
-                          ${
-                              ready
-                                  ? `${cfg.bg} ${cfg.color} border-white/10 hover:border-white/30 hover:scale-102 active:scale-98`
-                                  : "bg-card/30 border-border/30 text-muted cursor-not-allowed opacity-50"
-                          }`}
-                                            >
-                                                <span className="text-lg">{cfg.emoji}</span>
+                                                className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-left transition-all
+                                                    ${ok
+                                                        ? `${cfg.bg} ${cfg.color} border-white/10 hover:border-white/25 hover:scale-[1.02] active:scale-[0.98]`
+                                                        : "bg-slate-900/40 border-slate-800 text-slate-600 cursor-not-allowed opacity-50"}`}>
+                                                <span className="text-xl">{cfg.emoji}</span>
                                                 <div className="min-w-0">
-                                                    <p className="font-display text-xs font-bold truncate">
-                                                        {move.name}
-                                                    </p>
-                                                    <p className="text-xs opacity-70">
-                                                        {move.power} pow · {move.accuracy}%
-                                                    </p>
+                                                    <p className="font-mono text-xs font-bold truncate">{move.name}</p>
+                                                    <p className="text-xs opacity-60 font-mono">{move.power > 0 ? `${move.power} pow` : "estado"} · {move.accuracy}%</p>
                                                 </div>
                                             </button>
                                         );
                                     })}
                                 </div>
                             ) : (
-                                <div className="h-24 flex items-center justify-center">
-                                    <p className="text-muted text-sm font-display">
+                                <div className="h-20 flex items-center justify-center">
+                                    <p className="text-slate-600 text-sm font-mono">
                                         {session?.playerTeam.every((m) => m.defeated)
-                                            ? "Todos tus Myths han sido derrotados"
-                                            : "Selecciona un Myth activo"}
+                                            ? "Todos tus Myths han caído..."
+                                            : "← Selecciona un Myth activo"}
                                     </p>
                                 </div>
                             )}
                         </div>
 
-                        {/* ── Capture + Flee ── */}
-                        <div className="flex-shrink-0 flex gap-2">
+                        {/* Captura + Huir */}
+                        <div className="flex-shrink-0 flex gap-2 mt-1">
                             {canCapture && (
-                                <button
-                                    onClick={handleCapture}
-                                    disabled={animating || loadingTurn}
-                                    className="flex-1 py-2.5 rounded-xl border border-yellow/60 bg-yellow/10 text-yellow
-                    font-display font-black text-sm tracking-widest uppercase
-                    hover:bg-yellow/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed
-                    animate-pulse"
-                                >
-                                    ◈ Capturar ({targetEnemy?.name})
+                                <button onClick={handleCapture} disabled={animating}
+                                    className="flex-1 py-2.5 rounded-xl border border-yellow-500/50 bg-yellow-500/10 text-yellow-400
+                                        font-mono font-black text-xs tracking-widest uppercase
+                                        hover:bg-yellow-500/20 transition-all disabled:opacity-40 animate-pulse">
+                                    ◈ Capturar · {targetEnemy?.name}
                                 </button>
                             )}
-                            <button
-                                onClick={handleFlee}
-                                disabled={animating || loadingTurn}
-                                className="px-4 py-2.5 rounded-xl border border-border text-muted
-                  font-display text-sm tracking-widest uppercase
-                  hover:border-red/50 hover:text-red transition-all disabled:opacity-50"
-                            >
+                            <button onClick={handleFlee} disabled={animating}
+                                className="px-5 py-2.5 rounded-xl border border-slate-700 text-slate-500
+                                    font-mono text-xs tracking-widest uppercase
+                                    hover:border-red-700/60 hover:text-red-500 transition-all disabled:opacity-40">
                                 🏃 Huir
                             </button>
                         </div>
                     </div>
 
-                    {/* ── Log panel (right) ── */}
-                    <div className="w-52 flex-shrink-0 border-l border-border flex flex-col overflow-hidden">
-                        <div className="flex-shrink-0 px-3 py-2 border-b border-border">
-                            <p className="font-display text-xs text-muted uppercase tracking-widest">Registro</p>
+                    {/* ── Log panel ── */}
+                    <div className="w-72 flex-shrink-0 border-l border-slate-800 flex flex-col overflow-hidden">
+                        <div className="px-4 py-3 border-b border-slate-800 bg-slate-900/60 flex-shrink-0">
+                            <p className="font-mono text-xs text-yellow-400 uppercase tracking-widest font-bold">
+                                📜 Registro de combate
+                            </p>
                         </div>
-                        <div ref={logRef} className="flex-1 overflow-y-auto p-3 flex flex-col gap-1 scroll-smooth">
-                            {log.length === 0 && <p className="text-muted text-xs font-mono">Esperando acciones...</p>}
-                            {log.map((line, i) => (
-                                <LogLine key={i} text={line} index={i} />
+                        <div ref={logRef}
+                            className="flex-1 overflow-y-auto p-3 flex flex-col gap-1 scroll-smooth"
+                            style={{ scrollbarWidth: "thin", scrollbarColor: "#334155 transparent" }}>
+                            {log.length === 0 && (
+                                <p className="text-slate-700 text-xs font-mono italic text-center mt-6">
+                                    Esperando acción...
+                                </p>
+                            )}
+                            {log.map((entry, i) => (
+                                <div key={i} className="animate-log-in flex items-start gap-1.5">
+                                    <span className="text-slate-700 font-mono text-xs mt-px flex-shrink-0">›</span>
+                                    <p className="font-mono text-xs leading-relaxed break-words"
+                                        style={{
+                                            color: entry.type === "good" ? "#4ade80"
+                                                : entry.type === "bad" ? "#f87171"
+                                                : entry.type === "crit" ? "#fbbf24"
+                                                : entry.type === "miss" ? "#64748b"
+                                                : entry.type === "system" ? "#818cf8"
+                                                : "#94a3b8"
+                                        }}>
+                                        {entry.text}
+                                    </p>
+                                </div>
                             ))}
                         </div>
                     </div>
                 </div>
             </div>
         </Layout>
+    );
+}
+
+// ─────────────────────────────────────────
+// TabBar
+// ─────────────────────────────────────────
+
+function TabBar({ mode, onSwitch }: { mode: BattleMode; onSwitch: (m: BattleMode) => void }) {
+    return (
+        <div className="flex border-b border-slate-800 flex-shrink-0">
+            {(["npc", "pvp"] as BattleMode[]).map((m) => (
+                <button key={m} onClick={() => onSwitch(m)}
+                    className={`px-6 py-3 font-mono text-sm tracking-widest uppercase transition-colors
+                        ${mode === m ? "text-red-400 border-b-2 border-red-500" : "text-slate-500 hover:text-slate-300"}`}>
+                    {m === "npc" ? "⚔️ NPC" : "👥 PvP"}
+                </button>
+            ))}
+        </div>
     );
 }
