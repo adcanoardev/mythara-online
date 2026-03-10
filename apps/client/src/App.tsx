@@ -14,7 +14,6 @@ import MythsPage from "./pages/MythsPage";
 
 export default function App() {
     const { user, loading } = useAuth();
-    console.log("App render — user:", user, "loading:", loading);
     if (loading)
         return (
             <div className="flex items-center justify-center min-h-screen bg-bg">
