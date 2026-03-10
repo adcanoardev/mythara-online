@@ -26,7 +26,7 @@ router.post("/npc/start", async (req, res) => {
     }
 });
 
-// POST /battle/npc/turn
+// POST /battle/npc/turnn
 router.post("/npc/turn", async (req, res) => {
     try {
         const { battleId, actingMythId, moveId } = req.body as {

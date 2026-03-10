@@ -431,9 +431,9 @@ export async function fleeBattle(userId: string, battleId: string): Promise<void
     deleteSession3v3(battleId);
 }
 
-// ─────────────────────────────────────────
+// ─────────────────────────────────────────-
 // CAPTURE
-// ─────────────────────────────────────────
+// ─────────────────────────────────────────-
 
 export interface CaptureResult {
     success: boolean;
