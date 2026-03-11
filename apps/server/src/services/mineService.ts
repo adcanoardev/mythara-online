@@ -1,7 +1,18 @@
+// apps/server/src/services/mineService.ts
+
 import { prisma } from "./prisma.js";
 import { addItem } from "./inventoryService.js";
+import {
+    addStructureXp,
+    progressionInfo,
+    upgradeStructure,
+    UPGRADE_MATERIAL,
+    upgradeMaterialCost,
+    xpToNextLevel,
+} from "./structureProgression.js";
 import type { ItemType, StructureType } from "@prisma/client";
 
+// ─── Cooldowns por nivel ──────────────────────────────────────────────────────
 const MINE_COOLDOWN_MS: Record<number, number> = {
     1: 4 * 60 * 60 * 1000,
     2: 3 * 60 * 60 * 1000,
@@ -10,6 +21,7 @@ const MINE_COOLDOWN_MS: Record<number, number> = {
     5: 60 * 60 * 1000,
 };
 
+// ─── Loot de materiales por nivel ────────────────────────────────────────────
 const MINE_LOOT: Record<number, { item: ItemType; weight: number }[]> = {
     1: [
         { item: "EMBER_SHARD", weight: 25 },
@@ -56,6 +68,19 @@ const MINE_LOOT: Record<number, { item: ItemType; weight: number }[]> = {
     ],
 };
 
+// Diamantes azules por recolección según nivel
+const DIAMONDS_PER_COLLECT: Record<number, number> = {
+    1: 1, 2: 2, 3: 3, 4: 4, 5: 5,
+};
+const DAILY_DIAMOND_CAP = 15;
+
+// Fragmentos de roca (material de upgrade) por recolección según nivel
+const ROCK_FRAGMENTS_PER_COLLECT: Record<number, number> = {
+    1: 1, 2: 1, 3: 2, 4: 2, 5: 3,
+};
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
 function rollLoot(level: number): ItemType {
     const table = MINE_LOOT[level] ?? MINE_LOOT[1];
     const total = table.reduce((sum, e) => sum + e.weight, 0);
@@ -67,6 +92,14 @@ function rollLoot(level: number): ItemType {
     return table[0].item;
 }
 
+function isSameDay(a: Date, b: Date): boolean {
+    return (
+        a.getFullYear() === b.getFullYear() &&
+        a.getMonth() === b.getMonth() &&
+        a.getDate() === b.getDate()
+    );
+}
+
 export async function getStructure(userId: string, type: StructureType) {
     return prisma.structure.upsert({
         where: { userId_type: { userId, type } },
@@ -75,89 +108,270 @@ export async function getStructure(userId: string, type: StructureType) {
             userId,
             type,
             level: 1,
-            lastCollected: new Date(0), // epoch — listo para recoger inmediatamente
+            lastCollected: new Date(0),
+            structureXp: 0,
+            dailyDiamonds: 0,
+            lastDiamondReset: new Date(),
         },
     });
 }
+
+// ─── MINA — Status ────────────────────────────────────────────────────────────
+
 export async function getMineStatus(userId: string) {
     const mine = await getStructure(userId, "MINE");
     const cooldownMs = MINE_COOLDOWN_MS[mine.level] ?? MINE_COOLDOWN_MS[1];
     const elapsed = Date.now() - mine.lastCollected.getTime();
     const ready = elapsed >= cooldownMs;
     const nextCollectMs = ready ? 0 : cooldownMs - elapsed;
-    return { level: mine.level, ready, nextCollectMs };
+
+    // Resetear contador diario si es un día nuevo
+    const now = new Date();
+    const dailyDiamonds = isSameDay(mine.lastDiamondReset, now)
+        ? mine.dailyDiamonds
+        : 0;
+    const diamondsFull = dailyDiamonds >= DAILY_DIAMOND_CAP;
+
+    const prog = progressionInfo(mine);
+
+    return {
+        level: mine.level,
+        ready,
+        nextCollectMs,
+        // Diamantes
+        dailyDiamonds,
+        dailyDiamondCap: DAILY_DIAMOND_CAP,
+        diamondsFull,
+        // Progresión
+        structureXp: prog.structureXp,
+        xpToNextLevel: prog.xpToNextLevel,
+        upgradeRequirement: {
+            item: UPGRADE_MATERIAL["MINE"],
+            quantity: upgradeMaterialCost(mine.level),
+        },
+        canUpgradeXp: prog.canUpgradeXp,
+    };
 }
 
-export async function collectMine(userId: string): Promise<{ item: ItemType; quantity: number } | null> {
+// ─── MINA — Recolectar ───────────────────────────────────────────────────────
+
+export async function collectMine(userId: string): Promise<{
+    lootItem: ItemType;
+    lootQuantity: number;
+    diamondsGained: number;
+    rockFragmentsGained: number;
+    xpGained: number;
+    diamondsFull: boolean;
+} | null> {
     const mine = await getStructure(userId, "MINE");
     const cooldownMs = MINE_COOLDOWN_MS[mine.level] ?? MINE_COOLDOWN_MS[1];
     const elapsed = Date.now() - mine.lastCollected.getTime();
     if (elapsed < cooldownMs) return null;
 
-    const quantity = 1 + Math.floor(mine.level / 2);
-    const item = rollLoot(mine.level);
+    const now = new Date();
 
-    await Promise.all([
-        addItem(userId, item, quantity),
+    // Resetear contador diario si es nuevo día
+    const currentDailyDiamonds = isSameDay(mine.lastDiamondReset, now)
+        ? mine.dailyDiamonds
+        : 0;
+
+    // Calcular diamantes a dar (respetando el cap)
+    const diamondsToGive = DIAMONDS_PER_COLLECT[mine.level] ?? 1;
+    const diamondsCanGive = Math.max(
+        0,
+        Math.min(diamondsToGive, DAILY_DIAMOND_CAP - currentDailyDiamonds)
+    );
+    const newDailyDiamonds = currentDailyDiamonds + diamondsCanGive;
+    const diamondsFull = newDailyDiamonds >= DAILY_DIAMOND_CAP;
+
+    // Fragmentos de roca (sin cap)
+    const rockFragments = ROCK_FRAGMENTS_PER_COLLECT[mine.level] ?? 1;
+
+    // Loot de shard/crystal aleatorio
+    const lootQuantity = 1 + Math.floor(mine.level / 2);
+    const lootItem = rollLoot(mine.level);
+
+    const XP_PER_COLLECT = 100;
+
+    // Actualizar DB en paralelo
+    const updates: Promise<any>[] = [
+        addItem(userId, lootItem, lootQuantity),
+        addItem(userId, "ROCK_FRAGMENT", rockFragments),
         prisma.structure.update({
             where: { userId_type: { userId, type: "MINE" } },
-            data: { lastCollected: new Date() },
+            data: {
+                lastCollected: now,
+                structureXp: { increment: XP_PER_COLLECT },
+                dailyDiamonds: newDailyDiamonds,
+                lastDiamondReset: isSameDay(mine.lastDiamondReset, now)
+                    ? undefined
+                    : now,
+            },
         }),
-    ]);
+    ];
 
-    return { item, quantity };
+    if (diamondsCanGive > 0) {
+        updates.push(addItem(userId, "BLUE_DIAMOND", diamondsCanGive));
+    }
+
+    await Promise.all(updates);
+
+    return {
+        lootItem,
+        lootQuantity,
+        diamondsGained: diamondsCanGive,
+        rockFragmentsGained: rockFragments,
+        xpGained: XP_PER_COLLECT,
+        diamondsFull,
+    };
 }
 
-// ─── FRAGMENT FORGE ──────────────────────────────────────────────────────────
+// ─── MINA — Subir nivel ──────────────────────────────────────────────────────
 
-const FORGE_COOLDOWN_MS = 6 * 60 * 60 * 1000; // 6h fijo nivel 1
+export async function upgradeMine(userId: string) {
+    return upgradeStructure(userId, "MINE");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// FRAGMENT FORGE
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const FORGE_COOLDOWN_MS: Record<number, number> = {
+    1: 6 * 60 * 60 * 1000,
+    2: 5 * 60 * 60 * 1000,
+    3: 4 * 60 * 60 * 1000,
+    4: 3 * 60 * 60 * 1000,
+    5: 2 * 60 * 60 * 1000,
+};
+
+// Núcleos de Llama (material para subir Guardería) producidos al recolectar
+const FLAME_CORES_PER_COLLECT: Record<number, number> = {
+    1: 1, 2: 1, 3: 2, 4: 2, 5: 3,
+};
 
 export async function getForgeStatus(userId: string) {
     const forge = await getStructure(userId, "FRAGMENT_FORGE");
+    const cooldownMs = FORGE_COOLDOWN_MS[forge.level] ?? FORGE_COOLDOWN_MS[1];
     const elapsed = Date.now() - forge.lastCollected.getTime();
-    const ready = elapsed >= FORGE_COOLDOWN_MS;
-    const nextCollectMs = ready ? 0 : FORGE_COOLDOWN_MS - elapsed;
-    return { level: forge.level, ready, nextCollectMs };
+    const ready = elapsed >= cooldownMs;
+    const nextCollectMs = ready ? 0 : cooldownMs - elapsed;
+    const prog = progressionInfo(forge);
+
+    return {
+        level: forge.level,
+        ready,
+        nextCollectMs,
+        structureXp: prog.structureXp,
+        xpToNextLevel: xpToNextLevel(forge.level),
+        upgradeRequirement: {
+            item: UPGRADE_MATERIAL["FRAGMENT_FORGE"],
+            quantity: upgradeMaterialCost(forge.level),
+        },
+        canUpgradeXp: prog.canUpgradeXp,
+    };
 }
 
-export async function collectForge(userId: string): Promise<{ item: ItemType; quantity: number } | null> {
+export async function collectForge(userId: string): Promise<{
+    fragmentsGained: number;
+    flameCoresGained: number;
+    xpGained: number;
+} | null> {
     const forge = await getStructure(userId, "FRAGMENT_FORGE");
+    const cooldownMs = FORGE_COOLDOWN_MS[forge.level] ?? FORGE_COOLDOWN_MS[1];
     const elapsed = Date.now() - forge.lastCollected.getTime();
-    if (elapsed < FORGE_COOLDOWN_MS) return null;
-    const quantity = 1 + Math.floor(forge.level / 2);
+    if (elapsed < cooldownMs) return null;
+
+    const fragmentsGained = 1 + Math.floor(forge.level / 2);
+    const flameCoresGained = FLAME_CORES_PER_COLLECT[forge.level] ?? 1;
+    const XP_PER_COLLECT = 100;
+
     await Promise.all([
-        addItem(userId, "FRAGMENT", quantity),
+        addItem(userId, "FRAGMENT", fragmentsGained),
+        addItem(userId, "FLAME_CORE", flameCoresGained),
         prisma.structure.update({
             where: { userId_type: { userId, type: "FRAGMENT_FORGE" } },
-            data: { lastCollected: new Date() },
+            data: {
+                lastCollected: new Date(),
+                structureXp: { increment: XP_PER_COLLECT },
+            },
         }),
     ]);
-    return { item: "FRAGMENT" as ItemType, quantity };
+
+    return { fragmentsGained, flameCoresGained, xpGained: XP_PER_COLLECT };
 }
 
-// ─── LAB ─────────────────────────────────────────────────────────────────────
+export async function upgradeForge(userId: string) {
+    return upgradeStructure(userId, "FRAGMENT_FORGE");
+}
 
-const LAB_COOLDOWN_MS = 8 * 60 * 60 * 1000; // 8h fijo nivel 1
+// ═══════════════════════════════════════════════════════════════════════════════
+// LAB
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const LAB_COOLDOWN_MS: Record<number, number> = {
+    1: 8 * 60 * 60 * 1000,
+    2: 7 * 60 * 60 * 1000,
+    3: 6 * 60 * 60 * 1000,
+    4: 5 * 60 * 60 * 1000,
+    5: 4 * 60 * 60 * 1000,
+};
+
+// Engranajes Arcanos (material para subir Forja) producidos al recolectar
+const ARCANE_GEARS_PER_COLLECT: Record<number, number> = {
+    1: 1, 2: 1, 3: 2, 4: 2, 5: 3,
+};
 
 export async function getLabStatus(userId: string) {
     const lab = await getStructure(userId, "LAB");
+    const cooldownMs = LAB_COOLDOWN_MS[lab.level] ?? LAB_COOLDOWN_MS[1];
     const elapsed = Date.now() - lab.lastCollected.getTime();
-    const ready = elapsed >= LAB_COOLDOWN_MS;
-    const nextCollectMs = ready ? 0 : LAB_COOLDOWN_MS - elapsed;
-    return { level: lab.level, ready, nextCollectMs };
+    const ready = elapsed >= cooldownMs;
+    const nextCollectMs = ready ? 0 : cooldownMs - elapsed;
+    const prog = progressionInfo(lab);
+
+    return {
+        level: lab.level,
+        ready,
+        nextCollectMs,
+        structureXp: prog.structureXp,
+        xpToNextLevel: xpToNextLevel(lab.level),
+        upgradeRequirement: {
+            item: UPGRADE_MATERIAL["LAB"],
+            quantity: upgradeMaterialCost(lab.level),
+        },
+        canUpgradeXp: prog.canUpgradeXp,
+    };
 }
 
-export async function collectLab(userId: string): Promise<{ item: ItemType; quantity: number } | null> {
+export async function collectLab(userId: string): Promise<{
+    elixirsGained: number;
+    arcaneGearsGained: number;
+    xpGained: number;
+} | null> {
     const lab = await getStructure(userId, "LAB");
+    const cooldownMs = LAB_COOLDOWN_MS[lab.level] ?? LAB_COOLDOWN_MS[1];
     const elapsed = Date.now() - lab.lastCollected.getTime();
-    if (elapsed < LAB_COOLDOWN_MS) return null;
-    const quantity = 1 + Math.floor(lab.level / 2);
+    if (elapsed < cooldownMs) return null;
+
+    const elixirsGained = 1 + Math.floor(lab.level / 2);
+    const arcaneGearsGained = ARCANE_GEARS_PER_COLLECT[lab.level] ?? 1;
+    const XP_PER_COLLECT = 100;
+
     await Promise.all([
-        addItem(userId, "ELIXIR", quantity),
+        addItem(userId, "ELIXIR", elixirsGained),
+        addItem(userId, "ARCANE_GEAR", arcaneGearsGained),
         prisma.structure.update({
             where: { userId_type: { userId, type: "LAB" } },
-            data: { lastCollected: new Date() },
+            data: {
+                lastCollected: new Date(),
+                structureXp: { increment: XP_PER_COLLECT },
+            },
         }),
     ]);
-    return { item: "ELIXIR" as ItemType, quantity };
+
+    return { elixirsGained, arcaneGearsGained, xpGained: XP_PER_COLLECT };
+}
+
+export async function upgradeLab(userId: string) {
+    return upgradeStructure(userId, "LAB");
 }

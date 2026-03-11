@@ -1,3 +1,5 @@
+// apps/server/prisma/schema.prisma
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -6,7 +8,7 @@ datasource db {
   provider = "postgresql"
 }
 
-// ─── Usuarios y partida (existentes) ──────────────────────────
+// ─── Usuarios y partida ────────────────────────────────────────
 
 model User {
   id           String   @id @default(cuid())
@@ -36,6 +38,7 @@ model Game {
 }
 
 // ─── Perfil del entrenador ─────────────────────────────────────
+
 model TrainerProfile {
   id     String @id @default(cuid())
   userId String @unique
@@ -47,7 +50,6 @@ model TrainerProfile {
   coins    Int   @default(0)
   medals   Int[] @default([])
 
-  // Onboarding
   avatar             String?
   gender             String?
   onboardingComplete Boolean @default(false)
@@ -63,8 +65,8 @@ model CombatToken {
   userId String @unique
   user   User   @relation(fields: [userId], references: [id])
 
-  npcTokens Int @default(10) // máx 10
-  pvpTokens Int @default(5) // máx 5
+  npcTokens Int @default(10)
+  pvpTokens Int @default(5)
 
   lastNpcRecharge DateTime @default(now())
   lastPvpRecharge DateTime @default(now())
@@ -82,6 +84,13 @@ model Structure {
   type          StructureType
   level         Int           @default(1)
   lastCollected DateTime      @default(now())
+
+  // Progresión de nivel
+  structureXp   Int      @default(0)  // XP acumulada hacia el siguiente nivel
+  
+  // Mina: cap de diamantes azules por día
+  dailyDiamonds     Int      @default(0)  // cuántos diamantes se han recogido hoy
+  lastDiamondReset  DateTime @default(now()) // cuando se reinicia el contador diario
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -129,9 +138,14 @@ enum ItemType {
   IRON_COAT
   SOVEREIGN_STONE
   CIPHER_CORE
+  // ─── Nuevos materiales de progresión ───
+  BLUE_DIAMOND    // Mina → moneda futura de tienda (máx 15/día)
+  ROCK_FRAGMENT   // Mina → material para subir nivel de Mina
+  ARCANE_GEAR     // Lab  → material para subir nivel de Forja
+  FLAME_CORE      // Forja → material para subir nivel de Guardería
 }
 
-// ─── Myths del jugador ───────────────────────────────────────
+// ─── Myths del jugador ────────────────────────────────────────
 
 model CreatureInstance {
   id     String @id @default(cuid())
@@ -157,7 +171,8 @@ model CreatureInstance {
   inNursery Boolean @default(false)
 }
 
-// ─── Battletag ───────────────────────────────────────
+// ─── BattleLog ────────────────────────────────────────────────
+
 model BattleLog {
   id     String @id @default(cuid())
   userId String
@@ -167,7 +182,7 @@ model BattleLog {
   result            BattleResult
   xpGained          Int          @default(0)
   coinsGained       Int          @default(0)
-  
+
   playerSpeciesId   String
   playerLevel       Int
   enemySpeciesId    String

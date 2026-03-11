@@ -3,39 +3,82 @@ import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import TrainerSidebar from "../components/TrainerSidebar";
 import { api } from "../lib/api";
+import { useTrainer } from "../context/TrainerContext";
 
-const RARITY_CONFIG: Record<string, {
-    label: string;
-    color: string;
-    glow: string;
-    bg: string;
-    border: string;
-    particles: number;
-    particleColor: string;
-}> = {
-    COMMON:    { label: "Común",     color: "text-slate-300",   glow: "#94a3b8", bg: "bg-slate-700/40",   border: "border-slate-500",   particles: 8,  particleColor: "#94a3b8" },
-    RARE:      { label: "Raro",      color: "text-sky-300",     glow: "#38bdf8", bg: "bg-sky-800/30",     border: "border-sky-500",     particles: 14, particleColor: "#38bdf8" },
-    ELITE:     { label: "Élite",     color: "text-violet-300",  glow: "#a78bfa", bg: "bg-violet-800/30",  border: "border-violet-400",  particles: 18, particleColor: "#a78bfa" },
-    LEGENDARY: { label: "Legendario",color: "text-yellow-300",  glow: "#fcd34d", bg: "bg-yellow-700/20",  border: "border-yellow-400",  particles: 24, particleColor: "#fcd34d" },
-    MYTHIC:    { label: "Mítico",    color: "text-pink-300",    glow: "#f472b6", bg: "bg-pink-800/20",    border: "border-pink-400",    particles: 30, particleColor: "#f472b6" },
+const RARITY_CONFIG: Record<
+    string,
+    {
+        label: string;
+        color: string;
+        glow: string;
+        bg: string;
+        border: string;
+        particles: number;
+        particleColor: string;
+    }
+> = {
+    COMMON: {
+        label: "Común",
+        color: "text-slate-300",
+        glow: "#94a3b8",
+        bg: "bg-slate-700/40",
+        border: "border-slate-500",
+        particles: 8,
+        particleColor: "#94a3b8",
+    },
+    RARE: {
+        label: "Raro",
+        color: "text-sky-300",
+        glow: "#38bdf8",
+        bg: "bg-sky-800/30",
+        border: "border-sky-500",
+        particles: 14,
+        particleColor: "#38bdf8",
+    },
+    ELITE: {
+        label: "Élite",
+        color: "text-violet-300",
+        glow: "#a78bfa",
+        bg: "bg-violet-800/30",
+        border: "border-violet-400",
+        particles: 18,
+        particleColor: "#a78bfa",
+    },
+    LEGENDARY: {
+        label: "Legendario",
+        color: "text-yellow-300",
+        glow: "#fcd34d",
+        bg: "bg-yellow-700/20",
+        border: "border-yellow-400",
+        particles: 24,
+        particleColor: "#fcd34d",
+    },
+    MYTHIC: {
+        label: "Mítico",
+        color: "text-pink-300",
+        glow: "#f472b6",
+        bg: "bg-pink-800/20",
+        border: "border-pink-400",
+        particles: 30,
+        particleColor: "#f472b6",
+    },
 };
 
 type OpenPhase = "idle" | "hover" | "shaking" | "opening" | "revealed";
 
 export default function FragmentPage() {
     const navigate = useNavigate();
-    const [fragments, setFragments] = useState<number>(0);
+
     const [phase, setPhase] = useState<OpenPhase>("idle");
     const [creature, setCreature] = useState<any | null>(null);
     const [loading, setLoading] = useState(false);
     const [particles, setParticles] = useState<{ x: number; y: number; delay: number; size: number }[]>([]);
+    const { fragments: ctxFragments, reload } = useTrainer();
+    const [fragments, setFragments] = useState<number>(0);
 
     useEffect(() => {
-        api.inventory().then((items: any[]) => {
-            const frag = items.find((i: any) => i.type === "FRAGMENT" || i.itemType === "FRAGMENT");
-            setFragments(frag?.quantity ?? frag?.amount ?? 0);
-        }).catch(() => {});
-    }, []);
+        setFragments(ctxFragments ?? 0);
+    }, [ctxFragments]);
 
     async function handleOpen() {
         if (fragments <= 0 || loading || phase !== "idle") return;
@@ -51,8 +94,7 @@ export default function FragmentPage() {
         try {
             const result = await api.forgeOpen();
             setCreature(result);
-            setFragments((f) => Math.max(0, f - 1));
-
+            reload(); // el contexto actualiza fragments solo desde el servidor
             // Generar partículas
             const cfg = RARITY_CONFIG[result.rarity ?? "COMMON"];
             const pts = Array.from({ length: cfg.particles }, (_, i) => ({
@@ -79,7 +121,9 @@ export default function FragmentPage() {
         setParticles([]);
     }
 
-    function sleep(ms: number) { return new Promise<void>((r) => setTimeout(r, ms)); }
+    function sleep(ms: number) {
+        return new Promise<void>((r) => setTimeout(r, ms));
+    }
 
     const cfg = creature ? (RARITY_CONFIG[creature.rarity ?? "COMMON"] ?? RARITY_CONFIG.COMMON) : null;
 
@@ -132,16 +176,16 @@ export default function FragmentPage() {
             `}</style>
 
             <div className="flex-1 flex flex-col items-center justify-center p-6 relative overflow-hidden">
-
                 {/* ── Estado idle / animación ── */}
                 {phase !== "revealed" && (
                     <div className="flex flex-col items-center gap-8 w-full max-w-sm">
-
                         {/* Fragmento grande animado */}
                         <div className="relative flex items-center justify-center h-52 w-52">
                             {/* Halo */}
-                            <div className="absolute inset-0 rounded-full opacity-20"
-                                style={{ background: "radial-gradient(circle, #818cf8 0%, transparent 70%)" }} />
+                            <div
+                                className="absolute inset-0 rounded-full opacity-20"
+                                style={{ background: "radial-gradient(circle, #818cf8 0%, transparent 70%)" }}
+                            />
 
                             {/* El fragmento */}
                             <div
@@ -152,40 +196,39 @@ export default function FragmentPage() {
                                     ${phase === "opening" ? "anim-open" : ""}
                                 `}
                                 style={{
-                                    filter: phase === "idle"
-                                        ? "drop-shadow(0 0 20px rgba(129,140,248,0.5))"
-                                        : phase === "shaking"
-                                            ? "drop-shadow(0 0 30px rgba(129,140,248,0.9)) brightness(1.3)"
-                                            : phase === "opening"
+                                    filter:
+                                        phase === "idle"
+                                            ? "drop-shadow(0 0 20px rgba(129,140,248,0.5))"
+                                            : phase === "shaking"
+                                              ? "drop-shadow(0 0 30px rgba(129,140,248,0.9)) brightness(1.3)"
+                                              : phase === "opening"
                                                 ? "drop-shadow(0 0 50px white) brightness(3)"
                                                 : "drop-shadow(0 0 20px rgba(129,140,248,0.5))",
-                                }}>
+                                }}
+                            >
                                 ◈
                             </div>
                         </div>
 
-                        {/* Botones en fila */}
+                        {/* Botones abrir */}
                         <div className="flex items-center gap-4 w-full">
-                            {/* Botón Posada — izquierda */}
-                            <button onClick={() => navigate("/")}
-                                className="flex items-center gap-2 px-5 py-3 rounded-xl border border-slate-700 text-slate-400
-                                    font-mono text-sm tracking-widest uppercase hover:border-slate-500 hover:text-white
-                                    transition-all hover:scale-105">
-                                ← Posada
-                            </button>
-
                             {/* Botón abrir — flex-1 para que ocupe el espacio */}
                             <button
                                 onClick={handleOpen}
                                 disabled={fragments <= 0 || loading || phase !== "idle"}
                                 className={`flex-1 flex flex-col items-center py-3 rounded-xl font-mono font-black
                                     text-sm tracking-widest uppercase transition-all
-                                    ${fragments > 0 && phase === "idle"
-                                        ? "bg-indigo-600 text-white hover:bg-indigo-500 hover:scale-105 shadow-lg shadow-indigo-900/60"
-                                        : "bg-slate-800 text-slate-600 cursor-not-allowed"}`}>
+                                    ${
+                                        fragments > 0 && phase === "idle"
+                                            ? "bg-indigo-600 text-white hover:bg-indigo-500 hover:scale-105 shadow-lg shadow-indigo-900/60"
+                                            : "bg-slate-800 text-slate-600 cursor-not-allowed"
+                                    }`}
+                            >
                                 <span>{loading ? "Abriendo..." : "◈ Abrir fragmento"}</span>
-                                <span className={`text-xs mt-0.5 font-normal
-                                    ${fragments > 0 ? "text-indigo-300" : "text-slate-600"}`}>
+                                <span
+                                    className={`text-xs mt-0.5 font-normal
+                                    ${fragments > 0 ? "text-indigo-300" : "text-slate-600"}`}
+                                >
                                     {fragments} disponible{fragments !== 1 ? "s" : ""}
                                 </span>
                             </button>
@@ -202,42 +245,51 @@ export default function FragmentPage() {
                 {/* ── Reveal ── */}
                 {phase === "revealed" && creature && cfg && (
                     <div className="flex flex-col items-center gap-6 w-full max-w-md">
-
                         {/* Partículas */}
                         <div className="absolute inset-0 pointer-events-none overflow-hidden">
                             {particles.map((p, i) => (
-                                <div key={i} className="absolute rounded-full"
+                                <div
+                                    key={i}
+                                    className="absolute rounded-full"
                                     style={{
-                                        width: p.size, height: p.size,
-                                        left: `${p.x}%`, top: `${p.y}%`,
+                                        width: p.size,
+                                        height: p.size,
+                                        left: `${p.x}%`,
+                                        top: `${p.y}%`,
                                         background: cfg.particleColor,
                                         boxShadow: `0 0 ${p.size * 2}px ${cfg.particleColor}`,
                                         animation: `particle 1.2s ease-out ${p.delay}ms forwards`,
                                         ["--tx" as any]: `${(Math.random() - 0.5) * 200}px`,
                                         ["--ty" as any]: `${(Math.random() - 0.5) * 200}px`,
-                                    }} />
+                                    }}
+                                />
                             ))}
                         </div>
 
                         {/* Tarjeta del Myth revelado */}
                         <div className="anim-reveal relative">
                             {/* Halo de rareza */}
-                            <div className="absolute -inset-6 rounded-full anim-glow pointer-events-none"
-                                style={{ background: `radial-gradient(circle, ${cfg.glow}30 0%, transparent 70%)` }} />
+                            <div
+                                className="absolute -inset-6 rounded-full anim-glow pointer-events-none"
+                                style={{ background: `radial-gradient(circle, ${cfg.glow}30 0%, transparent 70%)` }}
+                            />
 
-                            <div className={`relative z-10 flex flex-col items-center gap-3 p-6 rounded-2xl border-2
+                            <div
+                                className={`relative z-10 flex flex-col items-center gap-3 p-6 rounded-2xl border-2
                                 ${cfg.bg} ${cfg.border}`}
-                                style={{ boxShadow: `0 0 40px ${cfg.glow}40, 0 0 80px ${cfg.glow}20` }}>
-
+                                style={{ boxShadow: `0 0 40px ${cfg.glow}40, 0 0 80px ${cfg.glow}20` }}
+                            >
                                 {/* Arte del Myth — grande */}
                                 <div className="text-8xl" style={{ filter: `drop-shadow(0 0 16px ${cfg.glow})` }}>
                                     {creature.art?.front ?? "❓"}
                                 </div>
 
                                 {/* Badge rareza */}
-                                <span className={`px-3 py-1 rounded-full text-xs font-mono font-black uppercase tracking-widest
+                                <span
+                                    className={`px-3 py-1 rounded-full text-xs font-mono font-black uppercase tracking-widest
                                     ${cfg.color} border ${cfg.border}`}
-                                    style={{ boxShadow: `0 0 12px ${cfg.glow}60` }}>
+                                    style={{ boxShadow: `0 0 12px ${cfg.glow}60` }}
+                                >
                                     {cfg.label}
                                 </span>
 
@@ -245,14 +297,19 @@ export default function FragmentPage() {
                                     <p className={`font-mono font-black text-xl tracking-widest ${cfg.color}`}>
                                         {creature.name}
                                     </p>
-                                    <p className="text-slate-500 text-xs font-mono mt-1">#{creature.speciesId} · Nv.{creature.level ?? 5}</p>
+                                    <p className="text-slate-500 text-xs font-mono mt-1">
+                                        #{creature.speciesId} · Nv.{creature.level ?? 5}
+                                    </p>
                                 </div>
 
                                 {/* Affinities */}
                                 {creature.affinities?.length > 0 && (
                                     <div className="flex gap-2">
                                         {creature.affinities.map((a: string) => (
-                                            <span key={a} className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-slate-300 font-mono">
+                                            <span
+                                                key={a}
+                                                className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-slate-300 font-mono"
+                                            >
                                                 {a}
                                             </span>
                                         ))}
@@ -260,15 +317,20 @@ export default function FragmentPage() {
                                 )}
 
                                 {/* Stats */}
-                                <div className="anim-stats grid grid-cols-3 gap-3 mt-1 w-full" style={{ animationDelay: "200ms" }}>
+                                <div
+                                    className="anim-stats grid grid-cols-3 gap-3 mt-1 w-full"
+                                    style={{ animationDelay: "200ms" }}
+                                >
                                     {[
-                                        { label: "HP",  value: creature.hp ?? creature.maxHp },
+                                        { label: "HP", value: creature.hp ?? creature.maxHp },
                                         { label: "ATK", value: creature.attack },
                                         { label: "DEF", value: creature.defense },
                                     ].map((s) => (
                                         <div key={s.label} className="flex flex-col items-center gap-0.5">
                                             <p className="text-slate-500 text-xs font-mono uppercase">{s.label}</p>
-                                            <p className={`font-mono font-black text-sm ${cfg.color}`}>{s.value ?? "—"}</p>
+                                            <p className={`font-mono font-black text-sm ${cfg.color}`}>
+                                                {s.value ?? "—"}
+                                            </p>
                                         </div>
                                     ))}
                                 </div>
@@ -281,21 +343,21 @@ export default function FragmentPage() {
 
                         {/* Botones post-reveal */}
                         <div className="flex items-center gap-4 w-full anim-stats" style={{ animationDelay: "400ms" }}>
-                            <button onClick={() => navigate("/")}
-                                className="flex items-center gap-2 px-5 py-3 rounded-xl border border-slate-700 text-slate-400
-                                    font-mono text-sm tracking-widest uppercase hover:border-slate-500 hover:text-white
-                                    transition-all hover:scale-105">
-                                ← Posada
-                            </button>
-
-                            <button onClick={handleOpenAnother} disabled={fragments <= 0}
+                            <button
+                                onClick={handleOpenAnother}
+                                disabled={fragments <= 0}
                                 className={`flex-1 flex flex-col items-center py-3 rounded-xl font-mono font-black
                                     text-sm tracking-widest uppercase transition-all
-                                    ${fragments > 0
-                                        ? "bg-indigo-600 text-white hover:bg-indigo-500 hover:scale-105 shadow-lg shadow-indigo-900/60"
-                                        : "bg-slate-800 text-slate-600 cursor-not-allowed"}`}>
+                                    ${
+                                        fragments > 0
+                                            ? "bg-indigo-600 text-white hover:bg-indigo-500 hover:scale-105 shadow-lg shadow-indigo-900/60"
+                                            : "bg-slate-800 text-slate-600 cursor-not-allowed"
+                                    }`}
+                            >
                                 <span>◈ Abrir otro</span>
-                                <span className={`text-xs mt-0.5 font-normal ${fragments > 0 ? "text-indigo-300" : "text-slate-600"}`}>
+                                <span
+                                    className={`text-xs mt-0.5 font-normal ${fragments > 0 ? "text-indigo-300" : "text-slate-600"}`}
+                                >
                                     {fragments} disponible{fragments !== 1 ? "s" : ""}
                                 </span>
                             </button>

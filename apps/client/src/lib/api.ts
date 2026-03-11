@@ -86,6 +86,12 @@ export const api = {
         request<any>("/nursery/assign", { method: "POST", body: JSON.stringify({ creatureId }) }),
     nurseryCollect: () => request<any>("/nursery/collect", { method: "POST" }),
     nurseryRemove: () => request<any>("/nursery/remove", { method: "POST" }),
+    nurseryUpgrade: () => request<any>("/nursery/upgrade", { method: "POST" }),
+
+    // Structure upgrades
+    mineUpgrade: () => request<any>("/mine/upgrade", { method: "POST" }),
+    forgeUpgrade: () => request<any>("/forge/upgrade", { method: "POST" }),
+    labUpgrade: () => request<any>("/lab/upgrade", { method: "POST" }),
 
     // Dex
     dex: () => request<any[]>("/dex"),

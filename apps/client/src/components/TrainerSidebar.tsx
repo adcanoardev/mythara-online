@@ -21,18 +21,17 @@ function TokenDot({ filled }: { filled: boolean }) {
     );
 }
 
-
 // Borde de la tarjeta según rango — objetos CSS directos
 const RANK_BORDER_STYLE: Record<string, React.CSSProperties> = {
-    "Novato":       { border: "1px solid #475569" },
-    "Aprendiz":     { border: "1px solid #22c55e" },
-    "Explorador":   { border: "1px solid #3b82f6" },
-    "Cazador":      { border: "1px solid #f97316" },
-    "Élite":        { border: "1px solid #a855f7" },
-    "Maestro":      { border: "1px solid #eab308" },
+    Novato: { border: "1px solid #475569" },
+    Aprendiz: { border: "1px solid #22c55e" },
+    Explorador: { border: "1px solid #3b82f6" },
+    Cazador: { border: "1px solid #f97316" },
+    Élite: { border: "1px solid #a855f7" },
+    Maestro: { border: "1px solid #eab308" },
     "Gran Maestro": { border: "1px solid #ec4899" },
-    "Legendario":   { border: "2px solid #f43f5e", boxShadow: "0 0 12px rgba(244,63,94,0.4)" },
-    "Mítico":       { border: "2px solid #facc15", boxShadow: "0 0 16px rgba(250,204,21,0.5), 0 0 32px rgba(250,204,21,0.2)" },
+    Legendario: { border: "2px solid #f43f5e", boxShadow: "0 0 12px rgba(244,63,94,0.4)" },
+    Mítico: { border: "2px solid #facc15", boxShadow: "0 0 16px rgba(250,204,21,0.5), 0 0 32px rgba(250,204,21,0.2)" },
 };
 
 function getRankBorderStyle(rank: string): React.CSSProperties {
@@ -40,15 +39,15 @@ function getRankBorderStyle(rank: string): React.CSSProperties {
 }
 
 const RANK_LABEL_COLOR: Record<string, string> = {
-    "Novato":       "text-slate-400",
-    "Aprendiz":     "text-green-400",
-    "Explorador":   "text-blue-400",
-    "Cazador":      "text-orange-400",
-    "Élite":        "text-purple-400",
-    "Maestro":      "text-yellow-400",
+    Novato: "text-slate-400",
+    Aprendiz: "text-green-400",
+    Explorador: "text-blue-400",
+    Cazador: "text-orange-400",
+    Élite: "text-purple-400",
+    Maestro: "text-yellow-400",
     "Gran Maestro": "text-pink-400",
-    "Legendario":   "text-rose-400",
-    "Mítico":       "text-yellow-300",
+    Legendario: "text-rose-400",
+    Mítico: "text-yellow-300",
 };
 
 const AVATAR_EMOJI: Record<string, string> = {
@@ -127,7 +126,7 @@ export default function TrainerSidebar() {
                         <span className="text-3xl">🧙</span>
                     </div>
                     <div className="min-w-0 flex-1">
-                        <p className="text-white font-bold text-sm truncate">{user?.username ?? "..."}</p>
+                        <div className="h-2 w-20 rounded bg-slate-700 animate-pulse" />
                         <div className="h-2 w-12 rounded bg-slate-700 animate-pulse mt-1" />
                         <div className="h-2 w-16 rounded bg-slate-700 animate-pulse mt-1.5" />
                     </div>
@@ -160,9 +159,7 @@ export default function TrainerSidebar() {
                             {trainer?.username ?? "—"}
                         </p>
                         <p className="text-muted text-xs leading-tight">Nv. {trainer?.level ?? "—"}</p>
-                        <p className={`text-xs font-semibold leading-tight mt-0.5 ${rankColor}`}>
-                            {rank}
-                        </p>
+                        <p className={`text-xs font-semibold leading-tight mt-0.5 ${rankColor}`}>{rank}</p>
                     </div>
                 </div>
                 {/* Monedas + fragmentos */}
@@ -172,7 +169,10 @@ export default function TrainerSidebar() {
                     </span>
                     {fragments > 0 && (
                         <button
-                            onClick={(e) => { e.stopPropagation(); goFragments(); }}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                goFragments();
+                            }}
                             className="text-xs text-blue hover:text-white transition-colors"
                             title="Abrir fragmentos"
                         >
