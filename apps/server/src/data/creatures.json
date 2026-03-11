@@ -7,12 +7,11 @@
         "rarity": "COMMON",
         "description": "Pequeña bestia ígnea cuyo corazón arde como una brasa eterna nacida de las forjas volcánicas de Mythara.",
         "baseStats": {
-            "hp": 87,
-            "atk": 80,
-            "def": 70,
-            "spd": 63
+            "hp": 85,
+            "atk": 60,
+            "def": 40,
+            "spd": 47
         },
-        "catchRate": 0.6,
         "evolution": {
             "evolvesTo": "002",
             "method": "LEVEL",
@@ -25,52 +24,53 @@
         },
         "moves": [
             {
-                "id": "ember_basic",
-                "name": "Ascuazo Ígneo",
+                "id": "cindor_punetazo_igneo",
+                "name": "Puñetazo Ígneo",
                 "affinity": "EMBER",
                 "type": "physical",
                 "power": 50,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Se lanza envuelto en llamas."
             },
             {
-                "id": "ember_medium",
-                "name": "Colmillo de Fuego",
+                "id": "cindor_tormenta_de_fuego",
+                "name": "Tormenta de Fuego",
                 "affinity": "EMBER",
                 "type": "special",
-                "power": 80,
-                "accuracy": 95,
+                "power": 75,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Escupe magma fundido."
             },
             {
-                "id": "ember_status",
-                "name": "Brasa Maldita",
+                "id": "cindor_rugido",
+                "name": "Rugido",
                 "affinity": "EMBER",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
                 "cooldown": 2,
-                "description": "Quema al rival, causándole daño continuo al final de cada turno.",
                 "effect": {
-                    "type": "apply_status",
-                    "status": "burn",
-                    "target": "enemy"
-                }
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 20,
+                    "duration": 2
+                },
+                "description": "Aviva su fuego interno, potenciando su fuerza de ataque."
             },
             {
-                "id": "ember_ultimate",
-                "name": "Zarpazo de Ceniza",
+                "id": "cindor_gran_punetazo_igneo",
+                "name": "Gran Puñetazo Ígneo",
                 "affinity": "EMBER",
                 "type": "physical",
-                "power": 110,
-                "accuracy": 85,
+                "power": 95,
+                "accuracy": 100,
                 "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                "effect": null,
+                "description": "Araña con garras de fuego."
             }
         ]
     },
@@ -82,12 +82,11 @@
         "rarity": "RARE",
         "description": "Depredador volcánico que exhala cenizas tóxicas y llamas capaces de fundir roca en segundos.",
         "baseStats": {
-            "hp": 99,
-            "atk": 94,
-            "def": 81,
-            "spd": 76
+            "hp": 110,
+            "atk": 55,
+            "def": 65,
+            "spd": 50
         },
-        "catchRate": 0.25,
         "evolution": {
             "evolvesTo": "003",
             "method": "LEVEL",
@@ -100,52 +99,63 @@
         },
         "moves": [
             {
-                "id": "ember_basic",
-                "name": "Ala Incandescente",
+                "id": "pyronox_embestida_ardiente",
+                "name": "Embestida Ardiente",
                 "affinity": "EMBER",
                 "type": "physical",
-                "power": 50,
+                "power": 55,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Se lanza envuelto en llamas."
             },
             {
-                "id": "ember_medium",
-                "name": "Mordisco de Horno",
+                "id": "pyronox_llamarada",
+                "name": "Llamarada",
                 "affinity": "EMBER",
                 "type": "special",
                 "power": 80,
-                "accuracy": 95,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Proyecta un torbellino de fuego, agrietando y quebrando la defensa del oponente."
             },
             {
-                "id": "ember_status",
-                "name": "Garra de Brasa",
+                "id": "pyronox_aura_de_calor",
+                "name": "Aura de Calor",
                 "affinity": "EMBER",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
-                "cooldown": 2,
-                "description": "Quema al rival, causándole daño continuo al final de cada turno.",
+                "cooldown": 3,
+                "effect": {
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Respira nubes de humo caliente, sellando las heridas y restaurando la vitalidad."
+            },
+            {
+                "id": "pyronox_gran_punetazo_igneo",
+                "name": "Gran Puñetazo Ígneo",
+                "affinity": "EMBER",
+                "type": "physical",
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
                 "effect": {
                     "type": "apply_status",
                     "status": "burn",
-                    "target": "enemy"
-                }
-            },
-            {
-                "id": "ember_ultimate",
-                "name": "Erupción Breve",
-                "affinity": "EMBER",
-                "type": "physical",
-                "power": 110,
-                "accuracy": 85,
-                "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Araña con garras de fuego, dejando brasas que queman lentamente al objetivo."
             }
         ]
     },
@@ -157,12 +167,11 @@
         "rarity": "EPIC",
         "description": "Señor de las forjas de Mythara, un titán envuelto en magma vivo y placas de obsidiana ardiente.",
         "baseStats": {
-            "hp": 115,
-            "atk": 110,
-            "def": 93,
-            "spd": 82
+            "hp": 120,
+            "atk": 82,
+            "def": 72,
+            "spd": 67
         },
-        "catchRate": 0.05,
         "art": {
             "portrait": "🔥",
             "front": "🔥",
@@ -170,52 +179,78 @@
         },
         "moves": [
             {
-                "id": "ember_basic",
-                "name": "Llama Voraz",
+                "id": "vulcarion_embestida_ardiente",
+                "name": "Embestida Ardiente",
                 "affinity": "EMBER",
                 "type": "physical",
-                "power": 50,
+                "power": 65,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "debuff_acc",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Se lanza envuelto en llamas, cegando temporalmente y confundiendo al enemigo."
             },
             {
-                "id": "ember_medium",
-                "name": "Pira Reforzada",
+                "id": "vulcarion_llamarada",
+                "name": "Llamarada",
                 "affinity": "EMBER",
                 "type": "special",
-                "power": 80,
-                "accuracy": 95,
+                "power": 90,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 30,
+                    "duration": 2
+                },
+                "description": "Proyecta un torbellino de fuego, potenciando su fuerza de ataque."
             },
             {
-                "id": "ember_status",
-                "name": "Erupción de Ceniza",
+                "id": "vulcarion_aura_de_calor",
+                "name": "Aura de Calor",
                 "affinity": "EMBER",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
-                "cooldown": 2,
-                "description": "Quema al rival, causándole daño continuo al final de cada turno.",
+                "cooldown": 3,
                 "effect": {
-                    "type": "apply_status",
-                    "status": "burn",
-                    "target": "enemy"
-                }
+                    "type": "shield",
+                    "target": "all_allies",
+                    "value": 20,
+                    "duration": 3
+                },
+                "description": "Respira nubes de humo caliente, creando una barrera que absorbe los próximos impactos."
             },
             {
-                "id": "ember_ultimate",
-                "name": "Impacto Calcinante",
+                "id": "vulcarion_gran_llamarada",
+                "name": "Gran Llamarada",
                 "affinity": "EMBER",
-                "type": "physical",
-                "power": 110,
-                "accuracy": 85,
-                "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                "type": "special",
+                "power": 130,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": [
+                    {
+                        "type": "apply_status",
+                        "status": "fear",
+                        "target": "enemy",
+                        "chance": 100
+                    },
+                    {
+                        "type": "debuff_def",
+                        "target": "enemy",
+                        "value": 30,
+                        "duration": 3,
+                        "chance": 100
+                    }
+                ],
+                "description": "Dispara una llamarada abrasadora, infundiendo un terror profundo que hiela la sangre del rival. agrietando y quebrando la defensa del oponente."
             }
         ]
     },
@@ -227,12 +262,11 @@
         "rarity": "COMMON",
         "description": "Criatura acuática juguetona capaz de manipular pequeñas corrientes y salpicar con fuerza sorprendente.",
         "baseStats": {
-            "hp": 83,
-            "atk": 65,
-            "def": 78,
-            "spd": 74
+            "hp": 80,
+            "atk": 50,
+            "def": 45,
+            "spd": 55
         },
-        "catchRate": 0.65,
         "evolution": {
             "evolvesTo": "005",
             "method": "LEVEL",
@@ -245,52 +279,53 @@
         },
         "moves": [
             {
-                "id": "tide_basic",
-                "name": "Latigazo Marino",
+                "id": "aquaffin_latigazo",
+                "name": "Latigazo",
                 "affinity": "TIDE",
                 "type": "physical",
                 "power": 50,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Embiste rodeado de corrientes marinas."
             },
             {
-                "id": "tide_medium",
-                "name": "Remolino Profundo",
+                "id": "aquaffin_torrente",
+                "name": "Torrente",
                 "affinity": "TIDE",
                 "type": "special",
-                "power": 80,
-                "accuracy": 95,
+                "power": 75,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Proyecta un géiser hirviente."
             },
             {
-                "id": "tide_buff",
-                "name": "Coraza Elemental",
+                "id": "aquaffin_marea_curativa",
+                "name": "Marea Curativa",
                 "affinity": "TIDE",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
                 "cooldown": 2,
-                "description": "Refuerza su cuerpo con energía elemental, aumentando la defensa.",
                 "effect": {
-                    "type": "boost_def",
-                    "value": 25,
-                    "target": "self"
-                }
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 20,
+                    "duration": 2
+                },
+                "description": "Invoca una bruma protectora, potenciando su fuerza de ataque."
             },
             {
-                "id": "tide_ultimate",
-                "name": "Marea Drenante",
+                "id": "aquaffin_gran_latigazo",
+                "name": "Gran Latigazo",
                 "affinity": "TIDE",
                 "type": "physical",
-                "power": 110,
-                "accuracy": 85,
+                "power": 95,
+                "accuracy": 100,
                 "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                "effect": null,
+                "description": "Golpea con la fuerza aplastante de una ola."
             }
         ]
     },
@@ -302,12 +337,11 @@
         "rarity": "RARE",
         "description": "Bestia marina que crea remolinos a su alrededor y usa la presión del agua como arma devastadora.",
         "baseStats": {
-            "hp": 99,
-            "atk": 78,
-            "def": 87,
-            "spd": 86
+            "hp": 90,
+            "atk": 65,
+            "def": 45,
+            "spd": 65
         },
-        "catchRate": 0.22,
         "evolution": {
             "evolvesTo": "006",
             "method": "LEVEL",
@@ -320,52 +354,63 @@
         },
         "moves": [
             {
-                "id": "tide_basic",
-                "name": "Corte de Marea",
+                "id": "marivor_golpe_de_ola",
+                "name": "Golpe de Ola",
                 "affinity": "TIDE",
                 "type": "physical",
-                "power": 50,
+                "power": 55,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Embiste rodeado de corrientes marinas."
             },
             {
-                "id": "tide_medium",
-                "name": "Chorro Abisal",
+                "id": "marivor_geiser",
+                "name": "Geiser",
                 "affinity": "TIDE",
                 "type": "special",
                 "power": 80,
-                "accuracy": 95,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Desata un tifón en miniatura, agrietando y quebrando la defensa del oponente."
             },
             {
-                "id": "tide_buff",
-                "name": "Coraza Elemental",
+                "id": "marivor_marea_curativa",
+                "name": "Marea Curativa",
                 "affinity": "TIDE",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
-                "cooldown": 2,
-                "description": "Refuerza su cuerpo con energía elemental, aumentando la defensa.",
+                "cooldown": 3,
                 "effect": {
-                    "type": "boost_def",
-                    "value": 25,
-                    "target": "self"
-                }
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Crea una burbuja de agua pura, sellando las heridas y restaurando la vitalidad."
             },
             {
-                "id": "tide_ultimate",
-                "name": "Oleada Vampírica",
+                "id": "marivor_gran_latigazo",
+                "name": "Gran Latigazo",
                 "affinity": "TIDE",
                 "type": "physical",
-                "power": 110,
-                "accuracy": 85,
-                "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Embiste rodeado de corrientes marinas, dejando brasas que queman lentamente al objetivo."
             }
         ]
     },
@@ -377,12 +422,11 @@
         "rarity": "EPIC",
         "description": "Leviatán ancestral que reina sobre las mareas de Mythara, capaz de invocar tormentas oceánicas colosales.",
         "baseStats": {
-            "hp": 120,
-            "atk": 87,
-            "def": 99,
-            "spd": 94
+            "hp": 115,
+            "atk": 90,
+            "def": 65,
+            "spd": 67
         },
-        "catchRate": 0.04,
         "art": {
             "portrait": "💧",
             "front": "💧",
@@ -390,52 +434,78 @@
         },
         "moves": [
             {
-                "id": "tide_basic",
-                "name": "Mandíbula Marina",
+                "id": "leviandor_latigazo",
+                "name": "Latigazo",
                 "affinity": "TIDE",
                 "type": "physical",
-                "power": 50,
+                "power": 65,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "debuff_acc",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Arremete con un impacto hidráulico, cegando temporalmente y confundiendo al enemigo."
             },
             {
-                "id": "tide_medium",
-                "name": "Cataclismo de Marea",
+                "id": "leviandor_torrente",
+                "name": "Torrente",
                 "affinity": "TIDE",
                 "type": "special",
-                "power": 80,
-                "accuracy": 95,
+                "power": 90,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 30,
+                    "duration": 2
+                },
+                "description": "Desata un tifón en miniatura, potenciando su fuerza de ataque."
             },
             {
-                "id": "tide_heal",
-                "name": "Olas Curativas",
+                "id": "leviandor_niebla",
+                "name": "Niebla",
                 "affinity": "TIDE",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
                 "cooldown": 3,
-                "description": "Una habilidad restauradora exclusiva para élites o superiores que cura un 30% de la vida máxima.",
                 "effect": {
-                    "type": "heal",
-                    "value": 30,
-                    "target": "self"
-                }
+                    "type": "shield",
+                    "target": "all_allies",
+                    "value": 20,
+                    "duration": 3
+                },
+                "description": "Invoca una bruma protectora, creando una barrera que absorbe los próximos impactos."
             },
             {
-                "id": "tide_ultimate",
-                "name": "Fauces del Abismo",
+                "id": "leviandor_gran_geiser",
+                "name": "Gran Geiser",
                 "affinity": "TIDE",
-                "type": "physical",
-                "power": 110,
-                "accuracy": 85,
-                "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                "type": "special",
+                "power": 130,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": [
+                    {
+                        "type": "apply_status",
+                        "status": "fear",
+                        "target": "enemy",
+                        "chance": 100
+                    },
+                    {
+                        "type": "debuff_def",
+                        "target": "enemy",
+                        "value": 30,
+                        "duration": 3,
+                        "chance": 100
+                    }
+                ],
+                "description": "Proyecta un géiser hirviente, infundiendo un terror profundo que hiela la sangre del rival. agrietando y quebrando la defensa del oponente."
             }
         ]
     },
@@ -447,12 +517,11 @@
         "rarity": "COMMON",
         "description": "Espíritu vegetal pequeño y curioso que florece con la luz del amanecer y cura la tierra a su paso.",
         "baseStats": {
-            "hp": 88,
-            "atk": 64,
-            "def": 81,
-            "spd": 67
+            "hp": 100,
+            "atk": 45,
+            "def": 55,
+            "spd": 40
         },
-        "catchRate": 0.65,
         "evolution": {
             "evolvesTo": "008",
             "method": "LEVEL",
@@ -465,52 +534,53 @@
         },
         "moves": [
             {
-                "id": "grove_basic",
-                "name": "Abrazo del Bosque",
+                "id": "spriglit_zarpazo",
+                "name": "Zarpazo",
                 "affinity": "GROVE",
                 "type": "physical",
                 "power": 50,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Azota con lianas cubiertas de espinas."
             },
             {
-                "id": "grove_medium",
-                "name": "Brote Vital",
+                "id": "spriglit_esporas",
+                "name": "Esporas",
                 "affinity": "GROVE",
                 "type": "special",
-                "power": 80,
-                "accuracy": 95,
+                "power": 75,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Dispara semillas perforantes."
             },
             {
-                "id": "grove_buff",
-                "name": "Coraza Elemental",
+                "id": "spriglit_piel_de_roble",
+                "name": "Piel de Roble",
                 "affinity": "GROVE",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
                 "cooldown": 2,
-                "description": "Refuerza su cuerpo con energía elemental, aumentando la defensa.",
                 "effect": {
-                    "type": "boost_def",
-                    "value": 25,
-                    "target": "self"
-                }
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 20,
+                    "duration": 2
+                },
+                "description": "Genera un manto de hojas protectoras, potenciando su fuerza de ataque."
             },
             {
-                "id": "grove_ultimate",
-                "name": "Látigo de Lianas",
+                "id": "spriglit_gran_embate",
+                "name": "Gran Embate",
                 "affinity": "GROVE",
                 "type": "physical",
-                "power": 110,
-                "accuracy": 85,
+                "power": 95,
+                "accuracy": 100,
                 "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                "effect": null,
+                "description": "Embiste con fuerza salvaje."
             }
         ]
     },
@@ -522,12 +592,11 @@
         "rarity": "RARE",
         "description": "Guardián floral que manipula lianas, raíces y polen curativo para dominar el campo de batalla.",
         "baseStats": {
-            "hp": 105,
-            "atk": 76,
-            "def": 94,
-            "spd": 75
+            "hp": 100,
+            "atk": 62,
+            "def": 57,
+            "spd": 57
         },
-        "catchRate": 0.2,
         "evolution": {
             "evolvesTo": "009",
             "method": "LEVEL",
@@ -540,52 +609,63 @@
         },
         "moves": [
             {
-                "id": "grove_basic",
-                "name": "Savia Sanadora",
+                "id": "florantis_zarpazo",
+                "name": "Zarpazo",
                 "affinity": "GROVE",
                 "type": "physical",
-                "power": 50,
+                "power": 55,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Azota con lianas cubiertas de espinas."
             },
             {
-                "id": "grove_medium",
-                "name": "Floración Venenosa",
+                "id": "florantis_esporas",
+                "name": "Esporas",
                 "affinity": "GROVE",
                 "type": "special",
                 "power": 80,
-                "accuracy": 95,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Dispara semillas perforantes, agrietando y quebrando la defensa del oponente."
             },
             {
-                "id": "grove_buff",
-                "name": "Coraza Elemental",
+                "id": "florantis_piel_de_roble",
+                "name": "Piel de Roble",
                 "affinity": "GROVE",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
-                "cooldown": 2,
-                "description": "Refuerza su cuerpo con energía elemental, aumentando la defensa.",
+                "cooldown": 3,
                 "effect": {
-                    "type": "boost_def",
-                    "value": 25,
-                    "target": "self"
-                }
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Genera un manto de hojas protectoras, sellando las heridas y restaurando la vitalidad."
             },
             {
-                "id": "grove_ultimate",
-                "name": "Rama Férrea",
+                "id": "florantis_gran_embate",
+                "name": "Gran Embate",
                 "affinity": "GROVE",
                 "type": "physical",
-                "power": 110,
-                "accuracy": 85,
-                "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Embiste con fuerza salvaje, dejando brasas que queman lentamente al objetivo."
             }
         ]
     },
@@ -597,12 +677,11 @@
         "rarity": "EPIC",
         "description": "Anciano coloso del bosque, cubierto de musgo y flores eternas, protector sagrado de la vida salvaje en Mythara.",
         "baseStats": {
-            "hp": 132,
-            "atk": 83,
-            "def": 116,
-            "spd": 69
+            "hp": 110,
+            "atk": 80,
+            "def": 70,
+            "spd": 75
         },
-        "catchRate": 0.03,
         "art": {
             "portrait": "🌿",
             "front": "🌿",
@@ -610,52 +689,78 @@
         },
         "moves": [
             {
-                "id": "grove_basic",
-                "name": "Embate de Roble",
+                "id": "eldergrove_embate",
+                "name": "Embate",
                 "affinity": "GROVE",
                 "type": "physical",
-                "power": 50,
+                "power": 65,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "debuff_acc",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Azota con lianas cubiertas de espinas, cegando temporalmente y confundiendo al enemigo."
             },
             {
-                "id": "grove_medium",
-                "name": "Selva Voraz",
+                "id": "eldergrove_esporas",
+                "name": "Esporas",
                 "affinity": "GROVE",
                 "type": "special",
-                "power": 80,
-                "accuracy": 95,
+                "power": 90,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 30,
+                    "duration": 2
+                },
+                "description": "Desata una explosión de polen, potenciando su fuerza de ataque."
             },
             {
-                "id": "grove_heal",
-                "name": "Brisa Purificadora",
+                "id": "eldergrove_piel_de_roble",
+                "name": "Piel de Roble",
                 "affinity": "GROVE",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
                 "cooldown": 3,
-                "description": "Una habilidad restauradora exclusiva para élites o superiores que cura un 30% de la vida máxima.",
                 "effect": {
-                    "type": "heal",
-                    "value": 30,
-                    "target": "self"
-                }
+                    "type": "shield",
+                    "target": "all_allies",
+                    "value": 20,
+                    "duration": 3
+                },
+                "description": "Libera esporas curativas, creando una barrera que absorbe los próximos impactos."
             },
             {
-                "id": "grove_ultimate",
-                "name": "Néctar Letal",
+                "id": "eldergrove_gran_hoja_afilada",
+                "name": "Gran Hoja Afilada",
                 "affinity": "GROVE",
-                "type": "physical",
-                "power": 110,
-                "accuracy": 85,
-                "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                "type": "special",
+                "power": 130,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": [
+                    {
+                        "type": "apply_status",
+                        "status": "fear",
+                        "target": "enemy",
+                        "chance": 100
+                    },
+                    {
+                        "type": "debuff_def",
+                        "target": "enemy",
+                        "value": 30,
+                        "duration": 3,
+                        "chance": 100
+                    }
+                ],
+                "description": "Lanza hojas afiladas como cuchillas, infundiendo un terror profundo que hiela la sangre del rival. agrietando y quebrando la defensa del oponente."
             }
         ]
     },
@@ -668,11 +773,10 @@
         "description": "Pequeña bestia eléctrica con colmillos cargados de energía estática y reflejos extremadamente rápidos.",
         "baseStats": {
             "hp": 80,
-            "atk": 75,
-            "def": 68,
-            "spd": 77
+            "atk": 55,
+            "def": 40,
+            "spd": 55
         },
-        "catchRate": 0.6,
         "evolution": {
             "evolvesTo": "011",
             "method": "LEVEL",
@@ -685,52 +789,53 @@
         },
         "moves": [
             {
-                "id": "volt_basic",
-                "name": "Chispa Brusca",
+                "id": "voltusk_dash",
+                "name": "Dash",
                 "affinity": "VOLT",
                 "type": "physical",
                 "power": 50,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Ataca con garras chispeantes."
             },
             {
-                "id": "volt_medium",
-                "name": "Colmillo Relámpago",
+                "id": "voltusk_trueno",
+                "name": "Trueno",
                 "affinity": "VOLT",
                 "type": "special",
-                "power": 80,
-                "accuracy": 95,
+                "power": 75,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Dispara un rayo cegador."
             },
             {
-                "id": "volt_status",
-                "name": "Acelerón Eléctrico",
+                "id": "voltusk_pulso",
+                "name": "Pulso",
                 "affinity": "VOLT",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
                 "cooldown": 2,
-                "description": "Paraliza al rival mediante una descarga, con posibilidad de que pierda su turno.",
                 "effect": {
-                    "type": "apply_status",
-                    "status": "paralyze",
-                    "target": "enemy"
-                }
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 20,
+                    "duration": 2
+                },
+                "description": "Acelera su flujo eléctrico, potenciando su fuerza de ataque."
             },
             {
-                "id": "volt_ultimate",
-                "name": "Impacto Paralizante",
+                "id": "voltusk_gran_puno_rayo",
+                "name": "Gran Puño Rayo",
                 "affinity": "VOLT",
                 "type": "physical",
-                "power": 110,
-                "accuracy": 85,
+                "power": 95,
+                "accuracy": 100,
                 "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                "effect": null,
+                "description": "Ejecuta una embestida a velocidad sónica."
             }
         ]
     },
@@ -743,11 +848,10 @@
         "description": "Sus alas generan campos electromagnéticos que interfieren con cualquier energía cercana.",
         "baseStats": {
             "hp": 95,
-            "atk": 91,
-            "def": 76,
-            "spd": 88
+            "atk": 70,
+            "def": 50,
+            "spd": 57
         },
-        "catchRate": 0.2,
         "art": {
             "portrait": "⚡",
             "front": "⚡",
@@ -755,52 +859,63 @@
         },
         "moves": [
             {
-                "id": "volt_basic",
-                "name": "Corte Eléctrico",
+                "id": "tharvel_dash",
+                "name": "Dash",
                 "affinity": "VOLT",
                 "type": "physical",
-                "power": 50,
+                "power": 55,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Golpea envuelto en electricidad estática."
             },
             {
-                "id": "volt_medium",
-                "name": "Arco Luminoso",
+                "id": "tharvel_trueno",
+                "name": "Trueno",
                 "affinity": "VOLT",
                 "type": "special",
                 "power": 80,
-                "accuracy": 95,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Desata una tormenta electromagnética, agrietando y quebrando la defensa del oponente."
             },
             {
-                "id": "volt_status",
-                "name": "Sobrecarga Nerviosa",
+                "id": "tharvel_aura_estatica",
+                "name": "Aura Estática",
                 "affinity": "VOLT",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
-                "cooldown": 2,
-                "description": "Paraliza al rival mediante una descarga, con posibilidad de que pierda su turno.",
+                "cooldown": 3,
                 "effect": {
-                    "type": "apply_status",
-                    "status": "paralyze",
-                    "target": "enemy"
-                }
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Emite pulsos electromagnéticos, sellando las heridas y restaurando la vitalidad."
             },
             {
-                "id": "volt_ultimate",
-                "name": "Paso Centella",
+                "id": "tharvel_gran_puno_rayo",
+                "name": "Gran Puño Rayo",
                 "affinity": "VOLT",
                 "type": "physical",
-                "power": 110,
-                "accuracy": 85,
-                "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Se abalanza como un relámpago, dejando brasas que queman lentamente al objetivo."
             }
         ]
     },
@@ -812,12 +927,11 @@
         "rarity": "COMMON",
         "description": "Bestia pétrea de movimientos lentos cuya coraza absorbe golpes que romperían la roca más dura.",
         "baseStats": {
-            "hp": 94,
-            "atk": 66,
-            "def": 91,
-            "spd": 49
+            "hp": 100,
+            "atk": 45,
+            "def": 55,
+            "spd": 40
         },
-        "catchRate": 0.55,
         "evolution": {
             "evolvesTo": "013",
             "method": "LEVEL",
@@ -830,52 +944,53 @@
         },
         "moves": [
             {
-                "id": "stone_basic",
-                "name": "Golpe de Granito",
+                "id": "dureth_aplastamiento",
+                "name": "Aplastamiento",
                 "affinity": "STONE",
                 "type": "physical",
                 "power": 50,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Golpea con puños de granito sólido."
             },
             {
-                "id": "stone_medium",
-                "name": "Carga Basáltica",
+                "id": "dureth_avalancha",
+                "name": "Avalancha",
                 "affinity": "STONE",
                 "type": "special",
-                "power": 80,
-                "accuracy": 95,
+                "power": 75,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Proyecta lanzas de tierra endurecida."
             },
             {
-                "id": "stone_buff",
-                "name": "Coraza Elemental",
+                "id": "dureth_piel_de_piedra",
+                "name": "Piel de Piedra",
                 "affinity": "STONE",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
                 "cooldown": 2,
-                "description": "Refuerza su cuerpo con energía elemental, aumentando la defensa.",
                 "effect": {
-                    "type": "boost_def",
-                    "value": 25,
-                    "target": "self"
-                }
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 20,
+                    "duration": 2
+                },
+                "description": "Levanta un muro de piedra, potenciando su fuerza de ataque."
             },
             {
-                "id": "stone_ultimate",
-                "name": "Aplastamiento Sísmico",
+                "id": "dureth_gran_golpe_sismico",
+                "name": "Gran Golpe Sísmico",
                 "affinity": "STONE",
                 "type": "physical",
-                "power": 110,
-                "accuracy": 85,
+                "power": 95,
+                "accuracy": 100,
                 "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                "effect": null,
+                "description": "Arremete con fuerza sísmica."
             }
         ]
     },
@@ -887,12 +1002,11 @@
         "rarity": "ELITE",
         "description": "Una fortaleza viviente cuya coraza acumula siglos de presión tectónica lista para estallar en un solo golpe.",
         "baseStats": {
-            "hp": 131,
-            "atk": 83,
-            "def": 136,
-            "spd": 50
+            "hp": 110,
+            "atk": 72,
+            "def": 67,
+            "spd": 62
         },
-        "catchRate": 0.05,
         "art": {
             "portrait": "🪨",
             "front": "🪨",
@@ -900,52 +1014,68 @@
         },
         "moves": [
             {
-                "id": "stone_basic",
-                "name": "Losa Brutal",
+                "id": "petraxis_aplastamiento",
+                "name": "Aplastamiento",
                 "affinity": "STONE",
                 "type": "physical",
-                "power": 50,
+                "power": 60,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "debuff_spd",
+                    "target": "enemy",
+                    "value": 15,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Golpea con puños de granito sólido, ralentizando drásticamente los movimientos del adversario."
             },
             {
-                "id": "stone_medium",
-                "name": "Pilar Tectónico",
+                "id": "petraxis_lanza_de_roca",
+                "name": "Lanza de Roca",
                 "affinity": "STONE",
                 "type": "special",
-                "power": 80,
-                "accuracy": 95,
+                "power": 85,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "boost_def",
+                    "target": "self",
+                    "value": 25,
+                    "duration": 2
+                },
+                "description": "Provoca una avalancha devastadora, endureciendo su resistencia física."
             },
             {
-                "id": "stone_buff",
-                "name": "Coraza Elemental",
+                "id": "petraxis_piel_de_piedra",
+                "name": "Piel de Piedra",
                 "affinity": "STONE",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
-                "cooldown": 2,
-                "description": "Refuerza su cuerpo con energía elemental, aumentando la defensa.",
+                "cooldown": 3,
                 "effect": {
-                    "type": "boost_def",
-                    "value": 25,
-                    "target": "self"
-                }
+                    "type": "apply_status",
+                    "status": "stun",
+                    "target": "all_enemies",
+                    "chance": 100
+                },
+                "description": "Levanta un muro de piedra, dejando al adversario completamente aturdido e incapacitado."
             },
             {
-                "id": "stone_ultimate",
-                "name": "Rodada de Obsidiana",
+                "id": "petraxis_gran_golpe_sismico",
+                "name": "Gran Golpe Sísmico",
                 "affinity": "STONE",
                 "type": "physical",
-                "power": 110,
-                "accuracy": 85,
-                "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                "power": 115,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "drain",
+                    "target": "enemy",
+                    "value": 25
+                },
+                "description": "Arremete con fuerza sísmica, drenando la energía vital del rival para sanarse a sí mismo."
             }
         ]
     },
@@ -957,12 +1087,11 @@
         "rarity": "COMMON",
         "description": "Criatura de las cumbres heladas que exhala escarcha y paraliza a sus presas con el aliento.",
         "baseStats": {
-            "hp": 86,
-            "atk": 70,
-            "def": 80,
-            "spd": 64
+            "hp": 80,
+            "atk": 50,
+            "def": 45,
+            "spd": 55
         },
-        "catchRate": 0.55,
         "evolution": {
             "evolvesTo": "015",
             "method": "LEVEL",
@@ -975,52 +1104,53 @@
         },
         "moves": [
             {
-                "id": "frost_basic",
-                "name": "Filo Glacial",
+                "id": "caleth_golpe",
+                "name": "Golpe",
                 "affinity": "FROST",
                 "type": "physical",
                 "power": 50,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Ataca con colmillos glaciales."
             },
             {
-                "id": "frost_medium",
-                "name": "Ráfaga de Escarcha",
+                "id": "caleth_lanza_de_hielo",
+                "name": "Lanza de Hielo",
                 "affinity": "FROST",
                 "type": "special",
-                "power": 80,
-                "accuracy": 95,
+                "power": 75,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Proyecta un rayo de cero absoluto."
             },
             {
-                "id": "frost_status",
-                "name": "Pulso Invernal",
+                "id": "caleth_armadura_hielo",
+                "name": "Armadura Hielo",
                 "affinity": "FROST",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
                 "cooldown": 2,
-                "description": "Congela al rival, inmovilizándolo e impidiendo su ataque temporalmente.",
                 "effect": {
-                    "type": "apply_status",
-                    "status": "freeze",
-                    "target": "enemy"
-                }
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 20,
+                    "duration": 2
+                },
+                "description": "Genera una armadura de escarcha, potenciando su fuerza de ataque."
             },
             {
-                "id": "frost_ultimate",
-                "name": "Prisión de Hielo",
+                "id": "caleth_gran_golpe",
+                "name": "Gran Golpe",
                 "affinity": "FROST",
                 "type": "physical",
-                "power": 110,
-                "accuracy": 85,
+                "power": 95,
+                "accuracy": 100,
                 "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                "effect": null,
+                "description": "Embiste rodeado de escarcha."
             }
         ]
     },
@@ -1032,12 +1162,11 @@
         "rarity": "RARE",
         "description": "Bestia de hielo vivo que congela el aire a su alrededor en un radio de varios metros.",
         "baseStats": {
-            "hp": 102,
-            "atk": 79,
-            "def": 103,
-            "spd": 66
+            "hp": 90,
+            "atk": 65,
+            "def": 45,
+            "spd": 65
         },
-        "catchRate": 0.2,
         "evolution": {
             "evolvesTo": "016",
             "method": "LEVEL",
@@ -1050,52 +1179,63 @@
         },
         "moves": [
             {
-                "id": "frost_basic",
-                "name": "Mordida Gélida",
+                "id": "hivrel_zarpa_glacial",
+                "name": "Zarpa Glacial",
                 "affinity": "FROST",
                 "type": "physical",
-                "power": 50,
+                "power": 55,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Ataca con colmillos glaciales."
             },
             {
-                "id": "frost_medium",
-                "name": "Púa de Ventisca",
+                "id": "hivrel_lanza_de_hielo",
+                "name": "Lanza de Hielo",
                 "affinity": "FROST",
                 "type": "special",
                 "power": 80,
-                "accuracy": 95,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Lanza una ráfaga de nieve cortante, agrietando y quebrando la defensa del oponente."
             },
             {
-                "id": "frost_status",
-                "name": "Paso Helante",
+                "id": "hivrel_velo",
+                "name": "Velo",
                 "affinity": "FROST",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
-                "cooldown": 2,
-                "description": "Congela al rival, inmovilizándolo e impidiendo su ataque temporalmente.",
+                "cooldown": 3,
                 "effect": {
-                    "type": "apply_status",
-                    "status": "freeze",
-                    "target": "enemy"
-                }
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Baja la temperatura del campo, sellando las heridas y restaurando la vitalidad."
             },
             {
-                "id": "frost_ultimate",
-                "name": "Velo de Escarcha",
+                "id": "hivrel_gran_golpe",
+                "name": "Gran Golpe",
                 "affinity": "FROST",
                 "type": "physical",
-                "power": 110,
-                "accuracy": 85,
-                "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Ataca con colmillos glaciales, dejando brasas que queman lentamente al objetivo."
             }
         ]
     },
@@ -1107,12 +1247,11 @@
         "rarity": "ELITE",
         "description": "Un coloso de hielo eterno cuyo rugido genera ventiscas que congelan todo en kilómetros a la redonda.",
         "baseStats": {
-            "hp": 123,
-            "atk": 90,
-            "def": 120,
-            "spd": 67
+            "hp": 105,
+            "atk": 80,
+            "def": 60,
+            "spd": 62
         },
-        "catchRate": 0.05,
         "art": {
             "portrait": "❄️",
             "front": "❄️",
@@ -1120,52 +1259,68 @@
         },
         "moves": [
             {
-                "id": "frost_basic",
-                "name": "Filo Glacial",
+                "id": "borelith_golpe",
+                "name": "Golpe",
                 "affinity": "FROST",
                 "type": "physical",
-                "power": 50,
+                "power": 60,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "debuff_spd",
+                    "target": "enemy",
+                    "value": 15,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Ataca con colmillos glaciales, ralentizando drásticamente los movimientos del adversario."
             },
             {
-                "id": "frost_medium",
-                "name": "Ráfaga de Escarcha",
+                "id": "borelith_ventisca",
+                "name": "Ventisca",
                 "affinity": "FROST",
                 "type": "special",
-                "power": 80,
-                "accuracy": 95,
+                "power": 85,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "boost_def",
+                    "target": "self",
+                    "value": 25,
+                    "duration": 2
+                },
+                "description": "Dispara carámbanos afilados, endureciendo su resistencia física."
             },
             {
-                "id": "frost_status",
-                "name": "Pulso Invernal",
+                "id": "borelith_armadura_hielo",
+                "name": "Armadura Hielo",
                 "affinity": "FROST",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
-                "cooldown": 2,
-                "description": "Congela al rival, inmovilizándolo e impidiendo su ataque temporalmente.",
+                "cooldown": 3,
                 "effect": {
                     "type": "apply_status",
-                    "status": "freeze",
-                    "target": "enemy"
-                }
+                    "status": "stun",
+                    "target": "all_enemies",
+                    "chance": 100
+                },
+                "description": "Genera una armadura de escarcha, dejando al adversario completamente aturdido e incapacitado."
             },
             {
-                "id": "frost_ultimate",
-                "name": "Prisión de Hielo",
+                "id": "borelith_gran_zarpa_glacial",
+                "name": "Gran Zarpa Glacial",
                 "affinity": "FROST",
                 "type": "physical",
-                "power": 110,
-                "accuracy": 85,
-                "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                "power": 115,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "drain",
+                    "target": "enemy",
+                    "value": 25
+                },
+                "description": "Golpea con extremidades congeladas, drenando la energía vital del rival para sanarse a sí mismo."
             }
         ]
     },
@@ -1177,12 +1332,11 @@
         "rarity": "RARE",
         "description": "Nacido en la frontera entre volcanes y montañas, su cuerpo de lava solidificada lo hace impredecible en combate.",
         "baseStats": {
-            "hp": 107,
-            "atk": 85,
-            "def": 100,
-            "spd": 58
+            "hp": 110,
+            "atk": 55,
+            "def": 65,
+            "spd": 50
         },
-        "catchRate": 0.2,
         "art": {
             "portrait": "🪨",
             "front": "🪨",
@@ -1190,52 +1344,63 @@
         },
         "moves": [
             {
-                "id": "stone_basic",
-                "name": "Golpe de Granito",
+                "id": "rumath_golpe_sismico",
+                "name": "Golpe Sísmico",
                 "affinity": "STONE",
                 "type": "physical",
-                "power": 50,
+                "power": 55,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Golpea con puños de granito sólido."
             },
             {
-                "id": "stone_medium",
-                "name": "Carga Basáltica",
+                "id": "rumath_lanza_de_roca",
+                "name": "Lanza de Roca",
                 "affinity": "STONE",
                 "type": "special",
                 "power": 80,
-                "accuracy": 95,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Proyecta lanzas de tierra endurecida, agrietando y quebrando la defensa del oponente."
             },
             {
-                "id": "stone_buff",
-                "name": "Coraza Elemental",
+                "id": "rumath_piel_de_piedra",
+                "name": "Piel de Piedra",
                 "affinity": "STONE",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
-                "cooldown": 2,
-                "description": "Refuerza su cuerpo con energía elemental, aumentando la defensa.",
+                "cooldown": 3,
                 "effect": {
-                    "type": "boost_def",
-                    "value": 25,
-                    "target": "self"
-                }
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Se ancla firmemente a la tierra, sellando las heridas y restaurando la vitalidad."
             },
             {
-                "id": "stone_ultimate",
-                "name": "Pira Reforzada",
+                "id": "rumath_gran_aplastamiento",
+                "name": "Gran Aplastamiento",
                 "affinity": "STONE",
                 "type": "physical",
-                "power": 110,
-                "accuracy": 85,
-                "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Golpea con puños de granito sólido, dejando brasas que queman lentamente al objetivo."
             }
         ]
     },
@@ -1247,12 +1412,11 @@
         "rarity": "COMMON",
         "description": "Pequeño roedor ígneo que habita cerca de volcanes y lanza chispas al sentirse amenazado.",
         "baseStats": {
-            "hp": 80,
-            "atk": 75,
-            "def": 67,
-            "spd": 78
+            "hp": 90,
+            "atk": 52,
+            "def": 47,
+            "spd": 47
         },
-        "catchRate": 0.6,
         "art": {
             "portrait": "🔥",
             "front": "🔥",
@@ -1260,52 +1424,53 @@
         },
         "moves": [
             {
-                "id": "ember_basic",
-                "name": "Erupción de Ceniza",
+                "id": "pyrath_punetazo_igneo",
+                "name": "Puñetazo Ígneo",
                 "affinity": "EMBER",
                 "type": "physical",
                 "power": 50,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Se lanza envuelto en llamas."
             },
             {
-                "id": "ember_medium",
-                "name": "Colmillo de Ascua",
+                "id": "pyrath_tormenta_de_fuego",
+                "name": "Tormenta de Fuego",
                 "affinity": "EMBER",
                 "type": "special",
-                "power": 80,
-                "accuracy": 95,
+                "power": 75,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Escupe magma fundido."
             },
             {
-                "id": "ember_status",
-                "name": "Tajo Calcinante",
+                "id": "pyrath_aura_de_calor",
+                "name": "Aura de Calor",
                 "affinity": "EMBER",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
                 "cooldown": 2,
-                "description": "Quema al rival, causándole daño continuo al final de cada turno.",
                 "effect": {
-                    "type": "apply_status",
-                    "status": "burn",
-                    "target": "enemy"
-                }
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 20,
+                    "duration": 2
+                },
+                "description": "Aviva su fuego interno, potenciando su fuerza de ataque."
             },
             {
-                "id": "ember_ultimate",
-                "name": "Furia de Magma",
+                "id": "pyrath_gran_embestida_ardiente",
+                "name": "Gran Embestida Ardiente",
                 "affinity": "EMBER",
                 "type": "physical",
-                "power": 110,
-                "accuracy": 85,
+                "power": 95,
+                "accuracy": 100,
                 "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                "effect": null,
+                "description": "Araña con garras de fuego."
             }
         ]
     },
@@ -1317,12 +1482,11 @@
         "rarity": "COMMON",
         "description": "Pequeño depredador cuyas garras segregan un veneno que debilita lentamente a sus enemigos.",
         "baseStats": {
-            "hp": 83,
-            "atk": 78,
-            "def": 69,
-            "spd": 70
+            "hp": 80,
+            "atk": 50,
+            "def": 45,
+            "spd": 55
         },
-        "catchRate": 0.55,
         "evolution": {
             "evolvesTo": "020",
             "method": "LEVEL",
@@ -1335,56 +1499,53 @@
         },
         "moves": [
             {
-                "id": "venom_basic",
-                "name": "Púa Tóxica",
+                "id": "toxavel_aguijon",
+                "name": "Aguijón",
                 "affinity": "VENOM",
                 "type": "physical",
                 "power": 50,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Golpea con aguijones tóxicos."
             },
             {
-                "id": "venom_medium",
-                "name": "Mordida Venenosa",
+                "id": "toxavel_explosion",
+                "name": "Explosión",
                 "affinity": "VENOM",
                 "type": "special",
-                "power": 80,
-                "accuracy": 95,
+                "power": 75,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Desata una lluvia tóxica."
             },
             {
-                "id": "venom_status",
-                "name": "Nube Nociva",
+                "id": "toxavel_aura",
+                "name": "Aura",
                 "affinity": "VENOM",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
                 "cooldown": 2,
-                "description": "Envenena gravemente al rival, mermando su salud progresivamente.",
                 "effect": {
-                    "type": "apply_status",
-                    "status": "poison",
-                    "target": "enemy"
-                }
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 20,
+                    "duration": 2
+                },
+                "description": "Se recubre de cieno protector, potenciando su fuerza de ataque."
             },
             {
-                "id": "venom_drain",
-                "name": "Absorción Letal",
+                "id": "toxavel_gran_aguijon",
+                "name": "Gran Aguijón",
                 "affinity": "VENOM",
-                "type": "special",
-                "power": 75,
+                "type": "physical",
+                "power": 95,
                 "accuracy": 100,
                 "cooldown": 3,
-                "description": "Ataca al enemigo y roba parte de su vitalidad (limitado a un 25% del daño infligido). Requiere 3 turnos de recarga.",
-                "effect": {
-                    "type": "drain",
-                    "value": 25,
-                    "target": "enemy"
-                }
+                "effect": null,
+                "description": "Muerde segregando veneno corrosivo."
             }
         ]
     },
@@ -1396,12 +1557,11 @@
         "rarity": "RARE",
         "description": "Depredador de los pantanos cuya picadura disuelve la voluntad de combatir en minutos.",
         "baseStats": {
-            "hp": 98,
-            "atk": 93,
-            "def": 79,
-            "spd": 80
+            "hp": 90,
+            "atk": 65,
+            "def": 45,
+            "spd": 65
         },
-        "catchRate": 0.2,
         "evolution": {
             "evolvesTo": "021",
             "method": "LEVEL",
@@ -1414,56 +1574,63 @@
         },
         "moves": [
             {
-                "id": "venom_basic",
-                "name": "Garra Infecciosa",
+                "id": "morduvex_mordida",
+                "name": "Mordida",
                 "affinity": "VENOM",
                 "type": "physical",
-                "power": 50,
+                "power": 55,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Araña con garras empapadas en ponzoña."
             },
             {
-                "id": "venom_medium",
-                "name": "Veneno Latente",
+                "id": "morduvex_explosion",
+                "name": "Explosión",
                 "affinity": "VENOM",
                 "type": "special",
                 "power": 80,
-                "accuracy": 95,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Proyecta fango venenoso, agrietando y quebrando la defensa del oponente."
             },
             {
-                "id": "venom_status",
-                "name": "Saliva Ácida",
+                "id": "morduvex_aura",
+                "name": "Aura",
                 "affinity": "VENOM",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
-                "cooldown": 2,
-                "description": "Envenena gravemente al rival, mermando su salud progresivamente.",
+                "cooldown": 3,
                 "effect": {
-                    "type": "apply_status",
-                    "status": "poison",
-                    "target": "enemy"
-                }
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Genera vapores pestilentes, sellando las heridas y restaurando la vitalidad."
             },
             {
-                "id": "venom_drain",
-                "name": "Absorción Letal",
+                "id": "morduvex_gran_aguijon",
+                "name": "Gran Aguijón",
                 "affinity": "VENOM",
-                "type": "special",
-                "power": 75,
+                "type": "physical",
+                "power": 105,
                 "accuracy": 100,
-                "cooldown": 3,
-                "description": "Ataca al enemigo y roba parte de su vitalidad (limitado a un 25% del daño infligido). Requiere 3 turnos de recarga.",
+                "cooldown": 4,
                 "effect": {
-                    "type": "drain",
-                    "value": 25,
-                    "target": "enemy"
-                }
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Araña con garras empapadas en ponzoña, dejando brasas que queman lentamente al objetivo."
             }
         ]
     },
@@ -1475,12 +1642,11 @@
         "rarity": "ELITE",
         "description": "Señor de los pantanos tóxicos cuya sangre es veneno puro.",
         "baseStats": {
-            "hp": 121,
-            "atk": 104,
-            "def": 90,
-            "spd": 85
+            "hp": 105,
+            "atk": 80,
+            "def": 60,
+            "spd": 62
         },
-        "catchRate": 0.05,
         "art": {
             "portrait": "☠️",
             "front": "☠️",
@@ -1488,56 +1654,68 @@
         },
         "moves": [
             {
-                "id": "venom_basic",
-                "name": "Aguijón Corrosivo",
+                "id": "venoxis_aguijon",
+                "name": "Aguijón",
                 "affinity": "VENOM",
                 "type": "physical",
-                "power": 50,
+                "power": 60,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "debuff_spd",
+                    "target": "enemy",
+                    "value": 15,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Inyecta toxinas con un ataque rápido, ralentizando drásticamente los movimientos del adversario."
             },
             {
-                "id": "venom_medium",
-                "name": "Oleada Venenosa",
+                "id": "venoxis_explosion",
+                "name": "Explosión",
                 "affinity": "VENOM",
                 "type": "special",
-                "power": 80,
-                "accuracy": 95,
+                "power": 85,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "boost_def",
+                    "target": "self",
+                    "value": 25,
+                    "duration": 2
+                },
+                "description": "Escupe un chorro de ácido corrosivo, endureciendo su resistencia física."
             },
             {
-                "id": "venom_status",
-                "name": "Miasma Mortal",
+                "id": "venoxis_vapor_toxico",
+                "name": "Vapor Tóxico",
                 "affinity": "VENOM",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
-                "cooldown": 2,
-                "description": "Envenena gravemente al rival, mermando su salud progresivamente.",
+                "cooldown": 3,
                 "effect": {
                     "type": "apply_status",
-                    "status": "poison",
-                    "target": "enemy"
-                }
+                    "status": "stun",
+                    "target": "all_enemies",
+                    "chance": 100
+                },
+                "description": "Segrega fluidos sanadores pero tóxicos, dejando al adversario completamente aturdido e incapacitado."
             },
             {
-                "id": "venom_drain",
-                "name": "Absorción Letal",
+                "id": "venoxis_gran_aguijon",
+                "name": "Gran Aguijón",
                 "affinity": "VENOM",
-                "type": "special",
-                "power": 75,
+                "type": "physical",
+                "power": 115,
                 "accuracy": 100,
-                "cooldown": 3,
-                "description": "Ataca al enemigo y roba parte de su vitalidad (limitado a un 25% del daño infligido). Requiere 3 turnos de recarga.",
+                "cooldown": 4,
                 "effect": {
                     "type": "drain",
-                    "value": 25,
-                    "target": "enemy"
-                }
+                    "target": "enemy",
+                    "value": 25
+                },
+                "description": "Golpea con aguijones tóxicos, drenando la energía vital del rival para sanarse a sí mismo."
             }
         ]
     },
@@ -1549,12 +1727,11 @@
         "rarity": "COMMON",
         "description": "Pequeño espíritu estelar nacido del polvo cósmico.",
         "baseStats": {
-            "hp": 78,
-            "atk": 73,
-            "def": 73,
-            "spd": 76
+            "hp": 100,
+            "atk": 45,
+            "def": 55,
+            "spd": 40
         },
-        "catchRate": 0.6,
         "evolution": {
             "evolvesTo": "023",
             "method": "LEVEL",
@@ -1567,52 +1744,53 @@
         },
         "moves": [
             {
-                "id": "astral_basic",
-                "name": "Destello Cósmico",
+                "id": "astryn_impacto",
+                "name": "Impacto",
                 "affinity": "ASTRAL",
                 "type": "physical",
                 "power": 50,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Embiste atravesando el tejido espacial."
             },
             {
-                "id": "astral_medium",
-                "name": "Fragmento Celeste",
+                "id": "astryn_rayo_astral",
+                "name": "Rayo Astral",
                 "affinity": "ASTRAL",
                 "type": "special",
-                "power": 80,
-                "accuracy": 95,
+                "power": 75,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Proyecta una supernova en miniatura."
             },
             {
-                "id": "astral_buff",
-                "name": "Coraza Elemental",
+                "id": "astryn_escudo",
+                "name": "Escudo",
                 "affinity": "ASTRAL",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
                 "cooldown": 2,
-                "description": "Refuerza su cuerpo con energía elemental, aumentando la defensa.",
                 "effect": {
-                    "type": "boost_def",
-                    "value": 25,
-                    "target": "self"
-                }
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 20,
+                    "duration": 2
+                },
+                "description": "Crea una distorsión gravitatoria, potenciando su fuerza de ataque."
             },
             {
-                "id": "astral_ultimate",
-                "name": "Pulso Nebuloso",
+                "id": "astryn_gran_puno",
+                "name": "Gran Puño",
                 "affinity": "ASTRAL",
                 "type": "physical",
-                "power": 110,
-                "accuracy": 85,
+                "power": 95,
+                "accuracy": 100,
                 "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                "effect": null,
+                "description": "Embiste atravesando el tejido espacial."
             }
         ]
     },
@@ -1624,12 +1802,11 @@
         "rarity": "RARE",
         "description": "Entidad nacida en la luz de las estrellas moribundas.",
         "baseStats": {
-            "hp": 95,
-            "atk": 90,
-            "def": 80,
-            "spd": 85
+            "hp": 100,
+            "atk": 62,
+            "def": 57,
+            "spd": 57
         },
-        "catchRate": 0.2,
         "art": {
             "portrait": "✨",
             "front": "✨",
@@ -1637,52 +1814,63 @@
         },
         "moves": [
             {
-                "id": "astral_basic",
-                "name": "Rayo Estelar",
+                "id": "stellaris_puno",
+                "name": "Puño",
                 "affinity": "ASTRAL",
                 "type": "physical",
-                "power": 50,
+                "power": 55,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Golpea con fuerza cósmica."
             },
             {
-                "id": "astral_medium",
-                "name": "Mini Supernova",
+                "id": "stellaris_nova",
+                "name": "Nova",
                 "affinity": "ASTRAL",
                 "type": "special",
                 "power": 80,
-                "accuracy": 95,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Desata polvo de estrellas, agrietando y quebrando la defensa del oponente."
             },
             {
-                "id": "astral_buff",
-                "name": "Coraza Elemental",
+                "id": "stellaris_escudo",
+                "name": "Escudo",
                 "affinity": "ASTRAL",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
-                "cooldown": 2,
-                "description": "Refuerza su cuerpo con energía elemental, aumentando la defensa.",
+                "cooldown": 3,
                 "effect": {
-                    "type": "boost_def",
-                    "value": 25,
-                    "target": "self"
-                }
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Invoca polvo estelar curativo, sellando las heridas y restaurando la vitalidad."
             },
             {
-                "id": "astral_ultimate",
-                "name": "Impacto de Cometa",
+                "id": "stellaris_gran_puno",
+                "name": "Gran Puño",
                 "affinity": "ASTRAL",
                 "type": "physical",
-                "power": 110,
-                "accuracy": 85,
-                "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Impacta con la densidad de un meteorito, dejando brasas que queman lentamente al objetivo."
             }
         ]
     },
@@ -1694,12 +1882,11 @@
         "rarity": "COMMON",
         "description": "Criatura de sombras que se desliza entre la penumbra.",
         "baseStats": {
-            "hp": 81,
-            "atk": 71,
-            "def": 71,
-            "spd": 77
+            "hp": 80,
+            "atk": 50,
+            "def": 45,
+            "spd": 55
         },
-        "catchRate": 0.6,
         "art": {
             "portrait": "🌑",
             "front": "🌑",
@@ -1707,56 +1894,53 @@
         },
         "moves": [
             {
-                "id": "shade_basic",
-                "name": "Corte Sombrío",
+                "id": "umbrix_daga",
+                "name": "Daga",
                 "affinity": "SHADE",
                 "type": "physical",
                 "power": 50,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Embiste envuelto en tinieblas."
             },
             {
-                "id": "shade_medium",
-                "name": "Embate de Sombra",
+                "id": "umbrix_drenaje",
+                "name": "Drenaje",
                 "affinity": "SHADE",
                 "type": "special",
-                "power": 80,
-                "accuracy": 95,
+                "power": 75,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Crea un agujero negro efímero."
             },
             {
-                "id": "shade_status",
-                "name": "Maldición Lóbrega",
+                "id": "umbrix_miedo",
+                "name": "Miedo",
                 "affinity": "SHADE",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
                 "cooldown": 2,
-                "description": "Infunde miedo en el rival, reduciendo drásticamente su daño y precisión.",
                 "effect": {
-                    "type": "apply_status",
-                    "status": "fear",
-                    "target": "enemy"
-                }
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 20,
+                    "duration": 2
+                },
+                "description": "Se envuelve en un manto de sombras, potenciando su fuerza de ataque."
             },
             {
-                "id": "shade_drain",
-                "name": "Fagocitosis Umbría",
+                "id": "umbrix_gran_daga",
+                "name": "Gran Daga",
                 "affinity": "SHADE",
-                "type": "special",
-                "power": 75,
+                "type": "physical",
+                "power": 95,
                 "accuracy": 100,
                 "cooldown": 3,
-                "description": "Ataca al enemigo y roba parte de su vitalidad (limitado a un 25% del daño infligido). Requiere 3 turnos de recarga.",
-                "effect": {
-                    "type": "drain",
-                    "value": 25,
-                    "target": "enemy"
-                }
+                "effect": null,
+                "description": "Desgarra con garras de pura sombra."
             }
         ]
     },
@@ -1768,12 +1952,11 @@
         "rarity": "RARE",
         "description": "Predadora nocturna capaz de devorar la luz.",
         "baseStats": {
-            "hp": 96,
-            "atk": 87,
-            "def": 80,
-            "spd": 87
+            "hp": 90,
+            "atk": 65,
+            "def": 45,
+            "spd": 65
         },
-        "catchRate": 0.2,
         "art": {
             "portrait": "🌑",
             "front": "🌑",
@@ -1781,56 +1964,63 @@
         },
         "moves": [
             {
-                "id": "shade_basic",
-                "name": "Filo del Vacío",
+                "id": "noctyra_daga",
+                "name": "Daga",
                 "affinity": "SHADE",
                 "type": "physical",
-                "power": 50,
+                "power": 55,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Se funde con la oscuridad para asestar un golpe."
             },
             {
-                "id": "shade_medium",
-                "name": "Mordida del Abismo",
+                "id": "noctyra_abismo",
+                "name": "Abismo",
                 "affinity": "SHADE",
                 "type": "special",
                 "power": 80,
-                "accuracy": 95,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Lanza un rayo de oscuridad absoluta, agrietando y quebrando la defensa del oponente."
             },
             {
-                "id": "shade_status",
-                "name": "Niebla Tenebrosa",
+                "id": "noctyra_miedo",
+                "name": "Miedo",
                 "affinity": "SHADE",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
-                "cooldown": 2,
-                "description": "Infunde miedo en el rival, reduciendo drásticamente su daño y precisión.",
+                "cooldown": 3,
                 "effect": {
-                    "type": "apply_status",
-                    "status": "fear",
-                    "target": "enemy"
-                }
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Canaliza la oscuridad para restaurarse, sellando las heridas y restaurando la vitalidad."
             },
             {
-                "id": "shade_drain",
-                "name": "Fagocitosis Umbría",
+                "id": "noctyra_gran_zarpa_umbral",
+                "name": "Gran Zarpa Umbral",
                 "affinity": "SHADE",
-                "type": "special",
-                "power": 75,
+                "type": "physical",
+                "power": 105,
                 "accuracy": 100,
-                "cooldown": 3,
-                "description": "Ataca al enemigo y roba parte de su vitalidad (limitado a un 25% del daño infligido). Requiere 3 turnos de recarga.",
+                "cooldown": 4,
                 "effect": {
-                    "type": "drain",
-                    "value": 25,
-                    "target": "enemy"
-                }
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Desgarra con garras de pura sombra, dejando brasas que queman lentamente al objetivo."
             }
         ]
     },
@@ -1842,12 +2032,11 @@
         "rarity": "ELITE",
         "description": "Entidad nacida de la oscuridad pura que devora la luz y la esperanza.",
         "baseStats": {
-            "hp": 114,
-            "atk": 102,
-            "def": 95,
-            "spd": 89
+            "hp": 105,
+            "atk": 80,
+            "def": 60,
+            "spd": 62
         },
-        "catchRate": 0.05,
         "art": {
             "portrait": "🌑",
             "front": "🌑",
@@ -1855,56 +2044,68 @@
         },
         "moves": [
             {
-                "id": "shade_basic",
-                "name": "Desgarro Umbrío",
+                "id": "umbrion_daga",
+                "name": "Daga",
                 "affinity": "SHADE",
                 "type": "physical",
-                "power": 50,
+                "power": 60,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "debuff_spd",
+                    "target": "enemy",
+                    "value": 15,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Se funde con la oscuridad para asestar un golpe, ralentizando drásticamente los movimientos del adversario."
             },
             {
-                "id": "shade_medium",
-                "name": "Cataclismo Sombrío",
+                "id": "umbrion_abismo",
+                "name": "Abismo",
                 "affinity": "SHADE",
                 "type": "special",
-                "power": 80,
-                "accuracy": 95,
+                "power": 85,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "boost_def",
+                    "target": "self",
+                    "value": 25,
+                    "duration": 2
+                },
+                "description": "Lanza un rayo de oscuridad absoluta, endureciendo su resistencia física."
             },
             {
-                "id": "shade_status",
-                "name": "Abrazo de Tinieblas",
+                "id": "umbrion_miedo",
+                "name": "Miedo",
                 "affinity": "SHADE",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
-                "cooldown": 2,
-                "description": "Infunde miedo en el rival, reduciendo drásticamente su daño y precisión.",
+                "cooldown": 3,
                 "effect": {
                     "type": "apply_status",
-                    "status": "fear",
-                    "target": "enemy"
-                }
+                    "status": "stun",
+                    "target": "all_enemies",
+                    "chance": 100
+                },
+                "description": "Canaliza la oscuridad para restaurarse, dejando al adversario completamente aturdido e incapacitado."
             },
             {
-                "id": "shade_drain",
-                "name": "Fagocitosis Umbría",
+                "id": "umbrion_gran_zarpa_umbral",
+                "name": "Gran Zarpa Umbral",
                 "affinity": "SHADE",
-                "type": "special",
-                "power": 75,
+                "type": "physical",
+                "power": 115,
                 "accuracy": 100,
-                "cooldown": 3,
-                "description": "Ataca al enemigo y roba parte de su vitalidad (limitado a un 25% del daño infligido). Requiere 3 turnos de recarga.",
+                "cooldown": 4,
                 "effect": {
                     "type": "drain",
-                    "value": 25,
-                    "target": "enemy"
-                }
+                    "target": "enemy",
+                    "value": 25
+                },
+                "description": "Desgarra con garras de pura sombra, drenando la energía vital del rival para sanarse a sí mismo."
             }
         ]
     },
@@ -1916,12 +2117,11 @@
         "rarity": "COMMON",
         "description": "Criatura metálica que usa su cuerpo de hierro como arma contundente.",
         "baseStats": {
-            "hp": 85,
-            "atk": 70,
-            "def": 89,
-            "spd": 56
+            "hp": 100,
+            "atk": 45,
+            "def": 55,
+            "spd": 40
         },
-        "catchRate": 0.55,
         "evolution": {
             "evolvesTo": "028",
             "method": "LEVEL",
@@ -1934,52 +2134,53 @@
         },
         "moves": [
             {
-                "id": "iron_basic",
-                "name": "Golpe de Acero",
+                "id": "ferrox_golpe_metal",
+                "name": "Golpe Metal",
                 "affinity": "IRON",
                 "type": "physical",
                 "power": 50,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Aplaza con la fuerza de un yunque."
             },
             {
-                "id": "iron_medium",
-                "name": "Embate Metálico",
+                "id": "ferrox_proyectil",
+                "name": "Proyectil",
                 "affinity": "IRON",
                 "type": "special",
-                "power": 80,
-                "accuracy": 95,
+                "power": 75,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Lanza proyectiles metálicos a alta velocidad."
             },
             {
-                "id": "iron_buff",
-                "name": "Coraza Elemental",
+                "id": "ferrox_refuerzo",
+                "name": "Refuerzo",
                 "affinity": "IRON",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
                 "cooldown": 2,
-                "description": "Refuerza su cuerpo con energía elemental, aumentando la defensa.",
                 "effect": {
-                    "type": "boost_def",
-                    "value": 25,
-                    "target": "self"
-                }
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 20,
+                    "duration": 2
+                },
+                "description": "Despliega escudos metálicos, potenciando su fuerza de ataque."
             },
             {
-                "id": "iron_ultimate",
-                "name": "Impacto Pesado",
+                "id": "ferrox_gran_golpe_metal",
+                "name": "Gran Golpe Metal",
                 "affinity": "IRON",
                 "type": "physical",
-                "power": 110,
-                "accuracy": 85,
+                "power": 95,
+                "accuracy": 100,
                 "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                "effect": null,
+                "description": "Golpea con extremidades metálicas."
             }
         ]
     },
@@ -1991,12 +2192,11 @@
         "rarity": "RARE",
         "description": "Guerrero mecánico cuyas placas de hierro son casi impenetrables.",
         "baseStats": {
-            "hp": 98,
-            "atk": 82,
-            "def": 112,
-            "spd": 58
+            "hp": 100,
+            "atk": 62,
+            "def": 57,
+            "spd": 57
         },
-        "catchRate": 0.2,
         "art": {
             "portrait": "⚙️",
             "front": "⚙️",
@@ -2004,52 +2204,63 @@
         },
         "moves": [
             {
-                "id": "iron_basic",
-                "name": "Corte de Titanio",
+                "id": "ferrothor_golpe_metal",
+                "name": "Golpe Metal",
                 "affinity": "IRON",
                 "type": "physical",
-                "power": 50,
+                "power": 55,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Ataca con engranajes cortantes."
             },
             {
-                "id": "iron_medium",
-                "name": "Martillo de Acero",
+                "id": "ferrothor_proyectil",
+                "name": "Proyectil",
                 "affinity": "IRON",
                 "type": "special",
                 "power": 80,
-                "accuracy": 95,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Proyecta fragmentos de metralla, agrietando y quebrando la defensa del oponente."
             },
             {
-                "id": "iron_buff",
-                "name": "Coraza Elemental",
+                "id": "ferrothor_escudo",
+                "name": "Escudo",
                 "affinity": "IRON",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
-                "cooldown": 2,
-                "description": "Refuerza su cuerpo con energía elemental, aumentando la defensa.",
+                "cooldown": 3,
                 "effect": {
-                    "type": "boost_def",
-                    "value": 25,
-                    "target": "self"
-                }
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Magnetiza su armadura, sellando las heridas y restaurando la vitalidad."
             },
             {
-                "id": "iron_ultimate",
-                "name": "Contraataque Metálico",
+                "id": "ferrothor_gran_carga",
+                "name": "Gran Carga",
                 "affinity": "IRON",
                 "type": "physical",
-                "power": 110,
-                "accuracy": 85,
-                "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Ataca con engranajes cortantes, dejando brasas que queman lentamente al objetivo."
             }
         ]
     },
@@ -2062,11 +2273,10 @@
         "description": "Ser de energía estelar que canaliza relámpagos cósmicos.",
         "baseStats": {
             "hp": 90,
-            "atk": 91,
-            "def": 78,
-            "spd": 91
+            "atk": 60,
+            "def": 55,
+            "spd": 65
         },
-        "catchRate": 0.15,
         "art": {
             "portrait": "✨",
             "front": "✨",
@@ -2074,52 +2284,63 @@
         },
         "moves": [
             {
-                "id": "astral_basic",
-                "name": "Destello Celeste",
+                "id": "aethera_impacto",
+                "name": "Impacto",
                 "affinity": "ASTRAL",
                 "type": "physical",
-                "power": 50,
+                "power": 55,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Ataca con puños de luz estelar."
             },
             {
-                "id": "astral_medium",
-                "name": "Rayo Estelar",
+                "id": "aethera_nova",
+                "name": "Nova",
                 "affinity": "ASTRAL",
                 "type": "special",
                 "power": 80,
-                "accuracy": 95,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Proyecta una supernova en miniatura, agrietando y quebrando la defensa del oponente."
             },
             {
-                "id": "astral_buff",
-                "name": "Coraza Elemental",
+                "id": "aethera_eco",
+                "name": "Eco",
                 "affinity": "ASTRAL",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
-                "cooldown": 2,
-                "description": "Refuerza su cuerpo con energía elemental, aumentando la defensa.",
+                "cooldown": 3,
                 "effect": {
-                    "type": "boost_def",
-                    "value": 25,
-                    "target": "self"
-                }
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Altera el espacio-tiempo a su alrededor, sellando las heridas y restaurando la vitalidad."
             },
             {
-                "id": "astral_ultimate",
-                "name": "Impacto Paralizante",
+                "id": "aethera_gran_impacto",
+                "name": "Gran Impacto",
                 "affinity": "ASTRAL",
                 "type": "physical",
-                "power": 110,
-                "accuracy": 85,
-                "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Embiste atravesando el tejido espacial, dejando brasas que queman lentamente al objetivo."
             }
         ]
     },
@@ -2131,12 +2352,11 @@
         "rarity": "EPIC",
         "description": "Dragón cósmico que habita entre las estrellas.",
         "baseStats": {
-            "hp": 114,
-            "atk": 103,
-            "def": 94,
-            "spd": 89
+            "hp": 110,
+            "atk": 85,
+            "def": 60,
+            "spd": 75
         },
-        "catchRate": 0.03,
         "art": {
             "portrait": "✨",
             "front": "✨",
@@ -2144,52 +2364,78 @@
         },
         "moves": [
             {
-                "id": "astral_basic",
-                "name": "Garra Nebular",
+                "id": "celestigon_impacto",
+                "name": "Impacto",
                 "affinity": "ASTRAL",
                 "type": "physical",
-                "power": 50,
+                "power": 65,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "debuff_acc",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Embiste atravesando el tejido espacial, cegando temporalmente y confundiendo al enemigo."
             },
             {
-                "id": "astral_medium",
-                "name": "Supernova",
+                "id": "celestigon_nova",
+                "name": "Nova",
                 "affinity": "ASTRAL",
                 "type": "special",
-                "power": 80,
-                "accuracy": 95,
+                "power": 90,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 30,
+                    "duration": 2
+                },
+                "description": "Canaliza un rayo de energía galáctica, potenciando su fuerza de ataque."
             },
             {
-                "id": "astral_heal",
-                "name": "Olas Curativas",
+                "id": "celestigon_escudo",
+                "name": "Escudo",
                 "affinity": "ASTRAL",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
                 "cooldown": 3,
-                "description": "Una habilidad restauradora exclusiva para élites o superiores que cura un 30% de la vida máxima.",
                 "effect": {
-                    "type": "heal",
-                    "value": 30,
-                    "target": "self"
-                }
+                    "type": "shield",
+                    "target": "all_allies",
+                    "value": 20,
+                    "duration": 3
+                },
+                "description": "Crea una distorsión gravitatoria, creando una barrera que absorbe los próximos impactos."
             },
             {
-                "id": "astral_ultimate",
-                "name": "Impacto de Cometa",
+                "id": "celestigon_gran_rayo_astral",
+                "name": "Gran Rayo Astral",
                 "affinity": "ASTRAL",
-                "type": "physical",
-                "power": 110,
-                "accuracy": 85,
-                "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                "type": "special",
+                "power": 130,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": [
+                    {
+                        "type": "apply_status",
+                        "status": "fear",
+                        "target": "enemy",
+                        "chance": 100
+                    },
+                    {
+                        "type": "debuff_def",
+                        "target": "enemy",
+                        "value": 30,
+                        "duration": 3,
+                        "chance": 100
+                    }
+                ],
+                "description": "Canaliza un rayo de energía galáctica, infundiendo un terror profundo que hiela la sangre del rival. agrietando y quebrando la defensa del oponente."
             }
         ]
     },
@@ -2201,12 +2447,11 @@
         "rarity": "RARE",
         "description": "Depredador anfibio que acecha en aguas pantanosas cargadas de toxinas naturales.",
         "baseStats": {
-            "hp": 102,
-            "atk": 87,
-            "def": 90,
-            "spd": 71
+            "hp": 95,
+            "atk": 70,
+            "def": 50,
+            "spd": 57
         },
-        "catchRate": 0.2,
         "art": {
             "portrait": "💧",
             "front": "💧",
@@ -2214,52 +2459,63 @@
         },
         "moves": [
             {
-                "id": "tide_basic",
-                "name": "Mandíbula Marina",
+                "id": "mirelurk_latigazo",
+                "name": "Latigazo",
                 "affinity": "TIDE",
                 "type": "physical",
-                "power": 50,
+                "power": 55,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Embiste rodeado de corrientes marinas."
             },
             {
-                "id": "tide_medium",
-                "name": "Oleada Tóxica",
+                "id": "mirelurk_geiser",
+                "name": "Geiser",
                 "affinity": "TIDE",
                 "type": "special",
                 "power": 80,
-                "accuracy": 95,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Proyecta un géiser hirviente, agrietando y quebrando la defensa del oponente."
             },
             {
-                "id": "tide_buff",
-                "name": "Coraza Elemental",
+                "id": "mirelurk_niebla",
+                "name": "Niebla",
                 "affinity": "TIDE",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
-                "cooldown": 2,
-                "description": "Refuerza su cuerpo con energía elemental, aumentando la defensa.",
+                "cooldown": 3,
                 "effect": {
-                    "type": "boost_def",
-                    "value": 25,
-                    "target": "self"
-                }
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Manipula las corrientes curativas del agua, sellando las heridas y restaurando la vitalidad."
             },
             {
-                "id": "tide_ultimate",
-                "name": "Marea Vampírica",
+                "id": "mirelurk_gran_golpe_de_ola",
+                "name": "Gran Golpe de Ola",
                 "affinity": "TIDE",
                 "type": "physical",
-                "power": 110,
-                "accuracy": 85,
-                "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Azota con látigos de agua, dejando brasas que queman lentamente al objetivo."
             }
         ]
     },
@@ -2271,12 +2527,11 @@
         "rarity": "RARE",
         "description": "Criatura espinosa que fusiona raíces vivas con una coraza de roca antigua.",
         "baseStats": {
-            "hp": 107,
-            "atk": 80,
-            "def": 107,
-            "spd": 56
+            "hp": 110,
+            "atk": 55,
+            "def": 65,
+            "spd": 50
         },
-        "catchRate": 0.18,
         "art": {
             "portrait": "🌿",
             "front": "🌿",
@@ -2284,52 +2539,63 @@
         },
         "moves": [
             {
-                "id": "grove_basic",
-                "name": "Embate de Zarzas",
+                "id": "bramblisk_zarpazo",
+                "name": "Zarpazo",
                 "affinity": "GROVE",
                 "type": "physical",
-                "power": 50,
+                "power": 55,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Golpea con raíces endurecidas como piedra."
             },
             {
-                "id": "grove_medium",
-                "name": "Púa de Basalto",
+                "id": "bramblisk_hoja_afilada",
+                "name": "Hoja Afilada",
                 "affinity": "GROVE",
                 "type": "special",
                 "power": 80,
-                "accuracy": 95,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Proyecta una ráfaga de esporas volátiles, agrietando y quebrando la defensa del oponente."
             },
             {
-                "id": "grove_buff",
-                "name": "Coraza Elemental",
+                "id": "bramblisk_piel_de_roble",
+                "name": "Piel de Roble",
                 "affinity": "GROVE",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
-                "cooldown": 2,
-                "description": "Refuerza su cuerpo con energía elemental, aumentando la defensa.",
+                "cooldown": 3,
                 "effect": {
-                    "type": "boost_def",
-                    "value": 25,
-                    "target": "self"
-                }
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Libera esporas curativas, sellando las heridas y restaurando la vitalidad."
             },
             {
-                "id": "grove_ultimate",
-                "name": "Savia Vital",
+                "id": "bramblisk_gran_zarpazo",
+                "name": "Gran Zarpazo",
                 "affinity": "GROVE",
                 "type": "physical",
-                "power": 110,
-                "accuracy": 85,
-                "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Azota con lianas cubiertas de espinas, dejando brasas que queman lentamente al objetivo."
             }
         ]
     },
@@ -2341,12 +2607,11 @@
         "rarity": "RARE",
         "description": "Ser inestable de rayos helados cuyos cristales cargados crujen antes de estallar.",
         "baseStats": {
-            "hp": 90,
-            "atk": 87,
-            "def": 85,
-            "spd": 88
+            "hp": 100,
+            "atk": 62,
+            "def": 57,
+            "spd": 57
         },
-        "catchRate": 0.16,
         "art": {
             "portrait": "⚡",
             "front": "⚡",
@@ -2354,52 +2619,63 @@
         },
         "moves": [
             {
-                "id": "volt_basic",
-                "name": "Descarga Cortante",
+                "id": "volcryst_puno_rayo",
+                "name": "Puño Rayo",
                 "affinity": "VOLT",
                 "type": "physical",
-                "power": 50,
+                "power": 55,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Golpea envuelto en electricidad estática."
             },
             {
-                "id": "volt_medium",
-                "name": "Estallido de Escarcha",
+                "id": "volcryst_trueno",
+                "name": "Trueno",
                 "affinity": "VOLT",
                 "type": "special",
                 "power": 80,
-                "accuracy": 95,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Desata una tormenta electromagnética, agrietando y quebrando la defensa del oponente."
             },
             {
-                "id": "volt_status",
-                "name": "Acelerón de Chispa",
+                "id": "volcryst_pulso",
+                "name": "Pulso",
                 "affinity": "VOLT",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
-                "cooldown": 2,
-                "description": "Paraliza al rival mediante una descarga, con posibilidad de que pierda su turno.",
+                "cooldown": 3,
                 "effect": {
-                    "type": "apply_status",
-                    "status": "paralyze",
-                    "target": "enemy"
-                }
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Se sobrecarga de energía estática, sellando las heridas y restaurando la vitalidad."
             },
             {
-                "id": "volt_ultimate",
-                "name": "Prisión Conductiva",
+                "id": "volcryst_gran_puno_rayo",
+                "name": "Gran Puño Rayo",
                 "affinity": "VOLT",
                 "type": "physical",
-                "power": 110,
-                "accuracy": 85,
-                "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Se abalanza como un relámpago, dejando brasas que queman lentamente al objetivo."
             }
         ]
     },
@@ -2411,12 +2687,11 @@
         "rarity": "COMMON",
         "description": "Bestia mecánica de fauces prensiles capaz de triturar armaduras con facilidad.",
         "baseStats": {
-            "hp": 84,
-            "atk": 76,
-            "def": 85,
+            "hp": 80,
+            "atk": 50,
+            "def": 45,
             "spd": 55
         },
-        "catchRate": 0.55,
         "evolution": {
             "evolvesTo": "035",
             "method": "LEVEL",
@@ -2429,52 +2704,53 @@
         },
         "moves": [
             {
-                "id": "iron_basic",
-                "name": "Mordida de Acero",
+                "id": "ironjaw_golpe_metal",
+                "name": "Golpe Metal",
                 "affinity": "IRON",
                 "type": "physical",
                 "power": 50,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Aplaza con la fuerza de un yunque."
             },
             {
-                "id": "iron_medium",
-                "name": "Mazazo Ferrum",
+                "id": "ironjaw_proyectil",
+                "name": "Proyectil",
                 "affinity": "IRON",
                 "type": "special",
-                "power": 80,
-                "accuracy": 95,
+                "power": 75,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Lanza proyectiles metálicos a alta velocidad."
             },
             {
-                "id": "iron_buff",
-                "name": "Coraza Elemental",
+                "id": "ironjaw_escudo",
+                "name": "Escudo",
                 "affinity": "IRON",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
                 "cooldown": 2,
-                "description": "Refuerza su cuerpo con energía elemental, aumentando la defensa.",
                 "effect": {
-                    "type": "boost_def",
-                    "value": 25,
-                    "target": "self"
-                }
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 20,
+                    "duration": 2
+                },
+                "description": "Refuerza su chasis con aleaciones, potenciando su fuerza de ataque."
             },
             {
-                "id": "iron_ultimate",
-                "name": "Prensa Metálica",
+                "id": "ironjaw_gran_carga",
+                "name": "Gran Carga",
                 "affinity": "IRON",
                 "type": "physical",
-                "power": 110,
-                "accuracy": 85,
+                "power": 95,
+                "accuracy": 100,
                 "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                "effect": null,
+                "description": "Aplaza con la fuerza de un yunque."
             }
         ]
     },
@@ -2486,12 +2762,11 @@
         "rarity": "RARE",
         "description": "Depredador blindado cuyo rugido metálico hace temblar el campo de batalla.",
         "baseStats": {
-            "hp": 98,
-            "atk": 87,
-            "def": 107,
-            "spd": 58
+            "hp": 90,
+            "atk": 65,
+            "def": 45,
+            "spd": 65
         },
-        "catchRate": 0.18,
         "art": {
             "portrait": "⚙️",
             "front": "⚙️",
@@ -2499,52 +2774,63 @@
         },
         "moves": [
             {
-                "id": "iron_basic",
-                "name": "Colmillo de Titanio",
+                "id": "steelmaw_golpe_metal",
+                "name": "Golpe Metal",
                 "affinity": "IRON",
                 "type": "physical",
-                "power": 50,
+                "power": 55,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Aplaza con la fuerza de un yunque."
             },
             {
-                "id": "iron_medium",
-                "name": "Martillo de Hierro",
+                "id": "steelmaw_rayo",
+                "name": "Rayo",
                 "affinity": "IRON",
                 "type": "special",
                 "power": 80,
-                "accuracy": 95,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Lanza proyectiles metálicos a alta velocidad, agrietando y quebrando la defensa del oponente."
             },
             {
-                "id": "iron_buff",
-                "name": "Coraza Elemental",
+                "id": "steelmaw_escudo",
+                "name": "Escudo",
                 "affinity": "IRON",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
-                "cooldown": 2,
-                "description": "Refuerza su cuerpo con energía elemental, aumentando la defensa.",
+                "cooldown": 3,
                 "effect": {
-                    "type": "boost_def",
-                    "value": 25,
-                    "target": "self"
-                }
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Refuerza su chasis con aleaciones, sellando las heridas y restaurando la vitalidad."
             },
             {
-                "id": "iron_ultimate",
-                "name": "Ariete Metálico",
+                "id": "steelmaw_gran_carga",
+                "name": "Gran Carga",
                 "affinity": "IRON",
                 "type": "physical",
-                "power": 110,
-                "accuracy": 85,
-                "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Aplaza con la fuerza de un yunque, dejando brasas que queman lentamente al objetivo."
             }
         ]
     },
@@ -2556,12 +2842,11 @@
         "rarity": "RARE",
         "description": "Cazador abisal que emerge desde aguas negras donde no llega la luz.",
         "baseStats": {
-            "hp": 97,
-            "atk": 88,
-            "def": 84,
-            "spd": 81
+            "hp": 95,
+            "atk": 70,
+            "def": 50,
+            "spd": 57
         },
-        "catchRate": 0.17,
         "art": {
             "portrait": "🌑",
             "front": "🌑",
@@ -2569,56 +2854,63 @@
         },
         "moves": [
             {
-                "id": "shade_basic",
-                "name": "Aleta Umbría",
+                "id": "shadefin_daga",
+                "name": "Daga",
                 "affinity": "SHADE",
                 "type": "physical",
-                "power": 50,
+                "power": 55,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Desgarra con garras de pura sombra."
             },
             {
-                "id": "shade_medium",
-                "name": "Corriente Abisal",
+                "id": "shadefin_drenaje",
+                "name": "Drenaje",
                 "affinity": "SHADE",
                 "type": "special",
                 "power": 80,
-                "accuracy": 95,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Lanza un rayo de oscuridad absoluta, agrietando y quebrando la defensa del oponente."
             },
             {
-                "id": "shade_status",
-                "name": "Remanso Oscuro",
+                "id": "shadefin_miedo",
+                "name": "Miedo",
                 "affinity": "SHADE",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
-                "cooldown": 2,
-                "description": "Infunde miedo en el rival, reduciendo drásticamente su daño y precisión.",
+                "cooldown": 3,
                 "effect": {
-                    "type": "apply_status",
-                    "status": "fear",
-                    "target": "enemy"
-                }
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Oscurece completamente el campo de batalla, sellando las heridas y restaurando la vitalidad."
             },
             {
-                "id": "shade_drain",
-                "name": "Fagocitosis Umbría",
+                "id": "shadefin_gran_daga",
+                "name": "Gran Daga",
                 "affinity": "SHADE",
-                "type": "special",
-                "power": 75,
+                "type": "physical",
+                "power": 105,
                 "accuracy": 100,
-                "cooldown": 3,
-                "description": "Ataca al enemigo y roba parte de su vitalidad (limitado a un 25% del daño infligido). Requiere 3 turnos de recarga.",
+                "cooldown": 4,
                 "effect": {
-                    "type": "drain",
-                    "value": 25,
-                    "target": "enemy"
-                }
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Ataca desde ángulos invisibles, dejando brasas que queman lentamente al objetivo."
             }
         ]
     },
@@ -2630,12 +2922,11 @@
         "rarity": "RARE",
         "description": "Bestia acorazada cuyos cuernos candentes pueden perforar metal y roca.",
         "baseStats": {
-            "hp": 104,
-            "atk": 91,
-            "def": 94,
-            "spd": 61
+            "hp": 110,
+            "atk": 55,
+            "def": 65,
+            "spd": 50
         },
-        "catchRate": 0.14,
         "art": {
             "portrait": "🔥",
             "front": "🔥",
@@ -2643,52 +2934,63 @@
         },
         "moves": [
             {
-                "id": "ember_basic",
-                "name": "Cornada Ígnea",
+                "id": "emberhorn_punetazo_igneo",
+                "name": "Puñetazo Ígneo",
                 "affinity": "EMBER",
                 "type": "physical",
-                "power": 50,
+                "power": 55,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Desata una patada ígnea."
             },
             {
-                "id": "ember_medium",
-                "name": "Pisotón Blindado",
+                "id": "emberhorn_llamarada",
+                "name": "Llamarada",
                 "affinity": "EMBER",
                 "type": "special",
                 "power": 80,
-                "accuracy": 95,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Desata una explosión térmica, agrietando y quebrando la defensa del oponente."
             },
             {
-                "id": "ember_status",
-                "name": "Coraza Forjada",
+                "id": "emberhorn_rugido",
+                "name": "Rugido",
                 "affinity": "EMBER",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
-                "cooldown": 2,
-                "description": "Quema al rival, causándole daño continuo al final de cada turno.",
+                "cooldown": 3,
+                "effect": {
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Respira nubes de humo caliente, sellando las heridas y restaurando la vitalidad."
+            },
+            {
+                "id": "emberhorn_gran_punetazo_igneo",
+                "name": "Gran Puñetazo Ígneo",
+                "affinity": "EMBER",
+                "type": "physical",
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
                 "effect": {
                     "type": "apply_status",
                     "status": "burn",
-                    "target": "enemy"
-                }
-            },
-            {
-                "id": "ember_ultimate",
-                "name": "Marca de Brasa",
-                "affinity": "EMBER",
-                "type": "physical",
-                "power": 110,
-                "accuracy": 85,
-                "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Golpea con el cuerpo al rojo vivo, dejando brasas que queman lentamente al objetivo."
             }
         ]
     },
@@ -2700,12 +3002,11 @@
         "rarity": "RARE",
         "description": "Entidad floral iluminada por polvo estelar que sana lo que toca y castiga a quien profana el bosque.",
         "baseStats": {
-            "hp": 101,
-            "atk": 83,
-            "def": 90,
-            "spd": 76
+            "hp": 100,
+            "atk": 62,
+            "def": 57,
+            "spd": 57
         },
-        "catchRate": 0.16,
         "art": {
             "portrait": "🌿",
             "front": "🌿",
@@ -2713,52 +3014,63 @@
         },
         "moves": [
             {
-                "id": "grove_basic",
-                "name": "Ráfaga de Pétalos",
+                "id": "bloomora_zarpazo",
+                "name": "Zarpazo",
                 "affinity": "GROVE",
                 "type": "physical",
-                "power": 50,
+                "power": 55,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Golpea con raíces endurecidas como piedra."
             },
             {
-                "id": "grove_medium",
-                "name": "Destello Floral",
+                "id": "bloomora_hoja_afilada",
+                "name": "Hoja Afilada",
                 "affinity": "GROVE",
                 "type": "special",
                 "power": 80,
-                "accuracy": 95,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Proyecta una ráfaga de esporas volátiles, agrietando y quebrando la defensa del oponente."
             },
             {
-                "id": "grove_buff",
-                "name": "Coraza Elemental",
+                "id": "bloomora_cura_natural",
+                "name": "Cura Natural",
                 "affinity": "GROVE",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
-                "cooldown": 2,
-                "description": "Refuerza su cuerpo con energía elemental, aumentando la defensa.",
+                "cooldown": 3,
                 "effect": {
-                    "type": "boost_def",
-                    "value": 25,
-                    "target": "self"
-                }
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Libera esporas curativas, sellando las heridas y restaurando la vitalidad."
             },
             {
-                "id": "grove_ultimate",
-                "name": "Polen Ascendente",
+                "id": "bloomora_gran_embate",
+                "name": "Gran Embate",
                 "affinity": "GROVE",
                 "type": "physical",
-                "power": 110,
-                "accuracy": 85,
-                "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Araña con garras de madera afilada, dejando brasas que queman lentamente al objetivo."
             }
         ]
     },
@@ -2770,12 +3082,11 @@
         "rarity": "RARE",
         "description": "Ave tempestuosa que surca tormentas eléctricas para alimentarse de rayos puros.",
         "baseStats": {
-            "hp": 93,
-            "atk": 88,
-            "def": 77,
-            "spd": 92
+            "hp": 90,
+            "atk": 60,
+            "def": 55,
+            "spd": 65
         },
-        "catchRate": 0.18,
         "art": {
             "portrait": "⚡",
             "front": "⚡",
@@ -2783,52 +3094,63 @@
         },
         "moves": [
             {
-                "id": "volt_basic",
-                "name": "Garra de Trueno",
+                "id": "stormeid_dash",
+                "name": "Dash",
                 "affinity": "VOLT",
                 "type": "physical",
-                "power": 50,
+                "power": 55,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Ejecuta una embestida a velocidad sónica."
             },
             {
-                "id": "volt_medium",
-                "name": "Rayo de Tormenta",
+                "id": "stormeid_descarga",
+                "name": "Descarga",
                 "affinity": "VOLT",
                 "type": "special",
                 "power": 80,
-                "accuracy": 95,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Dispara un rayo cegador, agrietando y quebrando la defensa del oponente."
             },
             {
-                "id": "volt_status",
-                "name": "Impulso Centella",
+                "id": "stormeid_pulso",
+                "name": "Pulso",
                 "affinity": "VOLT",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
-                "cooldown": 2,
-                "description": "Paraliza al rival mediante una descarga, con posibilidad de que pierda su turno.",
+                "cooldown": 3,
                 "effect": {
-                    "type": "apply_status",
-                    "status": "paralyze",
-                    "target": "enemy"
-                }
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Genera un campo magnético, sellando las heridas y restaurando la vitalidad."
             },
             {
-                "id": "volt_ultimate",
-                "name": "Chispa Aturdidora",
+                "id": "stormeid_gran_puno_rayo",
+                "name": "Gran Puño Rayo",
                 "affinity": "VOLT",
                 "type": "physical",
-                "power": 110,
-                "accuracy": 85,
-                "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Golpea envuelto en electricidad estática, dejando brasas que queman lentamente al objetivo."
             }
         ]
     },
@@ -2840,12 +3162,11 @@
         "rarity": "COMMON",
         "description": "Criatura marina que genera minimareas a su alrededor para desestabilizar a sus rivales en combate.",
         "baseStats": {
-            "hp": 88,
-            "atk": 66,
-            "def": 82,
-            "spd": 64
+            "hp": 80,
+            "atk": 55,
+            "def": 40,
+            "spd": 55
         },
-        "catchRate": 0.6,
         "evolution": {
             "evolvesTo": "041",
             "method": "LEVEL",
@@ -2858,52 +3179,53 @@
         },
         "moves": [
             {
-                "id": "tide_basic",
-                "name": "Latigazo Marino",
+                "id": "tidalp_latigazo",
+                "name": "Latigazo",
                 "affinity": "TIDE",
                 "type": "physical",
                 "power": 50,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Golpea con la fuerza aplastante de una ola."
             },
             {
-                "id": "tide_medium",
-                "name": "Remolino Profundo",
+                "id": "tidalp_torrente",
+                "name": "Torrente",
                 "affinity": "TIDE",
                 "type": "special",
-                "power": 80,
-                "accuracy": 95,
+                "power": 75,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Dispara un torrente de agua a alta presión."
             },
             {
-                "id": "tide_buff",
-                "name": "Coraza Elemental",
+                "id": "tidalp_marea_curativa",
+                "name": "Marea Curativa",
                 "affinity": "TIDE",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
                 "cooldown": 2,
-                "description": "Refuerza su cuerpo con energía elemental, aumentando la defensa.",
                 "effect": {
-                    "type": "boost_def",
-                    "value": 25,
-                    "target": "self"
-                }
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 20,
+                    "duration": 2
+                },
+                "description": "Manipula las corrientes curativas del agua, potenciando su fuerza de ataque."
             },
             {
-                "id": "tide_ultimate",
-                "name": "Marea Drenante",
+                "id": "tidalp_gran_golpe_de_ola",
+                "name": "Gran Golpe de Ola",
                 "affinity": "TIDE",
                 "type": "physical",
-                "power": 110,
-                "accuracy": 85,
+                "power": 95,
+                "accuracy": 100,
                 "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                "effect": null,
+                "description": "Arremete con un impacto hidráulico."
             }
         ]
     },
@@ -2915,12 +3237,11 @@
         "rarity": "RARE",
         "description": "Leviatán de aguas profundas cuya presencia distorsiona las corrientes oceánicas de Mythara.",
         "baseStats": {
-            "hp": 106,
-            "atk": 78,
-            "def": 100,
-            "spd": 66
+            "hp": 95,
+            "atk": 70,
+            "def": 50,
+            "spd": 57
         },
-        "catchRate": 0.2,
         "art": {
             "portrait": "💧",
             "front": "💧",
@@ -2928,52 +3249,63 @@
         },
         "moves": [
             {
-                "id": "tide_basic",
-                "name": "Corte de Marea",
+                "id": "abysvel_latigazo",
+                "name": "Latigazo",
                 "affinity": "TIDE",
                 "type": "physical",
-                "power": 50,
+                "power": 55,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Golpea con la fuerza aplastante de una ola."
             },
             {
-                "id": "tide_medium",
-                "name": "Chorro Abisal",
+                "id": "abysvel_torrente",
+                "name": "Torrente",
                 "affinity": "TIDE",
                 "type": "special",
                 "power": 80,
-                "accuracy": 95,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Dispara un torrente de agua a alta presión, agrietando y quebrando la defensa del oponente."
             },
             {
-                "id": "tide_buff",
-                "name": "Coraza Elemental",
+                "id": "abysvel_niebla",
+                "name": "Niebla",
                 "affinity": "TIDE",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
-                "cooldown": 2,
-                "description": "Refuerza su cuerpo con energía elemental, aumentando la defensa.",
+                "cooldown": 3,
                 "effect": {
-                    "type": "boost_def",
-                    "value": 25,
-                    "target": "self"
-                }
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Absorbe la humedad del aire, sellando las heridas y restaurando la vitalidad."
             },
             {
-                "id": "tide_ultimate",
-                "name": "Oleada Vampírica",
+                "id": "abysvel_gran_golpe_de_ola",
+                "name": "Gran Golpe de Ola",
                 "affinity": "TIDE",
                 "type": "physical",
-                "power": 110,
-                "accuracy": 85,
-                "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Arremete con un impacto hidráulico, dejando brasas que queman lentamente al objetivo."
             }
         ]
     },
@@ -2985,12 +3317,11 @@
         "rarity": "COMMON",
         "description": "Criatura que se camufla entre las raíces del bosque y usa lianas como látigos en combate.",
         "baseStats": {
-            "hp": 86,
-            "atk": 67,
-            "def": 88,
-            "spd": 59
+            "hp": 100,
+            "atk": 45,
+            "def": 55,
+            "spd": 40
         },
-        "catchRate": 0.6,
         "art": {
             "portrait": "🌿",
             "front": "🌿",
@@ -2998,52 +3329,53 @@
         },
         "moves": [
             {
-                "id": "grove_basic",
-                "name": "Savia Sanadora",
+                "id": "sprivok_embate",
+                "name": "Embate",
                 "affinity": "GROVE",
                 "type": "physical",
                 "power": 50,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Araña con garras de madera afilada."
             },
             {
-                "id": "grove_medium",
-                "name": "Floración Venenosa",
+                "id": "sprivok_esporas",
+                "name": "Esporas",
                 "affinity": "GROVE",
                 "type": "special",
-                "power": 80,
-                "accuracy": 95,
+                "power": 75,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Dispara semillas perforantes."
             },
             {
-                "id": "grove_buff",
-                "name": "Coraza Elemental",
+                "id": "sprivok_cura_natural",
+                "name": "Cura Natural",
                 "affinity": "GROVE",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
                 "cooldown": 2,
-                "description": "Refuerza su cuerpo con energía elemental, aumentando la defensa.",
                 "effect": {
-                    "type": "boost_def",
-                    "value": 25,
-                    "target": "self"
-                }
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 20,
+                    "duration": 2
+                },
+                "description": "Genera un manto de hojas protectoras, potenciando su fuerza de ataque."
             },
             {
-                "id": "grove_ultimate",
-                "name": "Rama Férrea",
+                "id": "sprivok_gran_zarpazo",
+                "name": "Gran Zarpazo",
                 "affinity": "GROVE",
                 "type": "physical",
-                "power": 110,
-                "accuracy": 85,
+                "power": 95,
+                "accuracy": 100,
                 "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                "effect": null,
+                "description": "Araña con garras de madera afilada."
             }
         ]
     },
@@ -3056,11 +3388,10 @@
         "description": "Escorpión de lava solidificada cuyo aguijón inyecta magma fundido directamente en sus presas.",
         "baseStats": {
             "hp": 100,
-            "atk": 89,
-            "def": 95,
-            "spd": 66
+            "atk": 62,
+            "def": 57,
+            "spd": 57
         },
-        "catchRate": 0.2,
         "art": {
             "portrait": "🔥",
             "front": "🔥",
@@ -3068,52 +3399,63 @@
         },
         "moves": [
             {
-                "id": "ember_basic",
-                "name": "Ala Incandescente",
+                "id": "scoravel_punetazo_igneo",
+                "name": "Puñetazo Ígneo",
                 "affinity": "EMBER",
                 "type": "physical",
-                "power": 50,
+                "power": 55,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Araña con garras de fuego."
             },
             {
-                "id": "ember_medium",
-                "name": "Mordisco de Horno",
+                "id": "scoravel_llamarada",
+                "name": "Llamarada",
                 "affinity": "EMBER",
                 "type": "special",
                 "power": 80,
-                "accuracy": 95,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Dispara una llamarada abrasadora, agrietando y quebrando la defensa del oponente."
             },
             {
-                "id": "ember_status",
-                "name": "Garra de Brasa",
+                "id": "scoravel_rugido",
+                "name": "Rugido",
                 "affinity": "EMBER",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
-                "cooldown": 2,
-                "description": "Quema al rival, causándole daño continuo al final de cada turno.",
+                "cooldown": 3,
+                "effect": {
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Aviva su fuego interno, sellando las heridas y restaurando la vitalidad."
+            },
+            {
+                "id": "scoravel_gran_embestida_ardiente",
+                "name": "Gran Embestida Ardiente",
+                "affinity": "EMBER",
+                "type": "physical",
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
                 "effect": {
                     "type": "apply_status",
                     "status": "burn",
-                    "target": "enemy"
-                }
-            },
-            {
-                "id": "ember_ultimate",
-                "name": "Coraza de Roca",
-                "affinity": "EMBER",
-                "type": "physical",
-                "power": 110,
-                "accuracy": 85,
-                "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Desata una patada ígnea, dejando brasas que queman lentamente al objetivo."
             }
         ]
     },
@@ -3125,12 +3467,11 @@
         "rarity": "COMMON",
         "description": "Un ser envuelto en un manto de oscuridad perpetua que absorbe toda la luz a su alrededor.",
         "baseStats": {
-            "hp": 86,
-            "atk": 70,
-            "def": 77,
-            "spd": 67
+            "hp": 80,
+            "atk": 50,
+            "def": 45,
+            "spd": 55
         },
-        "catchRate": 0.5,
         "art": {
             "portrait": "🌑",
             "front": "🌑",
@@ -3138,56 +3479,53 @@
         },
         "moves": [
             {
-                "id": "shade_basic",
-                "name": "Niebla Lóbrega",
+                "id": "grimveil_daga",
+                "name": "Daga",
                 "affinity": "SHADE",
                 "type": "physical",
                 "power": 50,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Embiste envuelto en tinieblas."
             },
             {
-                "id": "shade_medium",
-                "name": "Sello Sombrío",
+                "id": "grimveil_abismo",
+                "name": "Abismo",
                 "affinity": "SHADE",
                 "type": "special",
-                "power": 80,
-                "accuracy": 95,
+                "power": 75,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Proyecta vacío que engulle la luz."
             },
             {
-                "id": "shade_status",
-                "name": "Eco de Tinieblas",
+                "id": "grimveil_miedo",
+                "name": "Miedo",
                 "affinity": "SHADE",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
                 "cooldown": 2,
-                "description": "Infunde miedo en el rival, reduciendo drásticamente su daño y precisión.",
                 "effect": {
-                    "type": "apply_status",
-                    "status": "fear",
-                    "target": "enemy"
-                }
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 20,
+                    "duration": 2
+                },
+                "description": "Se envuelve en un manto de sombras, potenciando su fuerza de ataque."
             },
             {
-                "id": "shade_drain",
-                "name": "Fagocitosis Umbría",
+                "id": "grimveil_gran_daga",
+                "name": "Gran Daga",
                 "affinity": "SHADE",
-                "type": "special",
-                "power": 75,
+                "type": "physical",
+                "power": 95,
                 "accuracy": 100,
                 "cooldown": 3,
-                "description": "Ataca al enemigo y roba parte de su vitalidad (limitado a un 25% del daño infligido). Requiere 3 turnos de recarga.",
-                "effect": {
-                    "type": "drain",
-                    "value": 25,
-                    "target": "enemy"
-                }
+                "effect": null,
+                "description": "Desgarra con garras de pura sombra."
             }
         ]
     },
@@ -3199,12 +3537,11 @@
         "rarity": "RARE",
         "description": "Criatura que canaliza energía estelar en descargas eléctricas de precisión quirúrgica.",
         "baseStats": {
-            "hp": 93,
-            "atk": 91,
-            "def": 77,
-            "spd": 89
+            "hp": 90,
+            "atk": 65,
+            "def": 45,
+            "spd": 65
         },
-        "catchRate": 0.15,
         "art": {
             "portrait": "✨",
             "front": "✨",
@@ -3212,52 +3549,63 @@
         },
         "moves": [
             {
-                "id": "astral_basic",
-                "name": "Pulso Cósmico",
+                "id": "lumivex_impacto",
+                "name": "Impacto",
                 "affinity": "ASTRAL",
                 "type": "physical",
-                "power": 50,
+                "power": 55,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Ataca con puños de luz estelar."
             },
             {
-                "id": "astral_medium",
-                "name": "Auge Celeste",
+                "id": "lumivex_nova",
+                "name": "Nova",
                 "affinity": "ASTRAL",
                 "type": "special",
                 "power": 80,
-                "accuracy": 95,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Proyecta una supernova en miniatura, agrietando y quebrando la defensa del oponente."
             },
             {
-                "id": "astral_buff",
-                "name": "Coraza Elemental",
+                "id": "lumivex_escudo",
+                "name": "Escudo",
                 "affinity": "ASTRAL",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
-                "cooldown": 2,
-                "description": "Refuerza su cuerpo con energía elemental, aumentando la defensa.",
+                "cooldown": 3,
                 "effect": {
-                    "type": "boost_def",
-                    "value": 25,
-                    "target": "self"
-                }
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Altera el espacio-tiempo a su alrededor, sellando las heridas y restaurando la vitalidad."
             },
             {
-                "id": "astral_ultimate",
-                "name": "Sobrecarga Nerviosa",
+                "id": "lumivex_gran_impacto",
+                "name": "Gran Impacto",
                 "affinity": "ASTRAL",
                 "type": "physical",
-                "power": 110,
-                "accuracy": 85,
-                "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Embiste atravesando el tejido espacial, dejando brasas que queman lentamente al objetivo."
             }
         ]
     },
@@ -3269,12 +3617,11 @@
         "rarity": "COMMON",
         "description": "Sus espinas segregan una savia que ralentiza los reflejos de cualquier criatura que las toque.",
         "baseStats": {
-            "hp": 87,
-            "atk": 69,
-            "def": 89,
-            "spd": 55
+            "hp": 85,
+            "atk": 60,
+            "def": 40,
+            "spd": 47
         },
-        "catchRate": 0.6,
         "art": {
             "portrait": "🌿",
             "front": "🌿",
@@ -3282,52 +3629,53 @@
         },
         "moves": [
             {
-                "id": "grove_basic",
-                "name": "Abrazo del Bosque",
+                "id": "thornax_zarpazo",
+                "name": "Zarpazo",
                 "affinity": "GROVE",
                 "type": "physical",
                 "power": 50,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Embiste con fuerza salvaje."
             },
             {
-                "id": "grove_medium",
-                "name": "Brote Vital",
+                "id": "thornax_esporas",
+                "name": "Esporas",
                 "affinity": "GROVE",
                 "type": "special",
-                "power": 80,
-                "accuracy": 95,
+                "power": 75,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Lanza hojas afiladas como cuchillas."
             },
             {
-                "id": "grove_buff",
-                "name": "Coraza Elemental",
+                "id": "thornax_cura_natural",
+                "name": "Cura Natural",
                 "affinity": "GROVE",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
                 "cooldown": 2,
-                "description": "Refuerza su cuerpo con energía elemental, aumentando la defensa.",
                 "effect": {
-                    "type": "boost_def",
-                    "value": 25,
-                    "target": "self"
-                }
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 20,
+                    "duration": 2
+                },
+                "description": "Atrae la energía de la tierra, potenciando su fuerza de ataque."
             },
             {
-                "id": "grove_ultimate",
-                "name": "Látigo de Lianas",
+                "id": "thornax_gran_embate",
+                "name": "Gran Embate",
                 "affinity": "GROVE",
                 "type": "physical",
-                "power": 110,
-                "accuracy": 85,
+                "power": 95,
+                "accuracy": 100,
                 "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                "effect": null,
+                "description": "Azota con lianas cubiertas de espinas."
             }
         ]
     },
@@ -3339,12 +3687,11 @@
         "rarity": "RARE",
         "description": "Criatura que congela las sombras para crear trampas invisibles que atrapan a sus enemigos.",
         "baseStats": {
-            "hp": 97,
-            "atk": 84,
-            "def": 98,
-            "spd": 71
+            "hp": 110,
+            "atk": 55,
+            "def": 65,
+            "spd": 50
         },
-        "catchRate": 0.2,
         "art": {
             "portrait": "❄️",
             "front": "❄️",
@@ -3352,52 +3699,63 @@
         },
         "moves": [
             {
-                "id": "frost_basic",
-                "name": "Púa de Ventisca",
+                "id": "cryoveth_golpe",
+                "name": "Golpe",
                 "affinity": "FROST",
                 "type": "physical",
-                "power": 50,
+                "power": 55,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Embiste rodeado de escarcha."
             },
             {
-                "id": "frost_medium",
-                "name": "Paso Helante",
+                "id": "cryoveth_ventisca",
+                "name": "Ventisca",
                 "affinity": "FROST",
                 "type": "special",
                 "power": 80,
-                "accuracy": 95,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Desata una ventisca helada, agrietando y quebrando la defensa del oponente."
             },
             {
-                "id": "frost_status",
-                "name": "Velo de Escarcha",
+                "id": "cryoveth_velo",
+                "name": "Velo",
                 "affinity": "FROST",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
-                "cooldown": 2,
-                "description": "Congela al rival, inmovilizándolo e impidiendo su ataque temporalmente.",
+                "cooldown": 3,
                 "effect": {
-                    "type": "apply_status",
-                    "status": "freeze",
-                    "target": "enemy"
-                }
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Genera una armadura de escarcha, sellando las heridas y restaurando la vitalidad."
             },
             {
-                "id": "frost_ultimate",
-                "name": "Corte del Ocaso",
+                "id": "cryoveth_gran_zarpa_glacial",
+                "name": "Gran Zarpa Glacial",
                 "affinity": "FROST",
                 "type": "physical",
-                "power": 110,
-                "accuracy": 85,
-                "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Desgarra con garras de hielo perpetuo, dejando brasas que queman lentamente al objetivo."
             }
         ]
     },
@@ -3410,11 +3768,10 @@
         "description": "Criatura que habita cuevas profundas y usa su cuerpo pétreo como proyectil rodante de alto impacto.",
         "baseStats": {
             "hp": 90,
-            "atk": 70,
-            "def": 88,
-            "spd": 52
+            "atk": 52,
+            "def": 47,
+            "spd": 47
         },
-        "catchRate": 0.55,
         "art": {
             "portrait": "🪨",
             "front": "🪨",
@@ -3422,52 +3779,53 @@
         },
         "moves": [
             {
-                "id": "stone_basic",
-                "name": "Rodada de Obsidiana",
+                "id": "stoven_golpe_sismico",
+                "name": "Golpe Sísmico",
                 "affinity": "STONE",
                 "type": "physical",
                 "power": 50,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Arremete con fuerza sísmica."
             },
             {
-                "id": "stone_medium",
-                "name": "Golpe de Granito",
+                "id": "stoven_lanza_de_roca",
+                "name": "Lanza de Roca",
                 "affinity": "STONE",
                 "type": "special",
-                "power": 80,
-                "accuracy": 95,
+                "power": 75,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": null,
+                "description": "Hace llover cantos rodados."
             },
             {
-                "id": "stone_buff",
-                "name": "Coraza Elemental",
+                "id": "stoven_piel_de_piedra",
+                "name": "Piel de Piedra",
                 "affinity": "STONE",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
                 "cooldown": 2,
-                "description": "Refuerza su cuerpo con energía elemental, aumentando la defensa.",
                 "effect": {
-                    "type": "boost_def",
-                    "value": 25,
-                    "target": "self"
-                }
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 20,
+                    "duration": 2
+                },
+                "description": "Endurece su piel con minerales, potenciando su fuerza de ataque."
             },
             {
-                "id": "stone_ultimate",
-                "name": "Muralla Mineral",
+                "id": "stoven_gran_golpe_sismico",
+                "name": "Gran Golpe Sísmico",
                 "affinity": "STONE",
                 "type": "physical",
-                "power": 110,
-                "accuracy": 85,
+                "power": 95,
+                "accuracy": 100,
                 "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                "effect": null,
+                "description": "Embiste como un alud de rocas."
             }
         ]
     },
@@ -3479,12 +3837,11 @@
         "rarity": "ELITE",
         "description": "Guardián ancestral de los bosques volcánicos de Mythara, su cuerpo es madera viva impregnada de magma.",
         "baseStats": {
-            "hp": 122,
-            "atk": 97,
-            "def": 106,
-            "spd": 75
+            "hp": 100,
+            "atk": 70,
+            "def": 65,
+            "spd": 70
         },
-        "catchRate": 0.05,
         "art": {
             "portrait": "🔥",
             "front": "🔥",
@@ -3492,52 +3849,68 @@
         },
         "moves": [
             {
-                "id": "ember_basic",
-                "name": "Llama Voraz",
+                "id": "embralith_punetazo_igneo",
+                "name": "Puñetazo Ígneo",
                 "affinity": "EMBER",
                 "type": "physical",
-                "power": 50,
+                "power": 60,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "debuff_spd",
+                    "target": "enemy",
+                    "value": 15,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Desata una patada ígnea, ralentizando drásticamente los movimientos del adversario."
             },
             {
-                "id": "ember_medium",
-                "name": "Pira Reforzada",
+                "id": "embralith_tormenta_de_fuego",
+                "name": "Tormenta de Fuego",
                 "affinity": "EMBER",
                 "type": "special",
-                "power": 80,
-                "accuracy": 95,
+                "power": 85,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "boost_def",
+                    "target": "self",
+                    "value": 25,
+                    "duration": 2
+                },
+                "description": "Proyecta un torbellino de fuego, endureciendo su resistencia física."
             },
             {
-                "id": "ember_status",
-                "name": "Erupción de Ceniza",
+                "id": "embralith_aura_de_calor",
+                "name": "Aura de Calor",
                 "affinity": "EMBER",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
-                "cooldown": 2,
-                "description": "Quema al rival, causándole daño continuo al final de cada turno.",
+                "cooldown": 3,
                 "effect": {
                     "type": "apply_status",
-                    "status": "burn",
-                    "target": "enemy"
-                }
+                    "status": "stun",
+                    "target": "all_enemies",
+                    "chance": 100
+                },
+                "description": "Aviva su fuego interno, dejando al adversario completamente aturdido e incapacitado."
             },
             {
-                "id": "ember_ultimate",
-                "name": "Savia Sanadora",
+                "id": "embralith_gran_embestida_ardiente",
+                "name": "Gran Embestida Ardiente",
                 "affinity": "EMBER",
                 "type": "physical",
-                "power": 110,
-                "accuracy": 85,
-                "cooldown": 3,
-                "description": "Su ataque más poderoso y devastador. Tarda 3 turnos en volver a estar disponible.",
-                "effect": null
+                "power": 115,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "drain",
+                    "target": "enemy",
+                    "value": 25
+                },
+                "description": "Golpea con el cuerpo al rojo vivo, drenando la energía vital del rival para sanarse a sí mismo."
             }
         ]
     },
@@ -3551,10 +3924,10 @@
         "baseStats": {
             "hp": 136,
             "atk": 115,
-            "def": 103,
-            "spd": 96
+            "def": 100,
+            "spd": 85
         },
-        "catchRate": 0.01,
+        "evolution": null,
         "art": {
             "portrait": "🌑",
             "front": "🌑",
@@ -3562,56 +3935,76 @@
         },
         "moves": [
             {
-                "id": "shade_basic",
-                "name": "Velo Opresivo",
+                "id": "nyxareth_zarpa_umbral",
+                "name": "Zarpa Umbral",
                 "affinity": "SHADE",
                 "type": "physical",
-                "power": 50,
+                "power": 70,
                 "accuracy": 100,
                 "cooldown": 0,
-                "description": "Un ataque básico rápido y preciso. No requiere tiempo de recarga.",
-                "effect": null
+                "effect": {
+                    "type": "boost_spd",
+                    "target": "self",
+                    "value": 25,
+                    "duration": 2
+                },
+                "description": "Desgarra con zarpas de vacío puro; el impacto absorbe luz y acelera sus movimientos."
             },
             {
-                "id": "shade_medium",
-                "name": "Mordida del Vacío",
+                "id": "nyxareth_abismo",
+                "name": "Abismo",
                 "affinity": "SHADE",
                 "type": "special",
-                "power": 80,
-                "accuracy": 95,
+                "power": 100,
+                "accuracy": 100,
                 "cooldown": 2,
-                "description": "Un ataque de poder medio que golpea contundentemente. Requiere 2 turnos de recarga.",
-                "effect": null
+                "effect": [
+                    {
+                        "type": "drain",
+                        "target": "enemy",
+                        "value": 25
+                    },
+                    {
+                        "type": "debuff_atk",
+                        "target": "enemy",
+                        "value": 20,
+                        "duration": 2,
+                        "chance": 100
+                    }
+                ],
+                "description": "Abre fisuras de oscuridad que drenan la vitalidad del rival y merman su fuerza de ataque."
             },
             {
-                "id": "shade_status",
-                "name": "Golpe de Penumbra",
+                "id": "nyxareth_silencio",
+                "name": "Silencio de Sombras",
                 "affinity": "SHADE",
                 "type": "support",
                 "power": 0,
                 "accuracy": 100,
-                "cooldown": 2,
-                "description": "Infunde miedo en el rival, reduciendo drásticamente su daño y precisión.",
+                "cooldown": 3,
                 "effect": {
-                    "type": "apply_status",
-                    "status": "fear",
-                    "target": "enemy"
-                }
+                    "type": "silence",
+                    "target": "all_enemies",
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Envuelve al equipo enemigo en un silencio fantasmagórico que suprime sus habilidades más poderosas."
             },
             {
-                "id": "shade_drain",
-                "name": "Fagocitosis Umbría",
-                "affinity": "SHADE",
+                "id": "nyxareth_gran_abismo",
+                "name": "Gran Abismo",
+                "affinity": "ASTRAL",
                 "type": "special",
-                "power": 75,
+                "power": 140,
                 "accuracy": 100,
-                "cooldown": 3,
-                "description": "Ataca al enemigo y roba parte de su vitalidad (limitado a un 25% del daño infligido). Requiere 3 turnos de recarga.",
+                "cooldown": 5,
                 "effect": {
-                    "type": "drain",
-                    "value": 25,
-                    "target": "enemy"
-                }
+                    "type": "apply_status",
+                    "status": "curse",
+                    "target": "all_enemies",
+                    "chance": 100
+                },
+                "description": "Colapsa el espacio en un punto de oscuridad total, maldiciéndolo todo a su paso."
             }
         ]
     }
