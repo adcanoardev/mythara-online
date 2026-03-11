@@ -63,7 +63,10 @@ router.get("/inventory/me", requireAuth, async (req, res) => {
 router.get("/mine/me", requireAuth, async (req, res) => {
     try {
         res.json(await getMineStatus(req.user!.userId));
-    } catch { res.status(500).json({ error: "Internal error" }); }
+    } catch (e: any) { 
+        console.error("MINE ERROR:", e.message, e.stack);
+        res.status(500).json({ error: e.message }); 
+    }
 });
 
 router.post("/mine/collect", requireAuth, async (req, res) => {

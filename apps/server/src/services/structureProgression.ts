@@ -6,7 +6,7 @@
 //   - Función de upgrade genérica
 
 import { prisma } from "./prisma.js";
-import { addItem, removeItem } from "./inventoryService.js";
+import { addItem } from "./inventoryService.js";  // removeItem eliminado — no se usa aquí
 import type { ItemType, StructureType } from "@prisma/client";
 
 // ─── XP necesaria para pasar del nivel N al N+1 ───────────────────────────────
