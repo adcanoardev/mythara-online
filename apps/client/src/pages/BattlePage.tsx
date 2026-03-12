@@ -716,8 +716,12 @@ function PrepScreen({
             <button
                 onClick={() => canStart && onStart(order)}
                 disabled={!canStart || loading}
-                className={`px-12 py-3 rounded-xl font-mono font-black text-sm tracking-widest uppercase transition-all
-                    ${canStart && !loading ? "bg-red-600 text-white hover:bg-red-500 hover:scale-105 shadow-lg shadow-red-900/50" : "bg-slate-800 text-slate-600 cursor-not-allowed"}`}
+                className={`px-12 py-3 rounded-xl border font-mono font-black text-sm tracking-widest uppercase transition-all
+        ${
+            canStart && !loading
+                ? "bg-red/10 border-red/60 text-red hover:bg-red/20 hover:scale-105 shadow-lg shadow-red/20"
+                : "bg-slate-900/40 border-slate-800 text-slate-600 cursor-not-allowed opacity-50"
+        }`}
             >
                 {loading ? "Iniciando..." : `⚔️ Combatir (${order.length} Myth${order.length !== 1 ? "s" : ""})`}
             </button>
@@ -1146,7 +1150,7 @@ export default function BattlePage() {
     if (mode === "pvp") {
         return (
             <Layout sidebar={<TrainerSidebar />}>
-                <div className="flex-1 flex flex-col overflow-hidden">
+                <div className="flex-1 flex flex-col overflow-hidden" style={{ minHeight: 0 }}>
                     <TabBar mode={mode} onSwitch={setMode} />
                     <div className="flex-1 flex items-center justify-center">
                         <div className="text-center max-w-sm">
@@ -1171,7 +1175,7 @@ export default function BattlePage() {
     if (phase === "prep") {
         return (
             <Layout sidebar={<TrainerSidebar />}>
-                <div className="flex-1 flex flex-col overflow-hidden">
+                <div className="flex-1 flex flex-col overflow-hidden" style={{ minHeight: 0 }}>
                     <TabBar mode={mode} onSwitch={setMode} />
                     <PrepScreen myths={allMyths} onStart={handleStart} loading={loadingStart} />
                 </div>
@@ -1182,8 +1186,7 @@ export default function BattlePage() {
     // ── Arena ──
     return (
         <>
-            <Layout sidebar={<TrainerSidebar />}>
-                <style>{`
+            <style>{`
                 @keyframes projLtr {
                     0%   { opacity:0; transform:translateY(-50%) scale(0.5) translateX(0px); }
                     15%  { opacity:1; transform:translateY(-50%) scale(1.2) translateX(20px); }
@@ -1267,11 +1270,11 @@ export default function BattlePage() {
                 .aura-stun     { animation: stunSpin 1s ease-in-out infinite; }
                 .aura-curse    { animation: poisonPulse 2s ease-in-out infinite; filter: hue-rotate(270deg); }
                 @keyframes turnOverlayIn {
-                    0%   { opacity:0; transform:translate(-50%,-50%) scale(0.6); }
-                    20%  { opacity:1; transform:translate(-50%,-50%) scale(1.08); }
-                    70%  { opacity:1; transform:translate(-50%,-50%) scale(1); }
-                    100% { opacity:0; transform:translate(-50%,-50%) scale(0.95) translateY(-12px); }
-                }
+                    0%   { opacity:0; transform:scale(0.6); }
+                    20%  { opacity:1; transform:scale(1.08); }
+                    70%  { opacity:1; transform:scale(1); }
+                    100% { opacity:0; transform:scale(0.95) translateY(-12px); }
+}
                 .animate-turn-overlay { animation: turnOverlayIn 1.5s cubic-bezier(0.22,1,0.36,1) forwards; }
                 @keyframes victoryIn {
                     0%   { opacity:0; transform:translate(-50%,-50%) scale(0.3) rotate(-8deg); }
@@ -1322,14 +1325,14 @@ export default function BattlePage() {
                     80%     { transform:translateX(4px); }
                 }
             `}</style>
-
-                <div className="flex-1 flex flex-col overflow-hidden">
+            <Layout sidebar={<TrainerSidebar />}>
+                <div className="flex-1 flex flex-col overflow-hidden" style={{ minHeight: 0 }}>
                     <TabBar mode={mode} onSwitch={setMode} />
 
-                    <div className="flex-1 flex overflow-hidden">
+                    <div className="flex-1 flex overflow-hidden" style={{ minHeight: 0 }}>
                         {/* ── Arena principal ── */}
-                        <div className="flex-1 flex flex-col overflow-hidden">
-                            {/* ── Campo de batalla estilo Pokémon ── */}
+                        <div className="flex-1 flex flex-col overflow-hidden" style={{ minHeight: 0 }}>
+                            {/* ── Campo de batalla ── */}
                             <div
                                 className="relative flex-1 flex flex-col justify-between px-6 py-4 overflow-hidden"
                                 style={{
@@ -1556,7 +1559,7 @@ export default function BattlePage() {
                             {/* ── Panel de moves — ocupa el espacio restante inferior ── */}
                             <div
                                 className="flex-shrink-0 border-t border-slate-800 bg-[#070b14]"
-                                style={{ height: "clamp(160px, 22vh, 220px)", overflow: "hidden" }}
+                                style={{ height: "clamp(150px, 20vh, 200px)", overflow: "hidden", flexShrink: 0 }}
                             >
                                 {(() => {
                                     // Si el actor actual es del jugador y está vivo, úsalo.
@@ -1624,7 +1627,7 @@ export default function BattlePage() {
                                     ) : (
                                         <div
                                             className="flex items-center justify-center h-full"
-                                            style={{ minHeight: 160 }}
+                                            style={{ minHeight: 0 }}
                                         >
                                             <p className="text-slate-200 text-sm font-mono font-bold">
                                                 {animating
@@ -1644,7 +1647,10 @@ export default function BattlePage() {
                         </div>
 
                         {/* ── Log panel ── */}
-                        <div className="w-64 flex-shrink-0 border-l border-slate-800 flex flex-col overflow-hidden">
+                        <div
+                            className="w-64 flex-shrink-0 border-l border-slate-800 flex flex-col overflow-hidden"
+                            style={{ minHeight: 0 }}
+                        >
                             <div className="px-3 py-2.5 border-b border-slate-800 bg-slate-900/60 flex-shrink-0">
                                 <p className="font-mono text-xs text-yellow-400 uppercase tracking-widest font-bold">
                                     📜 Registro
