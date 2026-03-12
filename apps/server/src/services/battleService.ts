@@ -147,14 +147,14 @@ function makeBattleId(): string {
 
 export const AFFINITY_CHART: Record<Affinity, Partial<Record<Affinity, number>>> = {
     EMBER: { GROVE: 2, FROST: 2, TIDE: 0.5, STONE: 0.5, EMBER: 0.5 },
-    TIDE:  { EMBER: 2, STONE: 2, VOLT: 0.5, GROVE: 0.5, TIDE: 0.5 },
+    TIDE: { EMBER: 2, STONE: 2, VOLT: 0.5, GROVE: 0.5, TIDE: 0.5 },
     GROVE: { TIDE: 2, STONE: 2, EMBER: 0.5, VENOM: 0.5, GROVE: 0.5 },
-    VOLT:  { TIDE: 2, IRON: 2, GROVE: 0.5, STONE: 0.5, VOLT: 0.5 },
+    VOLT: { TIDE: 2, IRON: 2, GROVE: 0.5, STONE: 0.5, VOLT: 0.5 },
     STONE: { EMBER: 2, VOLT: 2, GROVE: 0.5, TIDE: 0.5, STONE: 0.5 },
     FROST: { GROVE: 2, ASTRAL: 2, EMBER: 0.5, IRON: 0.5, FROST: 0.5 },
     VENOM: { GROVE: 2, ASTRAL: 2, STONE: 0.5, IRON: 0.5, VENOM: 0.5 },
-    ASTRAL:{ SHADE: 2, VENOM: 0.5, ASTRAL: 0.5 },
-    IRON:  { FROST: 2, STONE: 2, EMBER: 0.5, IRON: 0.5 },
+    ASTRAL: { SHADE: 2, VENOM: 0.5, ASTRAL: 0.5 },
+    IRON: { FROST: 2, STONE: 2, EMBER: 0.5, IRON: 0.5 },
     SHADE: { ASTRAL: 2, VENOM: 2, SHADE: 0.5 },
 };
 
@@ -223,7 +223,14 @@ export function getCurrentActor(session: BattleSession3v3): BattleMyth | null {
         if (myth && !myth.defeated) return myth;
         session.currentQueueIndex++;
     }
-    return null;
+    // Cola agotada mid-ronda por derrotas — reconstruir ahora
+    const rebuilt = buildTurnQueue(session);
+    if (rebuilt.length === 0) return null;
+    session.turnQueue = rebuilt;
+    session.currentQueueIndex = 0;
+    const id = session.turnQueue[0];
+    const myth = findMyth(session, id);
+    return myth && !myth.defeated ? myth : null;
 }
 
 function advanceQueue(session: BattleSession3v3): void {
@@ -459,13 +466,13 @@ function applySingleEffect(
     // Resolver target
     const resolveTarget = (t?: string): BattleMyth[] => {
         switch (t) {
-            case "self":        return [attacker];
-            case "enemy":       return [target];
+            case "self": return [attacker];
+            case "enemy": return [target];
             case "all_enemies": return allMyths.filter(m => m !== attacker && !m.defeated);
-            case "ally":        return [attacker]; // en NPC battle no hay aliados reales
-            case "all_allies":  return allMyths.filter(m => m === attacker && !m.defeated);
-            case "all":         return allMyths.filter(m => !m.defeated);
-            default:            return [target];
+            case "ally": return [attacker]; // en NPC battle no hay aliados reales
+            case "all_allies": return allMyths.filter(m => m === attacker && !m.defeated);
+            case "all": return allMyths.filter(m => !m.defeated);
+            default: return [target];
         }
     };
 
@@ -531,7 +538,7 @@ function applySingleEffect(
                 tgt.regenValue = val / 100;
                 tgt.regenTurns = dur;
             }
-            return { logMsgs: [`♻️ ${tgts.map(t=>t.name).join(", ")} con regeneración ${dur} turnos`] };
+            return { logMsgs: [`♻️ ${tgts.map(t => t.name).join(", ")} con regeneración ${dur} turnos`] };
         }
         // ── shield ─────────────────────────────────────────────────────────
         case "shield": {
@@ -542,7 +549,7 @@ function applySingleEffect(
                 tgt.shield += shieldAmt;
                 total += shieldAmt;
             }
-            return { shieldApplied: total, logMsgs: [`🛡️ ${tgts.map(t=>t.name).join(", ")} con escudo ${total}`] };
+            return { shieldApplied: total, logMsgs: [`🛡️ ${tgts.map(t => t.name).join(", ")} con escudo ${total}`] };
         }
         // ── counter ────────────────────────────────────────────────────────
         case "counter": {
@@ -551,7 +558,7 @@ function applySingleEffect(
                 tgt.counterValue = val / 100;
                 tgt.counterTurns = dur;
             }
-            return { logMsgs: [`↩️ ${tgts.map(t=>t.name).join(", ")} con contraataque ${dur} turnos`] };
+            return { logMsgs: [`↩️ ${tgts.map(t => t.name).join(", ")} con contraataque ${dur} turnos`] };
         }
         // ── revive ─────────────────────────────────────────────────────────
         case "revive": {
@@ -566,7 +573,7 @@ function applySingleEffect(
         case "silence": {
             const tgts = resolveTarget(eff.target ?? "enemy");
             for (const tgt of tgts) tgt.silenced = dur;
-            return { logMsgs: [`🔇 ${tgts.map(t=>t.name).join(", ")} silenciado ${dur} turnos`] };
+            return { logMsgs: [`🔇 ${tgts.map(t => t.name).join(", ")} silenciado ${dur} turnos`] };
         }
         // ── debuff_heal ────────────────────────────────────────────────────
         case "debuff_heal": {
@@ -575,59 +582,59 @@ function applySingleEffect(
                 tgt.debuffHealPct = val / 100;
                 tgt.debuffHealTurns = dur;
             }
-            return { logMsgs: [`✂️ Curas de ${tgts.map(t=>t.name).join(", ")} reducidas ${dur} turnos`] };
+            return { logMsgs: [`✂️ Curas de ${tgts.map(t => t.name).join(", ")} reducidas ${dur} turnos`] };
         }
         // ── BUFFS (boost_*) ────────────────────────────────────────────────
         case "boost_atk":
         case "buff_atk": {
             const tgts = resolveTarget(eff.target ?? "self");
-            const buff: Buff = { type: "boost_atk", stat: "atk", multiplier: 1 + val/100, turnsLeft: dur, emoji: "⬆", label: "⬆ATK" };
-            for (const tgt of tgts) tgt.buffs.push({...buff});
-            return { buffApplied: buff, logMsgs: [`⬆ATK ${tgts.map(t=>t.name).join(", ")} +${val}% ATK`] };
+            const buff: Buff = { type: "boost_atk", stat: "atk", multiplier: 1 + val / 100, turnsLeft: dur, emoji: "⬆", label: "⬆ATK" };
+            for (const tgt of tgts) tgt.buffs.push({ ...buff });
+            return { buffApplied: buff, logMsgs: [`⬆ATK ${tgts.map(t => t.name).join(", ")} +${val}% ATK`] };
         }
         case "boost_def":
         case "buff_def": {
             const tgts = resolveTarget(eff.target ?? "self");
-            const buff: Buff = { type: "boost_def", stat: "def", multiplier: 1 + val/100, turnsLeft: dur, emoji: "⬆", label: "⬆DEF" };
-            for (const tgt of tgts) tgt.buffs.push({...buff});
-            return { buffApplied: buff, logMsgs: [`⬆DEF ${tgts.map(t=>t.name).join(", ")} +${val}% DEF`] };
+            const buff: Buff = { type: "boost_def", stat: "def", multiplier: 1 + val / 100, turnsLeft: dur, emoji: "⬆", label: "⬆DEF" };
+            for (const tgt of tgts) tgt.buffs.push({ ...buff });
+            return { buffApplied: buff, logMsgs: [`⬆DEF ${tgts.map(t => t.name).join(", ")} +${val}% DEF`] };
         }
         case "boost_spd": {
             const tgts = resolveTarget(eff.target ?? "self");
-            const buff: Buff = { type: "boost_spd", stat: "spd", multiplier: 1 + val/100, turnsLeft: dur, emoji: "⬆", label: "⬆SPD" };
-            for (const tgt of tgts) tgt.buffs.push({...buff});
-            return { buffApplied: buff, logMsgs: [`⬆SPD ${tgts.map(t=>t.name).join(", ")} +${val}% SPD`] };
+            const buff: Buff = { type: "boost_spd", stat: "spd", multiplier: 1 + val / 100, turnsLeft: dur, emoji: "⬆", label: "⬆SPD" };
+            for (const tgt of tgts) tgt.buffs.push({ ...buff });
+            return { buffApplied: buff, logMsgs: [`⬆SPD ${tgts.map(t => t.name).join(", ")} +${val}% SPD`] };
         }
         case "boost_acc": {
             const tgts = resolveTarget(eff.target ?? "self");
-            const buff: Buff = { type: "boost_acc", stat: "acc", multiplier: 1 + val/100, turnsLeft: dur, emoji: "⬆", label: "⬆ACC" };
-            for (const tgt of tgts) tgt.buffs.push({...buff});
-            return { buffApplied: buff, logMsgs: [`⬆ACC ${tgts.map(t=>t.name).join(", ")} +${val}% ACC`] };
+            const buff: Buff = { type: "boost_acc", stat: "acc", multiplier: 1 + val / 100, turnsLeft: dur, emoji: "⬆", label: "⬆ACC" };
+            for (const tgt of tgts) tgt.buffs.push({ ...buff });
+            return { buffApplied: buff, logMsgs: [`⬆ACC ${tgts.map(t => t.name).join(", ")} +${val}% ACC`] };
         }
         // ── DEBUFFS (debuff_*) ─────────────────────────────────────────────
         case "debuff_atk": {
             const tgts = resolveTarget(eff.target ?? "enemy");
-            const buff: Buff = { type: "debuff_atk", stat: "atk", multiplier: 1 - val/100, turnsLeft: dur, emoji: "⬇", label: "⬇ATK" };
-            for (const tgt of tgts) tgt.buffs.push({...buff});
-            return { buffApplied: buff, logMsgs: [`⬇ATK ${tgts.map(t=>t.name).join(", ")} -${val}% ATK`] };
+            const buff: Buff = { type: "debuff_atk", stat: "atk", multiplier: 1 - val / 100, turnsLeft: dur, emoji: "⬇", label: "⬇ATK" };
+            for (const tgt of tgts) tgt.buffs.push({ ...buff });
+            return { buffApplied: buff, logMsgs: [`⬇ATK ${tgts.map(t => t.name).join(", ")} -${val}% ATK`] };
         }
         case "debuff_def": {
             const tgts = resolveTarget(eff.target ?? "enemy");
-            const buff: Buff = { type: "debuff_def", stat: "def", multiplier: 1 - val/100, turnsLeft: dur, emoji: "⬇", label: "⬇DEF" };
-            for (const tgt of tgts) tgt.buffs.push({...buff});
-            return { buffApplied: buff, logMsgs: [`⬇DEF ${tgts.map(t=>t.name).join(", ")} -${val}% DEF`] };
+            const buff: Buff = { type: "debuff_def", stat: "def", multiplier: 1 - val / 100, turnsLeft: dur, emoji: "⬇", label: "⬇DEF" };
+            for (const tgt of tgts) tgt.buffs.push({ ...buff });
+            return { buffApplied: buff, logMsgs: [`⬇DEF ${tgts.map(t => t.name).join(", ")} -${val}% DEF`] };
         }
         case "debuff_spd": {
             const tgts = resolveTarget(eff.target ?? "enemy");
-            const buff: Buff = { type: "debuff_spd", stat: "spd", multiplier: 1 - val/100, turnsLeft: dur, emoji: "⬇", label: "⬇SPD" };
-            for (const tgt of tgts) tgt.buffs.push({...buff});
-            return { buffApplied: buff, logMsgs: [`⬇SPD ${tgts.map(t=>t.name).join(", ")} -${val}% SPD`] };
+            const buff: Buff = { type: "debuff_spd", stat: "spd", multiplier: 1 - val / 100, turnsLeft: dur, emoji: "⬇", label: "⬇SPD" };
+            for (const tgt of tgts) tgt.buffs.push({ ...buff });
+            return { buffApplied: buff, logMsgs: [`⬇SPD ${tgts.map(t => t.name).join(", ")} -${val}% SPD`] };
         }
         case "debuff_acc": {
             const tgts = resolveTarget(eff.target ?? "enemy");
-            const buff: Buff = { type: "debuff_acc", stat: "acc", multiplier: 1 - val/100, turnsLeft: dur, emoji: "⬇", label: "⬇ACC" };
-            for (const tgt of tgts) tgt.buffs.push({...buff});
-            return { buffApplied: buff, logMsgs: [`⬇ACC ${tgts.map(t=>t.name).join(", ")} -${val}% ACC`] };
+            const buff: Buff = { type: "debuff_acc", stat: "acc", multiplier: 1 - val / 100, turnsLeft: dur, emoji: "⬇", label: "⬇ACC" };
+            for (const tgt of tgts) tgt.buffs.push({ ...buff });
+            return { buffApplied: buff, logMsgs: [`⬇ACC ${tgts.map(t => t.name).join(", ")} -${val}% ACC`] };
         }
     }
     return {};

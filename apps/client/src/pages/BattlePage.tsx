@@ -301,9 +301,21 @@ function ArenaMyth({
             {/* Daño / curación flotante */}
             {floatingDmg && (
                 <div
-                    className={`absolute z-30 font-black text-base pointer-events-none animate-float-dmg
+                    className={`absolute z-30 pointer-events-none animate-float-dmg
+    font-black tracking-tighter
                         ${floatingDmg.heal ? "text-emerald-400" : floatingDmg.crit ? "text-yellow-300" : floatingDmg.mult >= 2 ? "text-orange-400" : floatingDmg.mult <= 0.5 ? "text-blue-300" : "text-white"}`}
-                    style={{ top: -28, left: "50%", transform: "translateX(-50%)" }}
+                    style={{
+                        top: -20,
+                        left: "50%",
+                        transform: "translateX(-50%)",
+                        fontSize: floatingDmg.crit ? "2rem" : "1.6rem",
+                        textShadow: floatingDmg.heal
+                            ? "0 0 12px #4ade80, 0 2px 4px rgba(0,0,0,0.8)"
+                            : floatingDmg.crit
+                              ? "0 0 16px #fbbf24, 0 0 32px #f59e0b, 0 2px 4px rgba(0,0,0,0.9)"
+                              : "0 0 10px currentColor, 0 2px 4px rgba(0,0,0,0.8)",
+                        letterSpacing: "-0.02em",
+                    }}
                 >
                     {floatingDmg.heal
                         ? `+${floatingDmg.value}`
@@ -345,11 +357,7 @@ function ArenaMyth({
                     <span className="text-4xl opacity-30">💀</span>
                 ) : (
                     <MythArt
-                        art={
-                            side === "player"
-                                ? { front: myth.art?.back || myth.art?.front, portrait: myth.art?.portrait }
-                                : myth.art
-                        }
+                        art={myth.art}
                         px={spriteSize}
                         className={[
                             cfg ? "animate-myth-shake" : isActing ? "animate-myth-idle" : "",
@@ -644,22 +652,6 @@ export default function BattlePage() {
             .then((d) => setAllMyths(d ?? []))
             .catch(() => {});
         api.battleNpcActive()
-            .then((s: any) => {
-                if (s?.status === "ongoing") {
-                    const cloned = cloneSession(s);
-                    setSession(cloned);
-                    setPhase("battle");
-                    initTurn(cloned);
-                }
-            })
-            .catch(() => {});
-    }, []);
-
-    useEffect(() => {
-        api.creatures()
-            .then((d) => setAllMyths(d ?? []))
-            .catch(() => {});
-        api.battleNpcActive()
             .then(async (s: any) => {
                 if (s?.status === "ongoing") {
                     const cloned = cloneSession(s);
@@ -670,7 +662,7 @@ export default function BattlePage() {
                         await sleep(800);
                         setAnimating(true);
                         try {
-                            await handleNpcTurn(cloned, actorId);
+                            await handleNpcTurn(cloned, actorId, true);
                         } finally {
                             setAnimating(false);
                         }
@@ -859,16 +851,18 @@ export default function BattlePage() {
             const ended = finalizeTurn(newSession, nextActorId, nextActorIsPlayer, xpGained, coinsGained);
             if (!ended && !nextActorIsPlayer && nextActorId) {
                 await sleep(600);
-                await handleNpcTurn(newSession, nextActorId);
+                await handleNpcTurn(newSession, nextActorId, true);
             }
         } catch (e: any) {
             addLog(`Error: ${e.message}`, "bad");
         } finally {
+            // Solo reseteamos aquí si el siguiente es jugador.
+            // Si encadenamos NPC, handleNpcTurn tiene su propio finally.
             setAnimating(false);
         }
     }
 
-    async function handleNpcTurn(currentSession: BattleSession, npcActorId: string) {
+    async function handleNpcTurn(currentSession: BattleSession, npcActorId: string, isRoot = false) {
         try {
             const res = await api.battleNpcTurn(currentSession.battleId, "__npc__", undefined);
             const { session: rawSession, action, nextActorId, nextActorIsPlayer, xpGained, coinsGained } = res;
@@ -878,10 +872,12 @@ export default function BattlePage() {
             const ended = finalizeTurn(newSession, nextActorId, nextActorIsPlayer, xpGained, coinsGained);
             if (!ended && !nextActorIsPlayer && nextActorId) {
                 await sleep(600);
-                await handleNpcTurn(newSession, nextActorId);
+                await handleNpcTurn(newSession, nextActorId, false);
             }
         } catch (e: any) {
             addLog(`Error NPC: ${e.message}`, "bad");
+        } finally {
+            if (isRoot) setAnimating(false);
         }
     }
 
@@ -900,7 +896,7 @@ export default function BattlePage() {
                 await sleep(800);
                 setAnimating(true);
                 try {
-                    await handleNpcTurn(cloned, actorId);
+                    await handleNpcTurn(cloned, actorId, true);
                 } finally {
                     setAnimating(false);
                 }
@@ -1024,10 +1020,11 @@ export default function BattlePage() {
                     100% { opacity:0; transform:translateY(-50%) scale(0.8) translateX(-280px); }
                 }
                 @keyframes floatDmg {
-                    0%   { opacity:0; transform:translateX(-50%) translateY(0) scale(0.8); }
-                    15%  { opacity:1; transform:translateX(-50%) translateY(-4px) scale(1.1); }
-                    80%  { opacity:1; transform:translateX(-50%) translateY(-20px) scale(1); }
-                    100% { opacity:0; transform:translateX(-50%) translateY(-32px) scale(0.9); }
+                    0%   { opacity:0;   transform:translateX(-50%) scale(2.5) rotate(-8deg); filter:blur(4px); }
+                    12%  { opacity:1;   transform:translateX(-50%) scale(1.1) rotate(2deg);  filter:blur(0px); }
+                    25%  { opacity:1;   transform:translateX(-50%) scale(1.25) rotate(-1deg); }
+                    70%  { opacity:1;   transform:translateX(-50%) scale(1.1) translateY(-8px); }
+                    100% { opacity:0;   transform:translateX(-50%) scale(0.9) translateY(-18px); }
                 }
                 @keyframes impactFlash {
                     0%,100% { opacity:0; }
@@ -1050,7 +1047,7 @@ export default function BattlePage() {
                 }
                 .animate-proj-ltr { animation: projLtr 0.52s cubic-bezier(0.4,0,0.2,1) forwards; }
                 .animate-proj-rtl { animation: projRtl 0.52s cubic-bezier(0.4,0,0.2,1) forwards; }
-                .animate-float-dmg { animation: floatDmg 0.9s ease-out forwards; }
+                .animate-float-dmg     { animation: floatDmg 1.4s cubic-bezier(0.22,1,0.36,1) forwards; }
                 .animate-impact-flash { animation: impactFlash 0.55s ease-in-out; }
                 .animate-myth-shake { animation: mythShake 0.45s ease-in-out; }
                 .animate-myth-idle  { animation: mythIdle 2s ease-in-out infinite; }
@@ -1147,7 +1144,7 @@ export default function BattlePage() {
                                         targeted={myth.instanceId === targetEnemyMythId && currentActorIsPlayer}
                                         flashAffinity={flashMap[myth.instanceId]}
                                         floatingDmg={floatMap[myth.instanceId]}
-                                        spriteSize={90}
+                                        spriteSize={150}
                                         onClick={() => {
                                             if (!myth.defeated && !animating && currentActorIsPlayer)
                                                 setTargetEnemyMythId(myth.instanceId);
@@ -1211,7 +1208,7 @@ export default function BattlePage() {
                                         isActing={myth.instanceId === currentActorId}
                                         flashAffinity={flashMap[myth.instanceId]}
                                         floatingDmg={floatMap[myth.instanceId]}
-                                        spriteSize={90}
+                                        spriteSize={150}
                                     />
                                 ))}
                             </div>
@@ -1220,7 +1217,7 @@ export default function BattlePage() {
                         {/* ── Panel de moves — ocupa el espacio restante inferior ── */}
                         <div
                             className="flex-shrink-0 border-t border-slate-800 bg-[#070b14]"
-                            style={{ minHeight: 160 }}
+                            style={{ height: 200, overflow: "hidden" }}
                         >
                             {(() => {
                                 // Si el actor actual es del jugador y está vivo, úsalo.
