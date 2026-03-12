@@ -14,7 +14,6 @@ const NAV = [
     { icon: "🏆", label: "Ranking", path: "/ranking" },
 ];
 
-
 // ─────────────────────────────────────────
 // Toast system
 // ─────────────────────────────────────────
@@ -39,15 +38,15 @@ export function useToast() {
 
 const TOAST_COLORS: Record<ToastType, string> = {
     success: "border-emerald-500/60 bg-emerald-500/10 text-emerald-300",
-    error:   "border-red-500/60    bg-red-500/10    text-red-300",
-    info:    "border-blue-500/60   bg-blue-500/10   text-blue-300",
+    error: "border-red-500/60    bg-red-500/10    text-red-300",
+    info: "border-blue-500/60   bg-blue-500/10   text-blue-300",
     warning: "border-yellow-500/60 bg-yellow-500/10 text-yellow-300",
 };
 
 const TOAST_ICONS: Record<ToastType, string> = {
     success: "✅",
-    error:   "❌",
-    info:    "ℹ️",
+    error: "❌",
+    info: "ℹ️",
     warning: "⚠️",
 };
 
@@ -259,143 +258,145 @@ export default function Layout({ children, sidebar }: Props) {
 
     const addToast = useCallback((message: string, type: ToastType = "info") => {
         const id = ++_toastCounter;
-        setToasts(prev => [...prev, { id, message, type }]);
+        setToasts((prev) => [...prev, { id, message, type }]);
         timersRef.current[id] = setTimeout(() => removeToast(id), 3500);
     }, []);
 
     const removeToast = useCallback((id: number) => {
         clearTimeout(timersRef.current[id]);
         delete timersRef.current[id];
-        setToasts(prev => prev.filter(t => t.id !== id));
+        setToasts((prev) => prev.filter((t) => t.id !== id));
     }, []);
 
     // Limpiar timers al desmontar
     useEffect(() => {
-        return () => { Object.values(timersRef.current).forEach(clearTimeout); };
+        return () => {
+            Object.values(timersRef.current).forEach(clearTimeout);
+        };
     }, []);
 
     return (
         <ToastContext.Provider value={{ toast: addToast }}>
-        <div className="h-screen w-screen overflow-hidden flex flex-col bg-bg">
-        <style>{`
+            <div className="w-screen overflow-hidden flex flex-col bg-bg" style={{ height: "100dvh" }}>
+                <style>{`
             @keyframes toastIn {
                 from { opacity: 0; transform: translateX(100%) scale(0.95); }
                 to   { opacity: 1; transform: translateX(0)   scale(1); }
             }
             .animate-toast-in { animation: toastIn 0.25s cubic-bezier(0.34,1.56,0.64,1) both; }
         `}</style>
-            {/* Top bar */}
-            <header className="flex-shrink-0 bg-bg/90 backdrop-blur border-b border-border px-6 h-14 flex items-center justify-between">
-                <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/")}>
-                    <svg className="w-6 h-6" viewBox="0 0 60 60" fill="none">
-                        <defs>
-                            <linearGradient id="navLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stopColor="#7b2fff" />
-                                <stop offset="100%" stopColor="#4cc9f0" />
-                            </linearGradient>
-                        </defs>
-                        <polygon
-                            points="30,3 54,16 54,44 30,57 6,44 6,16"
-                            stroke="url(#navLogoGrad)"
-                            strokeWidth="2"
-                            fill="none"
-                        />
-                        <line
-                            x1="30"
-                            y1="12"
-                            x2="30"
-                            y2="48"
-                            stroke="url(#navLogoGrad)"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                        />
-                        <line
-                            x1="14"
-                            y1="22"
-                            x2="46"
-                            y2="38"
-                            stroke="url(#navLogoGrad)"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                        />
-                        <line
-                            x1="46"
-                            y1="22"
-                            x2="14"
-                            y2="38"
-                            stroke="url(#navLogoGrad)"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                        />
-                        <circle cx="30" cy="30" r="5" fill="url(#navLogoGrad)" opacity="0.9" />
-                        <circle cx="30" cy="30" r="2.5" fill="#070b14" />
-                    </svg>
-                    <span className="font-display font-bold text-lg tracking-widest text-yellow">MYTHARA</span>
-                </div>
-                <div className="flex items-center gap-4">
-                    <span className="font-display text-sm text-muted tracking-wider hidden sm:block">
-                        {user?.username}
-                    </span>
-                    <button
-                        onClick={logout}
-                        className="px-3 py-1 border border-border rounded-lg text-muted text-xs font-display tracking-widest uppercase hover:border-red hover:text-red transition-all"
-                    >
-                        Salir
-                    </button>
-                </div>
-            </header>
+                {/* Top bar */}
+                <header className="flex-shrink-0 bg-bg/90 backdrop-blur border-b border-border px-6 h-14 flex items-center justify-between">
+                    <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/")}>
+                        <svg className="w-6 h-6" viewBox="0 0 60 60" fill="none">
+                            <defs>
+                                <linearGradient id="navLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stopColor="#7b2fff" />
+                                    <stop offset="100%" stopColor="#4cc9f0" />
+                                </linearGradient>
+                            </defs>
+                            <polygon
+                                points="30,3 54,16 54,44 30,57 6,44 6,16"
+                                stroke="url(#navLogoGrad)"
+                                strokeWidth="2"
+                                fill="none"
+                            />
+                            <line
+                                x1="30"
+                                y1="12"
+                                x2="30"
+                                y2="48"
+                                stroke="url(#navLogoGrad)"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                            />
+                            <line
+                                x1="14"
+                                y1="22"
+                                x2="46"
+                                y2="38"
+                                stroke="url(#navLogoGrad)"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                            />
+                            <line
+                                x1="46"
+                                y1="22"
+                                x2="14"
+                                y2="38"
+                                stroke="url(#navLogoGrad)"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                            />
+                            <circle cx="30" cy="30" r="5" fill="url(#navLogoGrad)" opacity="0.9" />
+                            <circle cx="30" cy="30" r="2.5" fill="#070b14" />
+                        </svg>
+                        <span className="font-display font-bold text-lg tracking-widest text-yellow">MYTHARA</span>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <span className="font-display text-sm text-muted tracking-wider hidden sm:block">
+                            {user?.username}
+                        </span>
+                        <button
+                            onClick={logout}
+                            className="px-3 py-1 border border-border rounded-lg text-muted text-xs font-display tracking-widest uppercase hover:border-red hover:text-red transition-all"
+                        >
+                            Salir
+                        </button>
+                    </div>
+                </header>
 
-            {/* Body */}
-            <div className="flex-1 flex overflow-hidden">
-                <aside className="w-56 flex-shrink-0 border-r border-border flex flex-col overflow-hidden">
-                    {sidebar && <div className="flex-shrink-0 overflow-y-auto">{sidebar}</div>}
-                    <nav className="flex-1 p-2 flex flex-col gap-0.5">
-                        {NAV.map((item) => {
-                            const active = location.pathname === item.path;
-                            return (
-                                <div
-                                    key={item.path}
-                                    onClick={() => navigate(item.path)}
-                                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-semibold cursor-pointer transition-all
+                {/* Body */}
+                <div className="flex-1 flex overflow-hidden">
+                    <aside className="w-56 flex-shrink-0 border-r border-border flex flex-col overflow-hidden">
+                        {sidebar && <div className="flex-shrink-0 overflow-y-auto">{sidebar}</div>}
+                        <nav className="flex-1 p-2 flex flex-col gap-0.5">
+                            {NAV.map((item) => {
+                                const active = location.pathname === item.path;
+                                return (
+                                    <div
+                                        key={item.path}
+                                        onClick={() => navigate(item.path)}
+                                        className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-semibold cursor-pointer transition-all
                                         ${
                                             active
                                                 ? "bg-red/10 text-red border-l-2 border-red"
                                                 : "text-muted hover:bg-white/5 hover:text-white"
                                         }`}
-                                >
-                                    <span>{item.icon}</span>
-                                    <span className="font-display tracking-wide">{item.label}</span>
-                                </div>
-                            );
-                        })}
-                    </nav>
-                </aside>
+                                    >
+                                        <span>{item.icon}</span>
+                                        <span className="font-display tracking-wide">{item.label}</span>
+                                    </div>
+                                );
+                            })}
+                        </nav>
+                    </aside>
 
-                {/* Main content */}
-                <main className="flex-1 overflow-hidden flex flex-col relative">
-                    {children}
+                    {/* Main content */}
+                    <main className="flex-1 overflow-hidden flex flex-col relative">
+                        {children}
 
-                    {/* Botón flotante tabla de afinidades */}
-                    <button
-                        onClick={() => setShowAffinity(true)}
-                        title="Tabla de afinidades"
-                        className="absolute bottom-4 right-4 z-30
+                        {/* Botón flotante tabla de afinidades */}
+                        <button
+                            onClick={() => setShowAffinity(true)}
+                            title="Tabla de afinidades"
+                            className="absolute bottom-4 right-4 z-30
                             w-10 h-10 rounded-full border border-border bg-card
                             flex items-center justify-center text-lg
                             hover:border-yellow/50 hover:bg-yellow/10 hover:scale-110
                             transition-all duration-200 shadow-lg shadow-black/40"
-                    >
-                        📊
-                    </button>
-                </main>
+                        >
+                            📊
+                        </button>
+                    </main>
+                </div>
+
+                {/* Affinity modal */}
+                {showAffinity && <AffinityTableModal onClose={() => setShowAffinity(false)} />}
             </div>
 
-            {/* Affinity modal */}
-            {showAffinity && <AffinityTableModal onClose={() => setShowAffinity(false)} />}
-        </div>
-
-        {/* Toasts — fuera del div principal para no ser afectados por overflow:hidden */}
-        <ToastContainer toasts={toasts} onRemove={removeToast} />
+            {/* Toasts — fuera del div principal para no ser afectados por overflow:hidden */}
+            <ToastContainer toasts={toasts} onRemove={removeToast} />
         </ToastContext.Provider>
     );
 }

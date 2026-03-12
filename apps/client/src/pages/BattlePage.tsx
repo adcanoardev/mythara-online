@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import TrainerSidebar from "../components/TrainerSidebar";
@@ -248,17 +248,153 @@ function HpBar({ hp, maxHp, shield = 0 }: { hp: number; maxHp: number; shield?: 
 interface ProjectileState {
     affinity: Affinity;
     direction: "ltr" | "rtl";
+    level: 1 | 2 | 3; // 1=básico, 2=medio, 3=ultimate
+    fromX: number;
+    fromY: number;
+    toX: number;
+    toY: number;
 }
 
 function Projectile({ proj }: { proj: ProjectileState }) {
     const cfg = AFFINITY_CONFIG[proj.affinity];
+    const size = proj.level === 1 ? 28 : proj.level === 2 ? 40 : 56;
+    const glowSize = proj.level === 1 ? 10 : proj.level === 2 ? 20 : 35;
+
+    const dx = proj.toX - proj.fromX;
+    const dy = proj.toY - proj.fromY;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const duration = Math.max(0.35, Math.min(0.65, dist / 800));
+
     return (
         <div
-            className={`absolute top-1/2 z-50 pointer-events-none text-3xl
-                ${proj.direction === "ltr" ? "animate-proj-ltr left-8" : "animate-proj-rtl right-8"}`}
-            style={{ filter: `drop-shadow(0 0 10px ${cfg.glow}) drop-shadow(0 0 20px ${cfg.glow})` }}
+            className="fixed z-[100] pointer-events-none"
+            style={
+                {
+                    left: proj.fromX,
+                    top: proj.fromY,
+                    transform: "translate(-50%, -50%)",
+                    animation: `projTravel ${duration}s cubic-bezier(0.4,0,0.2,1) forwards`,
+                    "--dx": `${dx}px`,
+                    "--dy": `${dy}px`,
+                } as React.CSSProperties
+            }
         >
-            {cfg.projEmoji}
+            <span
+                style={{
+                    fontSize: size,
+                    filter: `drop-shadow(0 0 ${glowSize}px ${cfg.glow}) drop-shadow(0 0 ${glowSize * 2}px ${cfg.glow})`,
+                    display: "block",
+                }}
+            >
+                {cfg.projEmoji}
+            </span>
+            {/* Trail — solo niveles 2 y 3 */}
+            {proj.level >= 2 && (
+                <div
+                    className="absolute inset-0 rounded-full pointer-events-none"
+                    style={{
+                        background: `radial-gradient(circle, ${cfg.glow}88 0%, transparent 70%)`,
+                        width: size * 2,
+                        height: size * 2,
+                        top: -size / 2,
+                        left: -size / 2,
+                        animation: `trailFade ${duration}s ease-out forwards`,
+                    }}
+                />
+            )}
+        </div>
+    );
+}
+
+function ImpactExplosion({
+    x,
+    y,
+    affinity,
+    level,
+    onDone,
+}: {
+    x: number;
+    y: number;
+    affinity: Affinity;
+    level: 1 | 2 | 3;
+    onDone: () => void;
+}) {
+    const cfg = AFFINITY_CONFIG[affinity];
+    const rings = level === 1 ? 1 : level === 2 ? 2 : 3;
+    const maxSize = level === 1 ? 60 : level === 2 ? 110 : 180;
+
+    useEffect(() => {
+        const t = setTimeout(onDone, level === 1 ? 500 : level === 2 ? 700 : 1000);
+        return () => clearTimeout(t);
+    }, []);
+
+    return (
+        <div
+            className="fixed z-[101] pointer-events-none"
+            style={{ left: x, top: y, transform: "translate(-50%,-50%)" }}
+        >
+            {Array.from({ length: rings }).map((_, i) => (
+                <div
+                    key={i}
+                    className="absolute rounded-full"
+                    style={{
+                        border: `3px solid ${cfg.glow}`,
+                        width: maxSize,
+                        height: maxSize,
+                        top: -maxSize / 2,
+                        left: -maxSize / 2,
+                        animation: `ringExpand ${0.4 + i * 0.15}s ease-out ${i * 0.1}s forwards`,
+                        opacity: 1 - i * 0.25,
+                        boxShadow: `0 0 ${10 + i * 8}px ${cfg.glow}`,
+                    }}
+                />
+            ))}
+            {/* Flash central */}
+            <div
+                className="absolute rounded-full"
+                style={{
+                    background: `radial-gradient(circle, ${cfg.glow}ff 0%, ${cfg.glow}44 50%, transparent 100%)`,
+                    width: maxSize * 0.5,
+                    height: maxSize * 0.5,
+                    top: -maxSize * 0.25,
+                    left: -maxSize * 0.25,
+                    animation: `centralFlash 0.3s ease-out forwards`,
+                }}
+            />
+            {/* Partículas — solo nivel 2 y 3 */}
+            {level >= 2 &&
+                Array.from({ length: level === 2 ? 6 : 12 }).map((_, i) => {
+                    const angle = (i / (level === 2 ? 6 : 12)) * Math.PI * 2;
+                    const dist = level === 2 ? 50 : 90;
+                    const tx = Math.cos(angle) * dist;
+                    const ty = Math.sin(angle) * dist;
+                    return (
+                        <div
+                            key={`p${i}`}
+                            className="absolute rounded-full"
+                            style={
+                                {
+                                    width: level === 2 ? 6 : 8,
+                                    height: level === 2 ? 6 : 8,
+                                    background: cfg.glow,
+                                    top: -3,
+                                    left: -3,
+                                    boxShadow: `0 0 6px ${cfg.glow}`,
+                                    animation: `particleFly 0.6s ease-out ${i * 0.03}s forwards`,
+                                    "--tx": `${tx}px`,
+                                    "--ty": `${ty}px`,
+                                } as React.CSSProperties
+                            }
+                        />
+                    );
+                })}
+            {/* Screen shake — solo nivel 3 */}
+            {level === 3 && (
+                <div
+                    className="fixed inset-0 pointer-events-none"
+                    style={{ animation: "screenShake 0.4s ease-out forwards" }}
+                />
+            )}
         </div>
     );
 }
@@ -276,6 +412,7 @@ interface ArenaMythProps {
     floatingDmg?: { value: number; crit: boolean; mult: number; heal?: boolean } | null;
     onClick?: () => void;
     spriteSize?: number;
+    mythRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 function ArenaMyth({
@@ -287,6 +424,7 @@ function ArenaMyth({
     floatingDmg,
     onClick,
     spriteSize = 80,
+    mythRef,
 }: ArenaMythProps) {
     const cfg = flashAffinity ? AFFINITY_CONFIG[flashAffinity] : null;
     const canClick = onClick && !myth.defeated;
@@ -295,6 +433,7 @@ function ArenaMyth({
 
     return (
         <div
+            ref={mythRef}
             className={`relative flex flex-col items-center gap-1 select-none ${canClick ? "cursor-pointer" : ""}`}
             onClick={canClick ? onClick : undefined}
         >
@@ -618,6 +757,20 @@ export default function BattlePage() {
     const initialMode: BattleMode =
         (location.state as any)?.mode === "pvp" || searchParams.get("mode") === "pvp" ? "pvp" : "npc";
     const [mode, setMode] = useState<BattleMode>(initialMode);
+    const mythRefsMap = useRef<Record<string, React.RefObject<HTMLDivElement | null>>>({});
+    const [explosion, setExplosion] = useState<{
+        x: number;
+        y: number;
+        affinity: Affinity;
+        level: 1 | 2 | 3;
+    } | null>(null);
+
+    function getMythRef(instanceId: string): React.RefObject<HTMLDivElement | null> {
+        if (!mythRefsMap.current[instanceId]) {
+            mythRefsMap.current[instanceId] = React.createRef<HTMLDivElement>();
+        }
+        return mythRefsMap.current[instanceId];
+    }
 
     useEffect(() => {
         const m = (location.state as any)?.mode;
@@ -646,6 +799,7 @@ export default function BattlePage() {
     const [result, setResult] = useState<{ status: "win" | "lose"; xp?: number; coins?: number } | null>(null);
     const { reload } = useTrainer();
     const { toast } = useToast();
+    const [turnOverlay, setTurnOverlay] = useState<string | null>(null);
 
     useEffect(() => {
         api.creatures()
@@ -728,6 +882,29 @@ export default function BattlePage() {
         return new Promise<void>((r) => setTimeout(r, ms));
     }
 
+    function getProjectilePositions(
+        fromId: string,
+        toId: string,
+    ): { fromX: number; fromY: number; toX: number; toY: number } | null {
+        const fromEl = mythRefsMap.current[fromId]?.current;
+        const toEl = mythRefsMap.current[toId]?.current;
+        if (!fromEl || !toEl) return null;
+        const fromRect = fromEl.getBoundingClientRect();
+        const toRect = toEl.getBoundingClientRect();
+        return {
+            fromX: fromRect.left + fromRect.width / 2,
+            fromY: fromRect.top + fromRect.height / 2,
+            toX: toRect.left + toRect.width / 2,
+            toY: toRect.top + toRect.height / 2,
+        };
+    }
+
+    function getMoveLevel(move: Move): 1 | 2 | 3 {
+        if (move.cooldown === 0) return 1;
+        if (move.cooldown <= 2) return 2;
+        return 3;
+    }
+
     async function flashAndFloat(
         instanceId: string,
         affinity: Affinity,
@@ -760,10 +937,55 @@ export default function BattlePage() {
         } else {
             const logPrefix = action.isPlayerMyth ? "" : "👾 ";
             addLog(`${logPrefix}${action.actorName} usa ${action.move} → ${action.targetName}`, "normal");
-            setProjectile({ affinity: action.moveAffinity as Affinity, direction });
-            await sleep(480);
-            setProjectile(null);
-            await sleep(80);
+            const moveObj = (session?.playerTeam ?? [])
+                .concat(session?.enemyTeam ?? [])
+                .find((m) => m.instanceId === action.actorInstanceId)
+                ?.moves.find((mv) => mv.name === action.move);
+            const projLevel = moveObj ? getMoveLevel(moveObj) : 1;
+            const positions = getProjectilePositions(action.actorInstanceId, action.targetInstanceId);
+            if (positions) {
+                const duration = Math.max(
+                    350,
+                    Math.min(
+                        650,
+                        (Math.sqrt(
+                            Math.pow(positions.toX - positions.fromX, 2) + Math.pow(positions.toY - positions.fromY, 2),
+                        ) /
+                            800) *
+                            1000,
+                    ),
+                );
+                setProjectile({
+                    affinity: action.moveAffinity as Affinity,
+                    direction,
+                    level: projLevel,
+                    ...positions,
+                });
+                await sleep(duration);
+                setProjectile(null);
+                // Mostrar explosión en la posición del objetivo
+                setExplosion({
+                    x: positions.toX,
+                    y: positions.toY,
+                    affinity: action.moveAffinity as Affinity,
+                    level: projLevel,
+                });
+                await sleep(projLevel === 1 ? 200 : projLevel === 2 ? 300 : 150);
+            } else {
+                // Fallback si no hay refs disponibles
+                setProjectile({
+                    affinity: action.moveAffinity as Affinity,
+                    direction,
+                    level: projLevel,
+                    fromX: 0,
+                    fromY: 0,
+                    toX: 0,
+                    toY: 0,
+                });
+                await sleep(480);
+                setProjectile(null);
+                await sleep(80);
+            }
 
             if (action.targetInstanceId && action.damage > 0) {
                 await flashAndFloat(
@@ -828,6 +1050,13 @@ export default function BattlePage() {
             return true; // combate terminado
         }
         setCurrentActorId(nextActorId);
+        if (nextActorIsPlayer && nextActorId) {
+            const actorName =
+                [...newSession.playerTeam, ...newSession.enemyTeam].find((m) => m.instanceId === nextActorId)?.name ??
+                "TU MYTH";
+            setTurnOverlay(actorName);
+            setTimeout(() => setTurnOverlay(null), 1500);
+        }
         if (nextActorIsPlayer) {
             setTargetEnemyMythId((prev) => {
                 const stillAlive = newSession.enemyTeam.find((m) => m.instanceId === prev && !m.defeated);
@@ -938,59 +1167,6 @@ export default function BattlePage() {
         );
     }
 
-    // ── Resultado ──
-    if (phase === "result" && result) {
-        return (
-            <Layout sidebar={<TrainerSidebar />}>
-                <div className="flex-1 flex items-center justify-center">
-                    <div className="text-center max-w-sm">
-                        <div className="text-7xl mb-4 animate-bounce">{result.status === "win" ? "🏆" : "💀"}</div>
-                        <h2
-                            className={`font-mono text-3xl font-black tracking-widest mb-2 ${result.status === "win" ? "text-yellow-400" : "text-red-500"}`}
-                        >
-                            {result.status === "win" ? "¡VICTORIA!" : "DERROTA"}
-                        </h2>
-                        {result.status === "win" && (
-                            <div className="flex gap-4 justify-center mt-4 mb-6">
-                                {result.xp && (
-                                    <div className="px-4 py-2 rounded-lg border border-blue-500/40 bg-blue-500/10">
-                                        <p className="font-mono font-black text-lg text-blue-300">+{result.xp}</p>
-                                        <p className="text-slate-500 text-xs font-mono">XP</p>
-                                    </div>
-                                )}
-                                {result.coins && (
-                                    <div className="px-4 py-2 rounded-lg border border-yellow-500/40 bg-yellow-500/10">
-                                        <p className="font-mono font-black text-lg text-yellow-300">+{result.coins}</p>
-                                        <p className="text-slate-500 text-xs font-mono">Monedas</p>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                        <div className="flex gap-3 justify-center mt-4">
-                            <button
-                                onClick={() => {
-                                    setPhase("prep");
-                                    setSession(null);
-                                    setLog([]);
-                                    setResult(null);
-                                }}
-                                className="px-6 py-2.5 rounded-xl bg-red-700 text-white font-mono font-black text-sm tracking-widest uppercase hover:bg-red-600 transition-all"
-                            >
-                                ⚔️ Volver a combatir
-                            </button>
-                            <button
-                                onClick={() => navigate("/")}
-                                className="px-6 py-2.5 rounded-xl border border-slate-700 text-slate-400 font-mono text-sm tracking-widest uppercase hover:border-slate-500 hover:text-white transition-all"
-                            >
-                                🏡 Posada
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </Layout>
-        );
-    }
-
     // ── Prep ──
     if (phase === "prep") {
         return (
@@ -1005,8 +1181,9 @@ export default function BattlePage() {
 
     // ── Arena ──
     return (
-        <Layout sidebar={<TrainerSidebar />}>
-            <style>{`
+        <>
+            <Layout sidebar={<TrainerSidebar />}>
+                <style>{`
                 @keyframes projLtr {
                     0%   { opacity:0; transform:translateY(-50%) scale(0.5) translateX(0px); }
                     15%  { opacity:1; transform:translateY(-50%) scale(1.2) translateX(20px); }
@@ -1053,301 +1230,479 @@ export default function BattlePage() {
                 .animate-myth-idle  { animation: mythIdle 2s ease-in-out infinite; }
                 .animate-log-in { animation: logFadeIn 0.2s ease-out both; }
                 /* ── Auras de estado ── */
-@keyframes poisonPulse {
-    0%,100% { filter: drop-shadow(0 0 4px #4ade80) drop-shadow(0 0 12px #16a34a44); }
-    50%     { filter: drop-shadow(0 0 10px #4ade80) drop-shadow(0 0 24px #16a34a88); }
-}
-@keyframes burnFlicker {
-    0%,100% { filter: drop-shadow(0 0 4px #f97316) drop-shadow(0 0 10px #ea580c66); }
-    33%     { filter: drop-shadow(0 0 8px #fb923c) drop-shadow(0 0 20px #f9731688); }
-    66%     { filter: drop-shadow(0 0 6px #ef4444) drop-shadow(0 0 16px #dc262677); }
-}
-@keyframes paralyzeZap {
-    0%,90%,100% { filter: drop-shadow(0 0 2px #fde047); opacity:1; }
-    92%         { filter: drop-shadow(0 0 12px #fde047) drop-shadow(0 0 4px #fff); opacity:0.7; }
-    95%         { filter: drop-shadow(0 0 2px #fde047); opacity:1; }
-    97%         { filter: drop-shadow(0 0 10px #fde047); opacity:0.8; }
-}
-@keyframes freezePulse {
-    0%,100% { filter: drop-shadow(0 0 6px #67e8f9) drop-shadow(0 0 16px #06b6d444); }
-    50%     { filter: drop-shadow(0 0 12px #67e8f9) drop-shadow(0 0 30px #06b6d488); }
-}
-@keyframes fearShiver {
-    0%,100% { transform:translateX(0); filter:drop-shadow(0 0 4px #a855f7); }
-    25%     { transform:translateX(-2px) rotate(-1deg); }
-    75%     { transform:translateX(2px) rotate(1deg); }
-}
-@keyframes stunSpin {
-    0%    { filter: drop-shadow(0 0 4px #fbbf24); }
-    50%   { filter: drop-shadow(0 0 10px #fbbf24) drop-shadow(0 0 20px #fbbf2466); }
-    100%  { filter: drop-shadow(0 0 4px #fbbf24); }
-}
-.aura-poison   { animation: poisonPulse 1.6s ease-in-out infinite; }
-.aura-burn     { animation: burnFlicker 0.8s ease-in-out infinite; }
-.aura-paralyze { animation: paralyzeZap 2s ease-in-out infinite; }
-.aura-freeze   { animation: freezePulse 2s ease-in-out infinite; }
-.aura-fear     { animation: fearShiver 0.4s ease-in-out infinite; }
-.aura-stun     { animation: stunSpin 1s ease-in-out infinite; }
-.aura-curse    { animation: poisonPulse 2s ease-in-out infinite; filter: hue-rotate(270deg); }
+                @keyframes poisonPulse {
+                    0%,100% { filter: drop-shadow(0 0 4px #4ade80) drop-shadow(0 0 12px #16a34a44); }
+                    50%     { filter: drop-shadow(0 0 10px #4ade80) drop-shadow(0 0 24px #16a34a88); }
+                }
+                @keyframes burnFlicker {
+                    0%,100% { filter: drop-shadow(0 0 4px #f97316) drop-shadow(0 0 10px #ea580c66); }
+                    33%     { filter: drop-shadow(0 0 8px #fb923c) drop-shadow(0 0 20px #f9731688); }
+                    66%     { filter: drop-shadow(0 0 6px #ef4444) drop-shadow(0 0 16px #dc262677); }
+                }
+                @keyframes paralyzeZap {
+                    0%,90%,100% { filter: drop-shadow(0 0 2px #fde047); opacity:1; }
+                    92%         { filter: drop-shadow(0 0 12px #fde047) drop-shadow(0 0 4px #fff); opacity:0.7; }
+                    95%         { filter: drop-shadow(0 0 2px #fde047); opacity:1; }
+                    97%         { filter: drop-shadow(0 0 10px #fde047); opacity:0.8; }
+                }
+                @keyframes freezePulse {
+                    0%,100% { filter: drop-shadow(0 0 6px #67e8f9) drop-shadow(0 0 16px #06b6d444); }
+                    50%     { filter: drop-shadow(0 0 12px #67e8f9) drop-shadow(0 0 30px #06b6d488); }
+                }
+                @keyframes fearShiver {
+                    0%,100% { transform:translateX(0); filter:drop-shadow(0 0 4px #a855f7); }
+                    25%     { transform:translateX(-2px) rotate(-1deg); }
+                    75%     { transform:translateX(2px) rotate(1deg); }
+                }
+                @keyframes stunSpin {
+                    0%    { filter: drop-shadow(0 0 4px #fbbf24); }
+                    50%   { filter: drop-shadow(0 0 10px #fbbf24) drop-shadow(0 0 20px #fbbf2466); }
+                    100%  { filter: drop-shadow(0 0 4px #fbbf24); }
+                }
+                .aura-poison   { animation: poisonPulse 1.6s ease-in-out infinite; }
+                .aura-burn     { animation: burnFlicker 0.8s ease-in-out infinite; }
+                .aura-paralyze { animation: paralyzeZap 2s ease-in-out infinite; }
+                .aura-freeze   { animation: freezePulse 2s ease-in-out infinite; }
+                .aura-fear     { animation: fearShiver 0.4s ease-in-out infinite; }
+                .aura-stun     { animation: stunSpin 1s ease-in-out infinite; }
+                .aura-curse    { animation: poisonPulse 2s ease-in-out infinite; filter: hue-rotate(270deg); }
+                @keyframes turnOverlayIn {
+                    0%   { opacity:0; transform:translate(-50%,-50%) scale(0.6); }
+                    20%  { opacity:1; transform:translate(-50%,-50%) scale(1.08); }
+                    70%  { opacity:1; transform:translate(-50%,-50%) scale(1); }
+                    100% { opacity:0; transform:translate(-50%,-50%) scale(0.95) translateY(-12px); }
+                }
+                .animate-turn-overlay { animation: turnOverlayIn 1.5s cubic-bezier(0.22,1,0.36,1) forwards; }
+                @keyframes victoryIn {
+                    0%   { opacity:0; transform:translate(-50%,-50%) scale(0.3) rotate(-8deg); }
+                    40%  { opacity:1; transform:translate(-50%,-50%) scale(1.15) rotate(2deg); }
+                    60%  { transform:translate(-50%,-50%) scale(0.95) rotate(-1deg); }
+                    100% { opacity:1; transform:translate(-50%,-50%) scale(1) rotate(0deg); }
+                }
+                @keyframes defeatIn {
+                    0%   { opacity:0; transform:translate(-50%,-50%) scale(2) rotate(5deg); filter:blur(8px); }
+                    50%  { opacity:1; transform:translate(-50%,-50%) scale(0.95) rotate(-2deg); filter:blur(0px); }
+                    100% { opacity:1; transform:translate(-50%,-50%) scale(1) rotate(0deg); }
+                }
+                @keyframes particleFly {
+                    0%   { opacity:1; transform:translate(0,0) scale(1); }
+                    100% { opacity:0; transform:translate(var(--tx),var(--ty)) scale(0); }
+                }
+                @keyframes resultGlow {
+                    0%,100% { box-shadow: 0 0 40px var(--glow), 0 0 80px var(--glow2), 0 20px 60px rgba(0,0,0,0.8); }
+                    50%      { box-shadow: 0 0 80px var(--glow), 0 0 160px var(--glow2), 0 20px 60px rgba(0,0,0,0.8); }
+                }
+                .animate-victory-in { animation: victoryIn 0.7s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+                .animate-defeat-in  { animation: defeatIn 0.5s cubic-bezier(0.22,1,0.36,1) forwards; }
+                .animate-result-glow { animation: resultGlow 2s ease-in-out infinite; }
+                @keyframes projTravel {
+                    0%   { opacity:0; transform:translate(-50%,-50%) scale(0.4); }
+                    10%  { opacity:1; transform:translate(-50%,-50%) scale(1.1); }
+                    90%  { opacity:1; transform:translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.9); }
+                    100% { opacity:0; transform:translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.5); }
+                }
+                @keyframes trailFade {
+                    0%   { opacity:0.6; transform:scale(0.5); }
+                    100% { opacity:0;   transform:scale(2); }
+                }
+                @keyframes ringExpand {
+                    0%   { transform:scale(0.1); opacity:1; }
+                    100% { transform:scale(1);   opacity:0; }
+                }
+                @keyframes centralFlash {
+                    0%   { opacity:1; transform:scale(0.3); }
+                    50%  { opacity:0.8; transform:scale(1.2); }
+                    100% { opacity:0; transform:scale(1.5); }
+                }
+                @keyframes screenShake {
+                    0%,100% { transform:translateX(0); }
+                    20%     { transform:translateX(-6px); }
+                    40%     { transform:translateX(6px); }
+                    60%     { transform:translateX(-4px); }
+                    80%     { transform:translateX(4px); }
+                }
             `}</style>
 
-            <div className="flex-1 flex flex-col overflow-hidden">
-                <TabBar mode={mode} onSwitch={setMode} />
+                <div className="flex-1 flex flex-col overflow-hidden">
+                    <TabBar mode={mode} onSwitch={setMode} />
 
-                <div className="flex-1 flex overflow-hidden">
-                    {/* ── Arena principal ── */}
-                    <div className="flex-1 flex flex-col overflow-hidden">
-                        {/* ── Campo de batalla estilo Pokémon ── */}
-                        <div
-                            className="relative flex-1 flex flex-col justify-between px-6 py-4 overflow-hidden"
-                            style={{
-                                background:
-                                    "linear-gradient(180deg, #0a1628 0%, #0d1f3c 40%, #111827 70%, #0a0f1a 100%)",
-                                minHeight: 0,
-                            }}
-                        >
-                            {/* Suelo decorativo */}
+                    <div className="flex-1 flex overflow-hidden">
+                        {/* ── Arena principal ── */}
+                        <div className="flex-1 flex flex-col overflow-hidden">
+                            {/* ── Campo de batalla estilo Pokémon ── */}
                             <div
-                                className="absolute bottom-0 left-0 right-0 h-24 pointer-events-none"
+                                className="relative flex-1 flex flex-col justify-between px-6 py-4 overflow-hidden"
                                 style={{
-                                    background: "linear-gradient(180deg, transparent 0%, rgba(30,45,70,0.4) 100%)",
+                                    background:
+                                        "linear-gradient(180deg, #0a1628 0%, #0d1f3c 40%, #111827 70%, #0a0f1a 100%)",
+                                    minHeight: 0,
                                 }}
-                            />
-
-                            {/* Línea divisoria central sutil */}
-                            <div
-                                className="absolute left-8 right-8 pointer-events-none"
-                                style={{ top: "50%", height: 1, background: "rgba(255,255,255,0.04)" }}
-                            />
-
-                            {/* Proyectil ltr */}
-                            {projectile?.direction === "ltr" && (
-                                <div className="absolute inset-0 pointer-events-none">
-                                    <Projectile proj={projectile} />
-                                </div>
-                            )}
-                            {/* Proyectil rtl */}
-                            {projectile?.direction === "rtl" && (
-                                <div className="absolute inset-0 pointer-events-none">
-                                    <Projectile proj={projectile} />
-                                </div>
-                            )}
-
-                            {/* ── Fila enemigos (arriba, front view) ── */}
-                            <div className="flex justify-around items-end pt-2 relative z-10">
-                                {session?.enemyTeam.map((myth) => (
-                                    <ArenaMyth
-                                        key={myth.instanceId}
-                                        myth={myth}
-                                        side="enemy"
-                                        isActing={myth.instanceId === currentActorId}
-                                        targeted={myth.instanceId === targetEnemyMythId && currentActorIsPlayer}
-                                        flashAffinity={flashMap[myth.instanceId]}
-                                        floatingDmg={floatMap[myth.instanceId]}
-                                        spriteSize={150}
-                                        onClick={() => {
-                                            if (!myth.defeated && !animating && currentActorIsPlayer)
-                                                setTargetEnemyMythId(myth.instanceId);
-                                        }}
-                                    />
-                                ))}
-                            </div>
-
-                            {/* ── Info turno central ── */}
-                            <div className="flex items-center justify-between px-4 py-1 relative z-10">
-                                <span className="font-mono text-xs text-slate-600 tracking-widest">
-                                    T{session?.turn ?? 0}
-                                </span>
-                                <div className="flex items-center gap-3">
-                                    {animating && (
-                                        <span className="font-mono text-xs text-yellow-400 animate-pulse">
-                                            ⚡ Resolviendo...
-                                        </span>
-                                    )}
-                                    {currentActorIsPlayer && !animating && (
+                            >
+                                {turnOverlay && (
+                                    <div className="absolute inset-0 flex items-center justify-center z-50 pointer-events-none">
                                         <div
-                                            className={`flex items-center gap-1.5 font-mono text-xs font-black tabular-nums
-                                            ${timer <= 5 ? "text-red-400 animate-pulse" : timer <= 10 ? "text-yellow-400" : "text-slate-400"}`}
+                                            className="animate-turn-overlay text-center"
+                                            style={{
+                                                background:
+                                                    "linear-gradient(135deg, rgba(7,11,20,0.85) 0%, rgba(30,45,69,0.90) 100%)",
+                                                border: "2px solid rgba(253,214,10,0.6)",
+                                                borderRadius: 16,
+                                                padding: "12px 32px",
+                                                boxShadow: "0 0 40px rgba(253,214,10,0.25), 0 8px 32px rgba(0,0,0,0.6)",
+                                            }}
                                         >
-                                            ⏱ {timer}s
-                                            <div className="w-12 h-1 bg-slate-800 rounded-full overflow-hidden">
-                                                <div
-                                                    className={`h-full rounded-full transition-all duration-1000 ease-linear
-                                                    ${timer <= 5 ? "bg-red-500" : timer <= 10 ? "bg-yellow-500" : "bg-emerald-500"}`}
-                                                    style={{ width: `${(timer / 15) * 100}%` }}
-                                                />
+                                            <p className="font-mono text-xs text-yellow-400/70 tracking-widest uppercase mb-1">
+                                                Tu turno
+                                            </p>
+                                            <p
+                                                className="font-mono font-black text-2xl text-yellow-300 tracking-widest uppercase"
+                                                style={{ textShadow: "0 0 20px rgba(253,214,10,0.8)" }}
+                                            >
+                                                ⚔️ {turnOverlay}
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+                                {phase === "result" && result && (
+                                    <div
+                                        className="absolute inset-0 z-50 pointer-events-auto flex items-center justify-center"
+                                        style={{ background: "rgba(4,8,16,0.75)", backdropFilter: "blur(2px)" }}
+                                    >
+                                        <div
+                                            className={`text-center pointer-events-auto ${result.status === "win" ? "animate-victory-in" : "animate-defeat-in"} animate-result-glow`}
+                                            style={
+                                                {
+                                                    padding: "32px 48px",
+                                                    borderRadius: 24,
+                                                    border:
+                                                        result.status === "win"
+                                                            ? "2px solid rgba(253,214,10,0.7)"
+                                                            : "2px solid rgba(230,57,70,0.7)",
+                                                    background:
+                                                        result.status === "win"
+                                                            ? "linear-gradient(135deg, rgba(7,11,20,0.95) 0%, rgba(40,30,5,0.97) 100%)"
+                                                            : "linear-gradient(135deg, rgba(7,11,20,0.95) 0%, rgba(40,5,10,0.97) 100%)",
+                                                    "--glow":
+                                                        result.status === "win"
+                                                            ? "rgba(253,214,10,0.4)"
+                                                            : "rgba(230,57,70,0.4)",
+                                                    "--glow2":
+                                                        result.status === "win"
+                                                            ? "rgba(253,214,10,0.15)"
+                                                            : "rgba(230,57,70,0.15)",
+                                                } as React.CSSProperties
+                                            }
+                                        >
+                                            <p className="font-mono text-6xl mb-3">
+                                                {result.status === "win" ? "🏆" : "💀"}
+                                            </p>
+                                            <h2
+                                                className="font-mono font-black tracking-widest uppercase mb-4"
+                                                style={{
+                                                    fontSize: "3rem",
+                                                    color: result.status === "win" ? "#ffd60a" : "#e63946",
+                                                    textShadow:
+                                                        result.status === "win"
+                                                            ? "0 0 30px rgba(253,214,10,0.9), 0 0 60px rgba(253,214,10,0.5)"
+                                                            : "0 0 30px rgba(230,57,70,0.9), 0 0 60px rgba(230,57,70,0.5)",
+                                                }}
+                                            >
+                                                {result.status === "win" ? "¡VICTORIA!" : "DERROTA..."}
+                                            </h2>
+                                            {result.status === "win" && (
+                                                <div className="flex gap-4 justify-center mb-6">
+                                                    {result.xp && (
+                                                        <div className="px-4 py-2 rounded-lg border border-blue-500/40 bg-blue-500/10">
+                                                            <p className="font-mono font-black text-xl text-blue-300">
+                                                                +{result.xp}
+                                                            </p>
+                                                            <p className="text-slate-500 text-xs font-mono">XP</p>
+                                                        </div>
+                                                    )}
+                                                    {result.coins && (
+                                                        <div className="px-4 py-2 rounded-lg border border-yellow-500/40 bg-yellow-500/10">
+                                                            <p className="font-mono font-black text-xl text-yellow-300">
+                                                                +{result.coins}
+                                                            </p>
+                                                            <p className="text-slate-500 text-xs font-mono">Monedas</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                            <div className="flex gap-3 justify-center">
+                                                <button
+                                                    onClick={() => {
+                                                        setPhase("prep");
+                                                        setSession(null);
+                                                        setLog([]);
+                                                        setResult(null);
+                                                    }}
+                                                    className="px-6 py-2.5 rounded-xl bg-red-700 text-white font-mono font-black text-sm tracking-widest uppercase hover:bg-red-600 transition-all"
+                                                >
+                                                    ⚔️ Revancha
+                                                </button>
+                                                <button
+                                                    onClick={() => navigate("/")}
+                                                    className="px-6 py-2.5 rounded-xl border border-slate-700 text-slate-400 font-mono text-sm tracking-widest uppercase hover:border-slate-500 hover:text-white transition-all"
+                                                >
+                                                    🏡 Posada
+                                                </button>
                                             </div>
                                         </div>
-                                    )}
-                                    {currentActorIsPlayer ? (
-                                        <span className="text-yellow-300 text-xs font-mono animate-pulse">
-                                            ⚔️ {currentActor?.name} →{" "}
-                                            {targetEnemy ? `🎯 ${targetEnemy.name}` : "elige objetivo"}
-                                        </span>
-                                    ) : (
-                                        <span className="text-slate-500 text-xs font-mono animate-pulse">
-                                            👾{" "}
-                                            {session
-                                                ? ([...session.playerTeam, ...session.enemyTeam].find(
-                                                      (m) => m.instanceId === currentActorId,
-                                                  )?.name ?? "...")
-                                                : "..."}
-                                        </span>
-                                    )}
+                                    </div>
+                                )}
+                                {/* Suelo decorativo */}
+                                <div
+                                    className="absolute bottom-0 left-0 right-0 h-24 pointer-events-none"
+                                    style={{
+                                        background: "linear-gradient(180deg, transparent 0%, rgba(30,45,70,0.4) 100%)",
+                                    }}
+                                />
+
+                                {/* Línea divisoria central sutil */}
+                                <div
+                                    className="absolute left-8 right-8 pointer-events-none"
+                                    style={{ top: "50%", height: 1, background: "rgba(255,255,255,0.04)" }}
+                                />
+
+                                {/* Proyectil ltr */}
+                                {projectile && <Projectile proj={projectile} />}
+                                {/* Proyectil rtl */}
+                                {projectile && <Projectile proj={projectile} />}
+
+                                {/* ── Fila enemigos (arriba, front view) ── */}
+                                <div className="flex justify-around items-end pt-2 relative z-10">
+                                    {session?.enemyTeam.map((myth) => (
+                                        <ArenaMyth
+                                            key={myth.instanceId}
+                                            myth={myth}
+                                            side="enemy"
+                                            mythRef={getMythRef(myth.instanceId)}
+                                            isActing={myth.instanceId === currentActorId}
+                                            targeted={myth.instanceId === targetEnemyMythId && currentActorIsPlayer}
+                                            flashAffinity={flashMap[myth.instanceId]}
+                                            floatingDmg={floatMap[myth.instanceId]}
+                                            spriteSize={150}
+                                            onClick={() => {
+                                                if (!myth.defeated && !animating && currentActorIsPlayer)
+                                                    setTargetEnemyMythId(myth.instanceId);
+                                            }}
+                                        />
+                                    ))}
                                 </div>
-                                <span className="w-10" />
+
+                                {/* ── Info turno central ── */}
+                                <div className="flex items-center justify-between px-4 py-1 relative z-10">
+                                    <span className="font-mono text-xs text-slate-600 tracking-widest">
+                                        T{session?.turn ?? 0}
+                                    </span>
+                                    <div className="flex items-center gap-3">
+                                        {animating && (
+                                            <span className="font-mono text-xs text-yellow-400 animate-pulse">
+                                                ⚡ Resolviendo...
+                                            </span>
+                                        )}
+                                        {currentActorIsPlayer && !animating && (
+                                            <div
+                                                className={`flex items-center gap-1.5 font-mono text-xs font-black tabular-nums
+                                            ${timer <= 5 ? "text-red-400 animate-pulse" : timer <= 10 ? "text-yellow-400" : "text-slate-400"}`}
+                                            >
+                                                ⏱ {timer}s
+                                                <div className="w-12 h-1 bg-slate-800 rounded-full overflow-hidden">
+                                                    <div
+                                                        className={`h-full rounded-full transition-all duration-1000 ease-linear
+                                                    ${timer <= 5 ? "bg-red-500" : timer <= 10 ? "bg-yellow-500" : "bg-emerald-500"}`}
+                                                        style={{ width: `${(timer / 15) * 100}%` }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+                                        {currentActorIsPlayer ? (
+                                            <span className="text-yellow-300 text-xs font-mono animate-pulse">
+                                                ⚔️ {currentActor?.name} →{" "}
+                                                {targetEnemy ? `🎯 ${targetEnemy.name}` : "elige objetivo"}
+                                            </span>
+                                        ) : (
+                                            <span className="text-slate-500 text-xs font-mono animate-pulse">
+                                                👾{" "}
+                                                {session
+                                                    ? ([...session.playerTeam, ...session.enemyTeam].find(
+                                                          (m) => m.instanceId === currentActorId,
+                                                      )?.name ?? "...")
+                                                    : "..."}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <span className="w-10" />
+                                </div>
+
+                                {/* ── Fila jugador (abajo, back view) ── */}
+                                <div className="flex justify-around items-start pb-2 relative z-10">
+                                    {session?.playerTeam.map((myth) => (
+                                        <ArenaMyth
+                                            key={myth.instanceId}
+                                            myth={myth}
+                                            side="player"
+                                            mythRef={getMythRef(myth.instanceId)}
+                                            isActing={myth.instanceId === currentActorId}
+                                            flashAffinity={flashMap[myth.instanceId]}
+                                            floatingDmg={floatMap[myth.instanceId]}
+                                            spriteSize={150}
+                                        />
+                                    ))}
+                                </div>
                             </div>
 
-                            {/* ── Fila jugador (abajo, back view) ── */}
-                            <div className="flex justify-around items-start pb-2 relative z-10">
-                                {session?.playerTeam.map((myth) => (
-                                    <ArenaMyth
-                                        key={myth.instanceId}
-                                        myth={myth}
-                                        side="player"
-                                        isActing={myth.instanceId === currentActorId}
-                                        flashAffinity={flashMap[myth.instanceId]}
-                                        floatingDmg={floatMap[myth.instanceId]}
-                                        spriteSize={150}
-                                    />
-                                ))}
-                            </div>
-                        </div>
+                            {/* ── Panel de moves — ocupa el espacio restante inferior ── */}
+                            <div
+                                className="flex-shrink-0 border-t border-slate-800 bg-[#070b14]"
+                                style={{ height: "clamp(160px, 22vh, 220px)", overflow: "hidden" }}
+                            >
+                                {(() => {
+                                    // Si el actor actual es del jugador y está vivo, úsalo.
+                                    // Si está muerto (acaba de caer), usa el siguiente myth vivo del jugador.
+                                    const actorForMoves =
+                                        currentActorIsPlayer && currentActor && !currentActor.defeated
+                                            ? currentActor
+                                            : currentActorIsPlayer
+                                              ? (session?.playerTeam.find((m) => !m.defeated) ?? null)
+                                              : null;
 
-                        {/* ── Panel de moves — ocupa el espacio restante inferior ── */}
-                        <div
-                            className="flex-shrink-0 border-t border-slate-800 bg-[#070b14]"
-                            style={{ height: 200, overflow: "hidden" }}
-                        >
-                            {(() => {
-                                // Si el actor actual es del jugador y está vivo, úsalo.
-                                // Si está muerto (acaba de caer), usa el siguiente myth vivo del jugador.
-                                const actorForMoves =
-                                    currentActorIsPlayer && currentActor && !currentActor.defeated
-                                        ? currentActor
-                                        : currentActorIsPlayer
-                                          ? (session?.playerTeam.find((m) => !m.defeated) ?? null)
-                                          : null;
-
-                                return actorForMoves ? (
-                                    <div className="p-3">
-                                        <p className="font-mono text-xs text-yellow-400 font-bold mb-2 px-1">
-                                            Moves de {actorForMoves.name}
-                                        </p>
-                                        <div className="grid grid-cols-2 gap-2">
-                                            {actorForMoves.moves.map((move) => {
-                                                const cfg = AFFINITY_CONFIG[move.affinity];
-                                                const onCooldown = !!(actorForMoves.cooldownsLeft?.[move.id] > 0);
-                                                const cdLeft = actorForMoves.cooldownsLeft?.[move.id] ?? 0;
-                                                const ok =
-                                                    !animating && !!targetEnemy && !targetEnemy.defeated && !onCooldown;
-                                                return (
-                                                    <button
-                                                        key={move.id}
-                                                        onClick={() => ok && handleMove(move.id)}
-                                                        disabled={!ok}
-                                                        className={`flex items-start gap-3 px-4 py-3 rounded-xl border text-left transition-all
+                                    return actorForMoves ? (
+                                        <div className="p-3">
+                                            <p className="font-mono text-xs text-yellow-400 font-bold mb-2 px-1">
+                                                Moves de {actorForMoves.name}
+                                            </p>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                {actorForMoves.moves.map((move) => {
+                                                    const cfg = AFFINITY_CONFIG[move.affinity];
+                                                    const onCooldown = !!(actorForMoves.cooldownsLeft?.[move.id] > 0);
+                                                    const cdLeft = actorForMoves.cooldownsLeft?.[move.id] ?? 0;
+                                                    const ok =
+                                                        !animating &&
+                                                        !!targetEnemy &&
+                                                        !targetEnemy.defeated &&
+                                                        !onCooldown;
+                                                    return (
+                                                        <button
+                                                            key={move.id}
+                                                            onClick={() => ok && handleMove(move.id)}
+                                                            disabled={!ok}
+                                                            className={`flex items-start gap-3 px-4 py-3 rounded-xl border text-left transition-all
                                     ${
                                         ok
                                             ? `${cfg.bg} ${cfg.color} border-white/10 hover:border-white/30 hover:scale-[1.02] active:scale-[0.98]`
                                             : "bg-slate-900/40 border-slate-800 text-slate-600 cursor-not-allowed opacity-50"
                                     }`}
-                                                    >
-                                                        <span className="text-2xl mt-0.5">{cfg.emoji}</span>
-                                                        <div className="min-w-0 flex-1">
-                                                            <div className="flex items-center gap-2 mb-0.5">
-                                                                <p className="font-mono text-sm font-bold">
-                                                                    {move.name}
+                                                        >
+                                                            <span className="text-2xl mt-0.5">{cfg.emoji}</span>
+                                                            <div className="min-w-0 flex-1">
+                                                                <div className="flex items-center gap-2 mb-0.5">
+                                                                    <p className="font-mono text-sm font-bold">
+                                                                        {move.name}
+                                                                    </p>
+                                                                    {onCooldown && (
+                                                                        <span className="text-xs text-red-400 font-mono font-black">
+                                                                            ⏳{cdLeft}t
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                <p className="text-xs opacity-70 font-mono mb-1">
+                                                                    {move.power > 0 ? `💥 ${move.power}` : "estado"} ·
+                                                                    🎯 {move.accuracy}%
+                                                                    {move.cooldown > 0 && ` · CD${move.cooldown}`}
                                                                 </p>
-                                                                {onCooldown && (
-                                                                    <span className="text-xs text-red-400 font-mono font-black">
-                                                                        ⏳{cdLeft}t
-                                                                    </span>
-                                                                )}
+                                                                <p className="text-xs opacity-60 leading-snug line-clamp-2">
+                                                                    {move.description}
+                                                                </p>
                                                             </div>
-                                                            <p className="text-xs opacity-70 font-mono mb-1">
-                                                                {move.power > 0 ? `💥 ${move.power}` : "estado"} · 🎯{" "}
-                                                                {move.accuracy}%
-                                                                {move.cooldown > 0 && ` · CD${move.cooldown}`}
-                                                            </p>
-                                                            <p className="text-xs opacity-60 leading-snug line-clamp-2">
-                                                                {move.description}
-                                                            </p>
-                                                        </div>
-                                                    </button>
-                                                );
-                                            })}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
                                         </div>
-                                    </div>
-                                ) : (
-                                    <div className="flex items-center justify-center h-full" style={{ minHeight: 160 }}>
-                                        <p className="text-slate-200 text-sm font-mono font-bold">
-                                            {animating
-                                                ? "⚡ Resolviendo..."
-                                                : `👾 Turno de ${
-                                                      session
-                                                          ? ([...session.playerTeam, ...session.enemyTeam].find(
-                                                                (m) => m.instanceId === currentActorId,
-                                                            )?.name ?? "rival")
-                                                          : "rival"
-                                                  }...`}
+                                    ) : (
+                                        <div
+                                            className="flex items-center justify-center h-full"
+                                            style={{ minHeight: 160 }}
+                                        >
+                                            <p className="text-slate-200 text-sm font-mono font-bold">
+                                                {animating
+                                                    ? "⚡ Resolviendo..."
+                                                    : `👾 Turno de ${
+                                                          session
+                                                              ? ([...session.playerTeam, ...session.enemyTeam].find(
+                                                                    (m) => m.instanceId === currentActorId,
+                                                                )?.name ?? "rival")
+                                                              : "rival"
+                                                      }...`}
+                                            </p>
+                                        </div>
+                                    );
+                                })()}
+                            </div>
+                        </div>
+
+                        {/* ── Log panel ── */}
+                        <div className="w-64 flex-shrink-0 border-l border-slate-800 flex flex-col overflow-hidden">
+                            <div className="px-3 py-2.5 border-b border-slate-800 bg-slate-900/60 flex-shrink-0">
+                                <p className="font-mono text-xs text-yellow-400 uppercase tracking-widest font-bold">
+                                    📜 Registro
+                                </p>
+                            </div>
+                            <div
+                                ref={logRef}
+                                className="flex-1 overflow-y-auto p-2 flex flex-col gap-0.5 scroll-smooth"
+                                style={{ scrollbarWidth: "thin", scrollbarColor: "#334155 transparent" }}
+                            >
+                                {log.length === 0 && (
+                                    <p className="text-slate-700 text-xs font-mono italic text-center mt-6">
+                                        Esperando acción...
+                                    </p>
+                                )}
+                                {log.map((entry, i) => (
+                                    <div key={i} className="animate-log-in flex items-start gap-1">
+                                        <span className="text-slate-700 font-mono text-xs mt-px flex-shrink-0">›</span>
+                                        <p
+                                            className="font-mono text-xs leading-relaxed break-words"
+                                            style={{
+                                                color:
+                                                    entry.type === "good"
+                                                        ? "#4ade80"
+                                                        : entry.type === "bad"
+                                                          ? "#f87171"
+                                                          : entry.type === "crit"
+                                                            ? "#fbbf24"
+                                                            : entry.type === "miss"
+                                                              ? "#64748b"
+                                                              : entry.type === "system"
+                                                                ? "#818cf8"
+                                                                : entry.type === "status"
+                                                                  ? "#fb923c"
+                                                                  : entry.type === "heal"
+                                                                    ? "#34d399"
+                                                                    : "#e2e8f0",
+                                            }}
+                                        >
+                                            {entry.text}
                                         </p>
                                     </div>
-                                );
-                            })()}
-                        </div>
-                    </div>
-
-                    {/* ── Log panel ── */}
-                    <div className="w-64 flex-shrink-0 border-l border-slate-800 flex flex-col overflow-hidden">
-                        <div className="px-3 py-2.5 border-b border-slate-800 bg-slate-900/60 flex-shrink-0">
-                            <p className="font-mono text-xs text-yellow-400 uppercase tracking-widest font-bold">
-                                📜 Registro
-                            </p>
-                        </div>
-                        <div
-                            ref={logRef}
-                            className="flex-1 overflow-y-auto p-2 flex flex-col gap-0.5 scroll-smooth"
-                            style={{ scrollbarWidth: "thin", scrollbarColor: "#334155 transparent" }}
-                        >
-                            {log.length === 0 && (
-                                <p className="text-slate-700 text-xs font-mono italic text-center mt-6">
-                                    Esperando acción...
-                                </p>
-                            )}
-                            {log.map((entry, i) => (
-                                <div key={i} className="animate-log-in flex items-start gap-1">
-                                    <span className="text-slate-700 font-mono text-xs mt-px flex-shrink-0">›</span>
-                                    <p
-                                        className="font-mono text-xs leading-relaxed break-words"
-                                        style={{
-                                            color:
-                                                entry.type === "good"
-                                                    ? "#4ade80"
-                                                    : entry.type === "bad"
-                                                      ? "#f87171"
-                                                      : entry.type === "crit"
-                                                        ? "#fbbf24"
-                                                        : entry.type === "miss"
-                                                          ? "#64748b"
-                                                          : entry.type === "system"
-                                                            ? "#818cf8"
-                                                            : entry.type === "status"
-                                                              ? "#fb923c"
-                                                              : entry.type === "heal"
-                                                                ? "#34d399"
-                                                                : "#e2e8f0",
-                                        }}
-                                    >
-                                        {entry.text}
-                                    </p>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </Layout>
+            </Layout>
+            {explosion && (
+                <ImpactExplosion
+                    x={explosion.x}
+                    y={explosion.y}
+                    affinity={explosion.affinity}
+                    level={explosion.level}
+                    onDone={() => setExplosion(null)}
+                />
+            )}
+        </>
     );
 }
 

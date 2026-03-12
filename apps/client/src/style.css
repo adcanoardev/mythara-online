@@ -15,15 +15,25 @@
     padding: 0;
 }
 
+html {
+    height: 100%;
+    height: 100dvh;
+}
+
 body {
     font-family: "Exo 2", sans-serif;
     background-color: #070b14;
     color: #e8f0fe;
-    min-height: 100vh;
+    height: 100%;
+    height: 100dvh;
+    overflow: hidden;
 }
 
 #root {
     color: #e8f0fe;
+    height: 100%;
+    height: 100dvh;
+    overflow: hidden;
 }
 
 ::-webkit-scrollbar {
