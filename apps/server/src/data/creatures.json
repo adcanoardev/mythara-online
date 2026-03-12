@@ -18,9 +18,9 @@
             "value": 16
         },
         "art": {
-            "portrait": "🔥",
-            "front": "🔥",
-            "back": "🔥"
+            "portrait": "https://raw.githubusercontent.com/adcanoardev/mythara-assets/8fed38f922671cebfd3271e144a6729a09e54f64/myths/001/portrait.png",
+            "front": "https://raw.githubusercontent.com/adcanoardev/mythara-assets/8fed38f922671cebfd3271e144a6729a09e54f64/myths/001/portrait.png",
+            "back": "https://raw.githubusercontent.com/adcanoardev/mythara-assets/8fed38f922671cebfd3271e144a6729a09e54f64/myths/001/portrait.png"
         },
         "moves": [
             {
