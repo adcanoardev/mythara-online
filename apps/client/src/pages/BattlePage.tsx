@@ -227,15 +227,25 @@ function MythArt({
 function HpBar({ hp, maxHp, shield = 0 }: { hp: number; maxHp: number; shield?: number }) {
     const pct = maxHp > 0 ? Math.max(0, (hp / maxHp) * 100) : 0;
     const shieldPct = maxHp > 0 ? Math.min(100 - pct, (shield / maxHp) * 100) : 0;
-    const color = pct > 50 ? "bg-emerald-400" : pct > 25 ? "bg-yellow-400" : "bg-red-500";
+    // Color progresivo: 90%=verde claro → 50%=amarillo → 30%=naranja → 10%=rojo intenso
+    const barColor =
+        pct > 90 ? "#6ee7b7"
+        : pct > 70 ? "#34d399"
+        : pct > 50 ? "#a3e635"
+        : pct > 30 ? "#facc15"
+        : pct > 15 ? "#f97316"
+        : pct > 5  ? "#ef4444"
+                   : "#b91c1c";
+    const glowColor =
+        pct > 50 ? "rgba(52,211,153,0.5)" : pct > 25 ? "rgba(250,204,21,0.5)" : "rgba(239,68,68,0.6)";
     return (
-        <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden flex">
+        <div className="w-full h-3 bg-black/40 rounded-full overflow-hidden flex" style={{ border: "1px solid rgba(255,255,255,0.08)" }}>
             <div
-                className={`h-full rounded-l-full ${color} transition-all duration-700`}
-                style={{ width: `${pct}%` }}
+                className="h-full rounded-l-full transition-all duration-700"
+                style={{ width: `${pct}%`, background: barColor, boxShadow: `0 0 6px ${glowColor}` }}
             />
             {shieldPct > 0 && (
-                <div className="h-full bg-blue-400/70 transition-all duration-700" style={{ width: `${shieldPct}%` }} />
+                <div className="h-full transition-all duration-700" style={{ width: `${shieldPct}%`, background: "#60a5fa", boxShadow: "0 0 6px rgba(96,165,250,0.5)" }} />
             )}
         </div>
     );
@@ -257,13 +267,13 @@ interface ProjectileState {
 
 function Projectile({ proj }: { proj: ProjectileState }) {
     const cfg = AFFINITY_CONFIG[proj.affinity];
-    const size = proj.level === 1 ? 28 : proj.level === 2 ? 40 : 56;
-    const glowSize = proj.level === 1 ? 10 : proj.level === 2 ? 20 : 35;
+    const size = proj.level === 1 ? 28 : proj.level === 2 ? 44 : 72;
+    const glowSize = proj.level === 1 ? 10 : proj.level === 2 ? 22 : 50;
 
     const dx = proj.toX - proj.fromX;
     const dy = proj.toY - proj.fromY;
     const dist = Math.sqrt(dx * dx + dy * dy);
-    const duration = Math.max(0.35, Math.min(0.65, dist / 800));
+    const duration = Math.max(0.3, Math.min(0.6, dist / 800));
 
     return (
         <div
@@ -282,16 +292,16 @@ function Projectile({ proj }: { proj: ProjectileState }) {
             <span
                 style={{
                     fontSize: size,
-                    filter: `drop-shadow(0 0 ${glowSize}px ${cfg.glow}) drop-shadow(0 0 ${glowSize * 2}px ${cfg.glow})`,
+                    filter: `drop-shadow(0 0 ${glowSize}px ${cfg.glow}) drop-shadow(0 0 ${glowSize * 2}px ${cfg.glow})${proj.level === 3 ? ` drop-shadow(0 0 ${glowSize * 3}px #ffffff88)` : ""}`,
                     display: "block",
                 }}
             >
                 {cfg.projEmoji}
             </span>
-            {/* Trail — solo niveles 2 y 3 */}
-            {proj.level >= 2 && (
+            {/* Trail nivel 2 */}
+            {proj.level === 2 && (
                 <div
-                    className="absolute inset-0 rounded-full pointer-events-none"
+                    className="absolute rounded-full pointer-events-none"
                     style={{
                         background: `radial-gradient(circle, ${cfg.glow}88 0%, transparent 70%)`,
                         width: size * 2,
@@ -302,6 +312,33 @@ function Projectile({ proj }: { proj: ProjectileState }) {
                     }}
                 />
             )}
+            {/* Trail nivel 3 — múltiple y brillante */}
+            {proj.level === 3 && (
+                <>
+                    <div
+                        className="absolute rounded-full pointer-events-none"
+                        style={{
+                            background: `radial-gradient(circle, #ffffffaa 0%, ${cfg.glow}cc 30%, transparent 70%)`,
+                            width: size * 3,
+                            height: size * 3,
+                            top: -size,
+                            left: -size,
+                            animation: `trailFade ${duration}s ease-out forwards`,
+                        }}
+                    />
+                    <div
+                        className="absolute rounded-full pointer-events-none"
+                        style={{
+                            background: `radial-gradient(circle, ${cfg.glow}ff 0%, transparent 60%)`,
+                            width: size * 1.5,
+                            height: size * 1.5,
+                            top: -size * 0.25,
+                            left: -size * 0.25,
+                            animation: `trailFade ${duration * 0.7}s ease-out forwards`,
+                        }}
+                    />
+                </>
+            )}
         </div>
     );
 }
@@ -309,24 +346,192 @@ function Projectile({ proj }: { proj: ProjectileState }) {
 function ImpactExplosion({
     x,
     y,
+    fromX,
+    fromY,
     affinity,
     level,
     onDone,
 }: {
     x: number;
     y: number;
+    fromX: number;
+    fromY: number;
     affinity: Affinity;
     level: 1 | 2 | 3;
     onDone: () => void;
 }) {
     const cfg = AFFINITY_CONFIG[affinity];
-    const rings = level === 1 ? 1 : level === 2 ? 2 : 3;
-    const maxSize = level === 1 ? 60 : level === 2 ? 110 : 180;
+    const duration = level === 1 ? 500 : level === 2 ? 800 : 1800;
+    // Ángulo de impacto — dirección desde la que llega el proyectil
+    const impactAngle = Math.atan2(y - fromY, x - fromX);
+    const impactDeg = impactAngle * (180 / Math.PI);
 
     useEffect(() => {
-        const t = setTimeout(onDone, level === 1 ? 500 : level === 2 ? 700 : 1000);
+        const t = setTimeout(onDone, duration);
         return () => clearTimeout(t);
     }, []);
+
+    if (level === 3) {
+        // ── ULTIMATE — pantalla completa espectacular ──
+        const particleCount = 24;
+        const shardCount = 8;
+        return (
+            <>
+                {/* Flash blanco full-screen */}
+                <div
+                    className="fixed inset-0 z-[200] pointer-events-none"
+                    style={{ animation: "ultimateFlash 0.5s ease-out forwards" }}
+                />
+                {/* Shockwave — elipse en la dirección del impacto */}
+                {[0, 1, 2, 3].map((i) => (
+                    <div
+                        key={`sw${i}`}
+                        className="fixed z-[201] pointer-events-none"
+                        style={{
+                            left: x,
+                            top: y,
+                            width: 20,
+                            height: 12,
+                            marginLeft: -10,
+                            marginTop: -6,
+                            border: `${4 - i}px solid ${cfg.glow}`,
+                            boxShadow: `0 0 30px ${cfg.glow}, inset 0 0 20px ${cfg.glow}44`,
+                            borderRadius: "50%",
+                            transform: `rotate(${impactDeg}deg)`,
+                            transformOrigin: "center",
+                            animation: `ultimateShockwave 0.9s cubic-bezier(0.2,0,0.4,1) ${i * 0.12}s forwards`,
+                        }}
+                    />
+                ))}
+                {/* Flash central gigante */}
+                <div
+                    className="fixed z-[202] pointer-events-none rounded-full"
+                    style={{
+                        left: x,
+                        top: y,
+                        width: 300,
+                        height: 300,
+                        marginLeft: -150,
+                        marginTop: -150,
+                        background: `radial-gradient(circle, #ffffffcc 0%, ${cfg.glow}dd 25%, ${cfg.glow}88 50%, transparent 75%)`,
+                        animation: `ultimateCentralBlast 0.6s ease-out forwards`,
+                    }}
+                />
+                {/* Rayo direccional — alineado con la dirección del impacto */}
+                <div
+                    className="fixed z-[200] pointer-events-none"
+                    style={{
+                        left: x,
+                        top: y,
+                        width: 700,
+                        height: 60,
+                        marginLeft: -350,
+                        marginTop: -30,
+                        background: `linear-gradient(90deg, transparent 0%, ${cfg.glow}88 20%, ${cfg.glow}ff 50%, ${cfg.glow}88 80%, transparent 100%)`,
+                        transform: `rotate(${impactDeg}deg)`,
+                        transformOrigin: "center",
+                        animation: `ultimatePillar 0.8s ease-out forwards`,
+                    }}
+                />
+                {/* Rayo perpendicular más tenue */}
+                <div
+                    className="fixed z-[200] pointer-events-none"
+                    style={{
+                        left: x,
+                        top: y,
+                        width: 400,
+                        height: 30,
+                        marginLeft: -200,
+                        marginTop: -15,
+                        background: `linear-gradient(90deg, transparent 0%, ${cfg.glow}44 30%, ${cfg.glow}99 50%, ${cfg.glow}44 70%, transparent 100%)`,
+                        transform: `rotate(${impactDeg + 90}deg)`,
+                        transformOrigin: "center",
+                        animation: `ultimatePillar 0.9s ease-out 0.05s forwards`,
+                    }}
+                />
+                {/* Partículas en cono direccional */}
+                {Array.from({ length: particleCount }).map((_, i) => {
+                    const spread = Math.PI * 0.8;
+                    const angle = impactAngle - spread / 2 + (i / particleCount) * spread * 1.5;
+                    const dist = 60 + Math.random() * 130;
+                    const tx = Math.cos(angle) * dist;
+                    const ty = Math.sin(angle) * dist;
+                    const size = 5 + Math.floor(Math.random() * 9);
+                    return (
+                        <div
+                            key={`up${i}`}
+                            className="fixed z-[203] pointer-events-none rounded-full"
+                            style={
+                                {
+                                    left: x,
+                                    top: y,
+                                    width: size,
+                                    height: size,
+                                    marginLeft: -size / 2,
+                                    marginTop: -size / 2,
+                                    background: i % 3 === 0 ? "#ffffff" : cfg.glow,
+                                    boxShadow: `0 0 ${size * 2}px ${cfg.glow}`,
+                                    animation: `ultimateParticle 1.2s ease-out ${i * 0.025}s forwards`,
+                                    "--tx": `${tx}px`,
+                                    "--ty": `${ty}px`,
+                                } as React.CSSProperties
+                            }
+                        />
+                    );
+                })}
+                {/* Shards — en dirección del impacto */}
+                {Array.from({ length: shardCount }).map((_, i) => {
+                    const spread = Math.PI * 0.9;
+                    const angle = impactAngle - spread / 2 + (i / shardCount) * spread;
+                    const dist = 80 + Math.random() * 100;
+                    const tx = Math.cos(angle) * dist;
+                    const ty = Math.sin(angle) * dist;
+                    return (
+                        <div
+                            key={`us${i}`}
+                            className="fixed z-[203] pointer-events-none"
+                            style={
+                                {
+                                    left: x,
+                                    top: y,
+                                    width: 4,
+                                    height: 16 + Math.floor(Math.random() * 14),
+                                    marginLeft: -2,
+                                    marginTop: -8,
+                                    background: `linear-gradient(180deg, #ffffff 0%, ${cfg.glow} 100%)`,
+                                    boxShadow: `0 0 8px ${cfg.glow}`,
+                                    borderRadius: 2,
+                                    transform: `rotate(${angle * (180 / Math.PI)}deg)`,
+                                    transformOrigin: "center",
+                                    animation: `ultimateParticle 1s ease-out ${i * 0.04}s forwards`,
+                                    "--tx": `${tx}px`,
+                                    "--ty": `${ty}px`,
+                                } as React.CSSProperties
+                            }
+                        />
+                    );
+                })}
+                {/* Screen shake */}
+                <div
+                    className="fixed inset-0 z-[199] pointer-events-none"
+                    style={{ animation: "ultimateScreenShake 0.8s ease-out forwards" }}
+                />
+                {/* Vignette flash */}
+                <div
+                    className="fixed inset-0 z-[198] pointer-events-none"
+                    style={{
+                        background: `radial-gradient(ellipse at center, transparent 30%, ${cfg.glow}44 100%)`,
+                        animation: "ultimateVignette 1.5s ease-out forwards",
+                    }}
+                />
+            </>
+        );
+    }
+
+    // ── Niveles 1 y 2 ──
+    const rings = level === 1 ? 1 : 3;
+    const maxSize = level === 1 ? 60 : 120;
+    const particleCount2 = level === 1 ? 0 : 8;
 
     return (
         <div
@@ -338,18 +543,17 @@ function ImpactExplosion({
                     key={i}
                     className="absolute rounded-full"
                     style={{
-                        border: `3px solid ${cfg.glow}`,
+                        border: `${level === 1 ? 2 : 3}px solid ${cfg.glow}`,
                         width: maxSize,
                         height: maxSize,
                         top: -maxSize / 2,
                         left: -maxSize / 2,
-                        animation: `ringExpand ${0.4 + i * 0.15}s ease-out ${i * 0.1}s forwards`,
-                        opacity: 1 - i * 0.25,
-                        boxShadow: `0 0 ${10 + i * 8}px ${cfg.glow}`,
+                        animation: `ringExpand ${0.35 + i * 0.12}s ease-out ${i * 0.08}s forwards`,
+                        opacity: 1 - i * 0.2,
+                        boxShadow: `0 0 ${8 + i * 10}px ${cfg.glow}`,
                     }}
                 />
             ))}
-            {/* Flash central */}
             <div
                 className="absolute rounded-full"
                 style={{
@@ -361,40 +565,32 @@ function ImpactExplosion({
                     animation: `centralFlash 0.3s ease-out forwards`,
                 }}
             />
-            {/* Partículas — solo nivel 2 y 3 */}
-            {level >= 2 &&
-                Array.from({ length: level === 2 ? 6 : 12 }).map((_, i) => {
-                    const angle = (i / (level === 2 ? 6 : 12)) * Math.PI * 2;
-                    const dist = level === 2 ? 50 : 90;
-                    const tx = Math.cos(angle) * dist;
-                    const ty = Math.sin(angle) * dist;
-                    return (
-                        <div
-                            key={`p${i}`}
-                            className="absolute rounded-full"
-                            style={
-                                {
-                                    width: level === 2 ? 6 : 8,
-                                    height: level === 2 ? 6 : 8,
-                                    background: cfg.glow,
-                                    top: -3,
-                                    left: -3,
-                                    boxShadow: `0 0 6px ${cfg.glow}`,
-                                    animation: `particleFly 0.6s ease-out ${i * 0.03}s forwards`,
-                                    "--tx": `${tx}px`,
-                                    "--ty": `${ty}px`,
-                                } as React.CSSProperties
-                            }
-                        />
-                    );
-                })}
-            {/* Screen shake — solo nivel 3 */}
-            {level === 3 && (
-                <div
-                    className="fixed inset-0 pointer-events-none"
-                    style={{ animation: "screenShake 0.4s ease-out forwards" }}
-                />
-            )}
+            {Array.from({ length: particleCount2 }).map((_, i) => {
+                const spread = Math.PI * 1.3;
+                const angle = impactAngle - spread / 2 + (i / particleCount2) * spread;
+                const dist = 55;
+                const tx = Math.cos(angle) * dist;
+                const ty = Math.sin(angle) * dist;
+                return (
+                    <div
+                        key={`p${i}`}
+                        className="absolute rounded-full"
+                        style={
+                            {
+                                width: 7,
+                                height: 7,
+                                background: cfg.glow,
+                                top: -3.5,
+                                left: -3.5,
+                                boxShadow: `0 0 8px ${cfg.glow}`,
+                                animation: `particleFly 0.65s ease-out ${i * 0.04}s forwards`,
+                                "--tx": `${tx}px`,
+                                "--ty": `${ty}px`,
+                            } as React.CSSProperties
+                        }
+                    />
+                );
+            })}
         </div>
     );
 }
@@ -431,23 +627,52 @@ function ArenaMyth({
     const primaryAffinity = myth.affinities?.[0];
     const afCfg = primaryAffinity ? AFFINITY_CONFIG[primaryAffinity] : null;
 
+    // Separar buffs (multiplicador > 1) de debuffs (multiplicador < 1)
+    const buffs = myth.buffs?.filter((b) => b.multiplier > 1) ?? [];
+    const debuffs = myth.buffs?.filter((b) => b.multiplier < 1) ?? [];
+
     return (
         <div
             ref={mythRef}
-            className={`relative flex flex-col items-center gap-1 select-none ${canClick ? "cursor-pointer" : ""}`}
+            className={`relative flex flex-col items-center gap-0.5 select-none ${canClick ? "cursor-pointer" : ""}`}
             onClick={canClick ? onClick : undefined}
         >
+            {/* Buffs (azul) y debuffs (amarillo) encima del sprite */}
+            {!myth.defeated && (buffs.length > 0 || debuffs.length > 0) && (
+                <div className="flex gap-0.5 flex-wrap justify-center mb-0.5">
+                    {buffs.map((b, i) => (
+                        <span
+                            key={`buff${i}`}
+                            className="text-sm drop-shadow"
+                            style={{ filter: "drop-shadow(0 0 4px #3b82f6)" }}
+                            title={`${b.label ?? b.stat?.toUpperCase() ?? ""} ×${b.multiplier.toFixed(1)} (${b.turnsLeft}t)`}
+                        >
+                            {b.emoji}
+                        </span>
+                    ))}
+                    {debuffs.map((b, i) => (
+                        <span
+                            key={`debuff${i}`}
+                            className="text-sm drop-shadow"
+                            style={{ filter: "drop-shadow(0 0 4px #facc15)" }}
+                            title={`${b.label ?? b.stat?.toUpperCase() ?? ""} ×${b.multiplier.toFixed(1)} (${b.turnsLeft}t)`}
+                        >
+                            {b.emoji}
+                        </span>
+                    ))}
+                </div>
+            )}
+
             {/* Daño / curación flotante */}
             {floatingDmg && (
                 <div
-                    className={`absolute z-30 pointer-events-none animate-float-dmg
-    font-black tracking-tighter
+                    className={`absolute z-30 pointer-events-none animate-float-dmg font-black tracking-tighter
                         ${floatingDmg.heal ? "text-emerald-400" : floatingDmg.crit ? "text-yellow-300" : floatingDmg.mult >= 2 ? "text-orange-400" : floatingDmg.mult <= 0.5 ? "text-blue-300" : "text-white"}`}
                     style={{
-                        top: -20,
+                        top: -24,
                         left: "50%",
                         transform: "translateX(-50%)",
-                        fontSize: floatingDmg.crit ? "2rem" : "1.6rem",
+                        fontSize: floatingDmg.crit ? "2.2rem" : "1.8rem",
                         textShadow: floatingDmg.heal
                             ? "0 0 12px #4ade80, 0 2px 4px rgba(0,0,0,0.8)"
                             : floatingDmg.crit
@@ -456,16 +681,12 @@ function ArenaMyth({
                         letterSpacing: "-0.02em",
                     }}
                 >
-                    {floatingDmg.heal
-                        ? `+${floatingDmg.value}`
-                        : floatingDmg.value > 0
-                          ? `-${floatingDmg.value}`
-                          : "¡Fallo!"}
-                    {floatingDmg.crit && !floatingDmg.heal && <span className="text-xs ml-0.5">!</span>}
+                    {floatingDmg.heal ? `+${floatingDmg.value}` : floatingDmg.value > 0 ? `-${floatingDmg.value}` : "¡Fallo!"}
+                    {floatingDmg.crit && !floatingDmg.heal && <span className="text-sm ml-0.5">💥</span>}
                 </div>
             )}
 
-            {/* Sprite container — sin borde */}
+            {/* Sprite container */}
             <div className="relative flex items-end justify-center" style={{ width: spriteSize, height: spriteSize }}>
                 {/* Flash de impacto */}
                 {cfg && (
@@ -474,22 +695,16 @@ function ArenaMyth({
                         style={{ background: `radial-gradient(circle, ${cfg.glow}66 0%, transparent 70%)` }}
                     />
                 )}
-
                 {/* Glow del actor activo */}
                 {isActing && !myth.defeated && (
                     <div
                         className="absolute inset-0 rounded-full animate-pulse pointer-events-none"
-                        style={{
-                            background: afCfg
-                                ? `radial-gradient(circle, ${afCfg.glow}33 0%, transparent 70%)`
-                                : undefined,
-                        }}
+                        style={{ background: afCfg ? `radial-gradient(circle, ${afCfg.glow}33 0%, transparent 70%)` : undefined }}
                     />
                 )}
-
                 {/* Target ring */}
                 {targeted && !myth.defeated && (
-                    <div className="absolute inset-0 rounded-full border-2 border-red-400/60 animate-pulse pointer-events-none" />
+                    <div className="absolute inset-0 rounded-full border-2 border-red-400/70 animate-pulse pointer-events-none" />
                 )}
 
                 {myth.defeated ? (
@@ -501,69 +716,48 @@ function ArenaMyth({
                         className={[
                             cfg ? "animate-myth-shake" : isActing ? "animate-myth-idle" : "",
                             myth.status ? `aura-${myth.status}` : "",
-                        ]
-                            .filter(Boolean)
-                            .join(" ")}
+                        ].filter(Boolean).join(" ")}
                     />
                 )}
 
-                {/* Estado alterado — esquina superior derecha */}
+                {/* Estado alterado */}
                 {myth.status && !myth.defeated && (
                     <span className="absolute -top-1 -right-1 text-sm z-20 drop-shadow">
                         {STATUS_ICONS[myth.status] ?? "⚠️"}
                     </span>
                 )}
-
                 {/* Escudo */}
                 {(myth.shield ?? 0) > 0 && !myth.defeated && (
                     <span className="absolute -top-1 -left-1 text-sm z-20">🛡️</span>
                 )}
             </div>
 
-            {/* Sombra elíptica debajo del sprite */}
+            {/* Sombra */}
             {!myth.defeated && (
-                <div
-                    className="rounded-full opacity-20 bg-black"
-                    style={{ width: spriteSize * 0.7, height: 8, marginTop: -4, filter: "blur(4px)" }}
-                />
+                <div className="rounded-full opacity-20 bg-black" style={{ width: spriteSize * 0.7, height: 8, marginTop: -4, filter: "blur(4px)" }} />
             )}
 
-            {/* Info: nombre + HP — compacto */}
-            <div className="flex flex-col items-center gap-0.5" style={{ width: Math.max(spriteSize, 72) }}>
+            {/* Info: nombre + HP */}
+            <div className="flex flex-col items-center gap-0.5" style={{ width: Math.max(spriteSize, 80) }}>
                 <div className="flex items-center gap-1 justify-center">
                     {isActing && !myth.defeated && <span className="text-yellow-400 text-xs animate-pulse">▶</span>}
                     <p
                         className={`text-xs font-bold truncate font-mono text-center
-                        ${myth.defeated ? "text-slate-600" : isActing ? "text-yellow-300" : targeted ? "text-red-400" : "text-white"}`}
-                        style={{ maxWidth: Math.max(spriteSize, 72) }}
+                            ${myth.defeated ? "text-slate-600" : isActing ? "text-yellow-300" : targeted ? "text-red-400" : "text-white/90"}`}
+                        style={{ maxWidth: Math.max(spriteSize, 80) }}
                     >
                         {myth.name}
                     </p>
                 </div>
-
                 {!myth.defeated && (
                     <>
                         <HpBar hp={myth.hp} maxHp={myth.maxHp} shield={myth.shield} />
-                        <p className="text-slate-500 text-[10px] font-mono tabular-nums">
-                            {myth.hp}
-                            <span className="text-slate-700">/{myth.maxHp}</span>
+                        {/* HP número más grande y visible */}
+                        <p className="font-mono font-bold tabular-nums" style={{ fontSize: "0.8rem", color: "#e2e8f0", textShadow: "0 1px 4px rgba(0,0,0,0.9)" }}>
+                            <span style={{ fontWeight: 900 }}>{myth.hp}</span>
+                            <span style={{ color: "#475569", fontWeight: 400 }}>/{myth.maxHp}</span>
                         </p>
                     </>
-                )}
-
-                {/* Buffs activos */}
-                {!myth.defeated && myth.buffs && myth.buffs.length > 0 && (
-                    <div className="flex gap-0.5 flex-wrap justify-center">
-                        {myth.buffs.slice(0, 4).map((b, i) => (
-                            <span
-                                key={i}
-                                className="text-xs"
-                                title={`${b.label ?? b.stat?.toUpperCase() ?? ""} ×${b.multiplier.toFixed(1)} (${b.turnsLeft}t)`}
-                            >
-                                {b.emoji}
-                            </span>
-                        ))}
-                    </div>
                 )}
             </div>
         </div>
@@ -757,6 +951,17 @@ type BattleMode = "npc" | "pvp";
 export default function BattlePage() {
     const location = useLocation();
     const navigate = useNavigate();
+
+    // BUG 1 — calcula la altura real del viewport (excluye barra de Windows/nav)
+    // y la expone como --app-height para que el árbol flex no se corte.
+    useEffect(() => {
+        function setAppHeight() {
+            document.documentElement.style.setProperty("--app-height", `${window.innerHeight}px`);
+        }
+        setAppHeight();
+        window.addEventListener("resize", setAppHeight);
+        return () => window.removeEventListener("resize", setAppHeight);
+    }, []);
     const searchParams = new URLSearchParams(location.search);
     const initialMode: BattleMode =
         (location.state as any)?.mode === "pvp" || searchParams.get("mode") === "pvp" ? "pvp" : "npc";
@@ -765,6 +970,8 @@ export default function BattlePage() {
     const [explosion, setExplosion] = useState<{
         x: number;
         y: number;
+        fromX: number;
+        fromY: number;
         affinity: Affinity;
         level: 1 | 2 | 3;
     } | null>(null);
@@ -782,6 +989,9 @@ export default function BattlePage() {
     }, [location.state]);
 
     const [phase, setPhase] = useState<Phase>("prep");
+    const [prepSlots, setPrepSlots] = useState<(any | null)[]>([null, null, null]);
+    const [prepSearch, setPrepSearch] = useState("");
+    const [enemyRevealIndex, setEnemyRevealIndex] = useState<number>(-1); // cuántos enemigos se han revelado
     const [allMyths, setAllMyths] = useState<any[]>([]);
     const [session, setSession] = useState<BattleSession | null>(null);
     const [loadingStart, setLoadingStart] = useState(false);
@@ -815,6 +1025,7 @@ export default function BattlePage() {
                     const cloned = cloneSession(s);
                     setSession(cloned);
                     setPhase("battle");
+                    setEnemyRevealIndex(999); // todos visibles al recargar
                     const { actorId, isPlayer } = initTurn(cloned);
                     if (!isPlayer && actorId) {
                         await sleep(800);
@@ -842,18 +1053,34 @@ export default function BattlePage() {
     }
 
     const currentActorIsPlayer = session?.playerTeam.some((m) => m.instanceId === currentActorId) ?? false;
+    // Ref estable para el flag — evita que closures viejos del intervalo accedan a estado obsoleto
+    const currentActorIsPlayerRef = useRef(false);
+    useEffect(() => { currentActorIsPlayerRef.current = currentActorIsPlayer; }, [currentActorIsPlayer]);
+    const animatingRef = useRef(false);
+    useEffect(() => { animatingRef.current = animating; }, [animating]);
 
-    // Timer — solo turno del jugador
+    // Timer — solo turno del jugador, reset limpio en cada cambio de actor
     useEffect(() => {
-        if (phase !== "battle" || animating || !currentActorIsPlayer) {
-            if (timerRef.current) clearInterval(timerRef.current);
-            return;
+        // Limpiar siempre el intervalo anterior
+        if (timerRef.current) {
+            clearInterval(timerRef.current);
+            timerRef.current = null;
         }
+        // Solo arrancar si es turno del jugador y no estamos animando
+        if (phase !== "battle" || animating || !currentActorIsPlayer) return;
+
         setTimer(15);
         timerRef.current = setInterval(() => {
+            // Doble comprobación dentro del intervalo para evitar disparos acumulados
+            if (animatingRef.current || !currentActorIsPlayerRef.current) {
+                clearInterval(timerRef.current!);
+                timerRef.current = null;
+                return;
+            }
             setTimer((t) => {
                 if (t <= 1) {
                     clearInterval(timerRef.current!);
+                    timerRef.current = null;
                     handleTimerExpired();
                     return 0;
                 }
@@ -861,7 +1088,10 @@ export default function BattlePage() {
             });
         }, 1000);
         return () => {
-            if (timerRef.current) clearInterval(timerRef.current!);
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+                timerRef.current = null;
+            }
         };
     }, [currentActorId, phase, animating]);
 
@@ -971,10 +1201,12 @@ export default function BattlePage() {
                 setExplosion({
                     x: positions.toX,
                     y: positions.toY,
+                    fromX: positions.fromX,
+                    fromY: positions.fromY,
                     affinity: action.moveAffinity as Affinity,
                     level: projLevel,
                 });
-                await sleep(projLevel === 1 ? 200 : projLevel === 2 ? 300 : 150);
+                await sleep(projLevel === 1 ? 200 : projLevel === 2 ? 300 : 600);
             } else {
                 // Fallback si no hay refs disponibles
                 setProjectile({
@@ -1121,10 +1353,18 @@ export default function BattlePage() {
             const cloned = cloneSession(s);
             setSession(cloned);
             setPhase("battle");
-            const { actorId, isPlayer } = initTurn(cloned);
             addLog("⚔️ ¡Comienza el combate!", "system");
             await reload();
-            // Si el primer turno es del NPC, ejecutarlo automáticamente
+            // Revelar enemigos uno a uno y luego fijar reveal permanente
+            setEnemyRevealIndex(0);
+            for (let i = 0; i < cloned.enemyTeam.length; i++) {
+                await sleep(500);
+                setEnemyRevealIndex(i + 1);
+            }
+            // Una vez revelados todos, usar Infinity para que nunca desaparezcan
+            await sleep(200);
+            setEnemyRevealIndex(999);
+            const { actorId, isPlayer } = initTurn(cloned);
             if (!isPlayer && actorId) {
                 await sleep(800);
                 setAnimating(true);
@@ -1146,7 +1386,9 @@ export default function BattlePage() {
         : null;
     const targetEnemy = session?.enemyTeam.find((m) => m.instanceId === targetEnemyMythId);
 
-    // ── PvP ──
+    // Sprites fijos a 110px — caben las 2 filas + panel de moves sin scroll en pantallas ~728px de alto
+    const spriteSize = 110;
+
     if (mode === "pvp") {
         return (
             <Layout sidebar={<TrainerSidebar />}>
@@ -1171,160 +1413,9 @@ export default function BattlePage() {
         );
     }
 
-    // ── Prep ──
-    if (phase === "prep") {
-        return (
-            <Layout sidebar={<TrainerSidebar />}>
-                <div className="flex-1 flex flex-col overflow-hidden" style={{ minHeight: 0 }}>
-                    <TabBar mode={mode} onSwitch={setMode} />
-                    <PrepScreen myths={allMyths} onStart={handleStart} loading={loadingStart} />
-                </div>
-            </Layout>
-        );
-    }
-
-    // ── Arena ──
+    // ── Arena + Prep integrada ──
     return (
         <>
-            <style>{`
-                @keyframes projLtr {
-                    0%   { opacity:0; transform:translateY(-50%) scale(0.5) translateX(0px); }
-                    15%  { opacity:1; transform:translateY(-50%) scale(1.2) translateX(20px); }
-                    85%  { opacity:1; transform:translateY(-50%) scale(1) translateX(240px); }
-                    100% { opacity:0; transform:translateY(-50%) scale(0.8) translateX(280px); }
-                }
-                @keyframes projRtl {
-                    0%   { opacity:0; transform:translateY(-50%) scale(0.5) translateX(0px); }
-                    15%  { opacity:1; transform:translateY(-50%) scale(1.2) translateX(-20px); }
-                    85%  { opacity:1; transform:translateY(-50%) scale(1) translateX(-240px); }
-                    100% { opacity:0; transform:translateY(-50%) scale(0.8) translateX(-280px); }
-                }
-                @keyframes floatDmg {
-                    0%   { opacity:0;   transform:translateX(-50%) scale(2.5) rotate(-8deg); filter:blur(4px); }
-                    12%  { opacity:1;   transform:translateX(-50%) scale(1.1) rotate(2deg);  filter:blur(0px); }
-                    25%  { opacity:1;   transform:translateX(-50%) scale(1.25) rotate(-1deg); }
-                    70%  { opacity:1;   transform:translateX(-50%) scale(1.1) translateY(-8px); }
-                    100% { opacity:0;   transform:translateX(-50%) scale(0.9) translateY(-18px); }
-                }
-                @keyframes impactFlash {
-                    0%,100% { opacity:0; }
-                    20%,70% { opacity:1; }
-                }
-                @keyframes mythShake {
-                    0%,100% { transform:translateX(0) rotate(0deg); }
-                    20%     { transform:translateX(-5px) rotate(-2deg); }
-                    40%     { transform:translateX(5px) rotate(2deg); }
-                    60%     { transform:translateX(-3px) rotate(-1deg); }
-                    80%     { transform:translateX(3px) rotate(1deg); }
-                }
-                @keyframes mythIdle {
-                    0%,100% { transform:translateY(0px); }
-                    50%     { transform:translateY(-4px); }
-                }
-                @keyframes logFadeIn {
-                    from { opacity:0; transform:translateX(-6px); }
-                    to   { opacity:1; transform:translateX(0); }
-                }
-                .animate-proj-ltr { animation: projLtr 0.52s cubic-bezier(0.4,0,0.2,1) forwards; }
-                .animate-proj-rtl { animation: projRtl 0.52s cubic-bezier(0.4,0,0.2,1) forwards; }
-                .animate-float-dmg     { animation: floatDmg 1.4s cubic-bezier(0.22,1,0.36,1) forwards; }
-                .animate-impact-flash { animation: impactFlash 0.55s ease-in-out; }
-                .animate-myth-shake { animation: mythShake 0.45s ease-in-out; }
-                .animate-myth-idle  { animation: mythIdle 2s ease-in-out infinite; }
-                .animate-log-in { animation: logFadeIn 0.2s ease-out both; }
-                /* ── Auras de estado ── */
-                @keyframes poisonPulse {
-                    0%,100% { filter: drop-shadow(0 0 4px #4ade80) drop-shadow(0 0 12px #16a34a44); }
-                    50%     { filter: drop-shadow(0 0 10px #4ade80) drop-shadow(0 0 24px #16a34a88); }
-                }
-                @keyframes burnFlicker {
-                    0%,100% { filter: drop-shadow(0 0 4px #f97316) drop-shadow(0 0 10px #ea580c66); }
-                    33%     { filter: drop-shadow(0 0 8px #fb923c) drop-shadow(0 0 20px #f9731688); }
-                    66%     { filter: drop-shadow(0 0 6px #ef4444) drop-shadow(0 0 16px #dc262677); }
-                }
-                @keyframes paralyzeZap {
-                    0%,90%,100% { filter: drop-shadow(0 0 2px #fde047); opacity:1; }
-                    92%         { filter: drop-shadow(0 0 12px #fde047) drop-shadow(0 0 4px #fff); opacity:0.7; }
-                    95%         { filter: drop-shadow(0 0 2px #fde047); opacity:1; }
-                    97%         { filter: drop-shadow(0 0 10px #fde047); opacity:0.8; }
-                }
-                @keyframes freezePulse {
-                    0%,100% { filter: drop-shadow(0 0 6px #67e8f9) drop-shadow(0 0 16px #06b6d444); }
-                    50%     { filter: drop-shadow(0 0 12px #67e8f9) drop-shadow(0 0 30px #06b6d488); }
-                }
-                @keyframes fearShiver {
-                    0%,100% { transform:translateX(0); filter:drop-shadow(0 0 4px #a855f7); }
-                    25%     { transform:translateX(-2px) rotate(-1deg); }
-                    75%     { transform:translateX(2px) rotate(1deg); }
-                }
-                @keyframes stunSpin {
-                    0%    { filter: drop-shadow(0 0 4px #fbbf24); }
-                    50%   { filter: drop-shadow(0 0 10px #fbbf24) drop-shadow(0 0 20px #fbbf2466); }
-                    100%  { filter: drop-shadow(0 0 4px #fbbf24); }
-                }
-                .aura-poison   { animation: poisonPulse 1.6s ease-in-out infinite; }
-                .aura-burn     { animation: burnFlicker 0.8s ease-in-out infinite; }
-                .aura-paralyze { animation: paralyzeZap 2s ease-in-out infinite; }
-                .aura-freeze   { animation: freezePulse 2s ease-in-out infinite; }
-                .aura-fear     { animation: fearShiver 0.4s ease-in-out infinite; }
-                .aura-stun     { animation: stunSpin 1s ease-in-out infinite; }
-                .aura-curse    { animation: poisonPulse 2s ease-in-out infinite; filter: hue-rotate(270deg); }
-                @keyframes turnOverlayIn {
-                    0%   { opacity:0; transform:scale(0.6); }
-                    20%  { opacity:1; transform:scale(1.08); }
-                    70%  { opacity:1; transform:scale(1); }
-                    100% { opacity:0; transform:scale(0.95) translateY(-12px); }
-}
-                .animate-turn-overlay { animation: turnOverlayIn 1.5s cubic-bezier(0.22,1,0.36,1) forwards; }
-                @keyframes victoryIn {
-                    0%   { opacity:0; transform:translate(-50%,-50%) scale(0.3) rotate(-8deg); }
-                    40%  { opacity:1; transform:translate(-50%,-50%) scale(1.15) rotate(2deg); }
-                    60%  { transform:translate(-50%,-50%) scale(0.95) rotate(-1deg); }
-                    100% { opacity:1; transform:translate(-50%,-50%) scale(1) rotate(0deg); }
-                }
-                @keyframes defeatIn {
-                    0%   { opacity:0; transform:translate(-50%,-50%) scale(2) rotate(5deg); filter:blur(8px); }
-                    50%  { opacity:1; transform:translate(-50%,-50%) scale(0.95) rotate(-2deg); filter:blur(0px); }
-                    100% { opacity:1; transform:translate(-50%,-50%) scale(1) rotate(0deg); }
-                }
-                @keyframes particleFly {
-                    0%   { opacity:1; transform:translate(0,0) scale(1); }
-                    100% { opacity:0; transform:translate(var(--tx),var(--ty)) scale(0); }
-                }
-                @keyframes resultGlow {
-                    0%,100% { box-shadow: 0 0 40px var(--glow), 0 0 80px var(--glow2), 0 20px 60px rgba(0,0,0,0.8); }
-                    50%      { box-shadow: 0 0 80px var(--glow), 0 0 160px var(--glow2), 0 20px 60px rgba(0,0,0,0.8); }
-                }
-                .animate-victory-in { animation: victoryIn 0.7s cubic-bezier(0.34,1.56,0.64,1) forwards; }
-                .animate-defeat-in  { animation: defeatIn 0.5s cubic-bezier(0.22,1,0.36,1) forwards; }
-                .animate-result-glow { animation: resultGlow 2s ease-in-out infinite; }
-                @keyframes projTravel {
-                    0%   { opacity:0; transform:translate(-50%,-50%) scale(0.4); }
-                    10%  { opacity:1; transform:translate(-50%,-50%) scale(1.1); }
-                    90%  { opacity:1; transform:translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.9); }
-                    100% { opacity:0; transform:translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.5); }
-                }
-                @keyframes trailFade {
-                    0%   { opacity:0.6; transform:scale(0.5); }
-                    100% { opacity:0;   transform:scale(2); }
-                }
-                @keyframes ringExpand {
-                    0%   { transform:scale(0.1); opacity:1; }
-                    100% { transform:scale(1);   opacity:0; }
-                }
-                @keyframes centralFlash {
-                    0%   { opacity:1; transform:scale(0.3); }
-                    50%  { opacity:0.8; transform:scale(1.2); }
-                    100% { opacity:0; transform:scale(1.5); }
-                }
-                @keyframes screenShake {
-                    0%,100% { transform:translateX(0); }
-                    20%     { transform:translateX(-6px); }
-                    40%     { transform:translateX(6px); }
-                    60%     { transform:translateX(-4px); }
-                    80%     { transform:translateX(4px); }
-                }
-            `}</style>
             <Layout sidebar={<TrainerSidebar />}>
                 <div className="flex-1 flex flex-col overflow-hidden" style={{ minHeight: 0 }}>
                     <TabBar mode={mode} onSwitch={setMode} />
@@ -1334,13 +1425,25 @@ export default function BattlePage() {
                         <div className="flex-1 flex flex-col overflow-hidden" style={{ minHeight: 0 }}>
                             {/* ── Campo de batalla ── */}
                             <div
-                                className="relative flex-1 flex flex-col justify-between px-6 py-4 overflow-hidden"
+                                className="relative flex-1 overflow-hidden"
                                 style={{
-                                    background:
-                                        "linear-gradient(180deg, #0a1628 0%, #0d1f3c 40%, #111827 70%, #0a0f1a 100%)",
+                                    background: "url('https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/battlemaps/mainbg3v3.avif') center/cover no-repeat",
                                     minHeight: 0,
                                 }}
                             >
+                                {/* Overlay de preparación — texto central */}
+                                {phase === "prep" && (
+                                    <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+                                        <div className="text-center">
+                                            <p className="font-mono text-2xl font-black text-white/10 tracking-[0.3em] uppercase">
+                                                ELIGE TU EQUIPO
+                                            </p>
+                                            <p className="font-mono text-xs text-white/5 tracking-widest mt-1">
+                                                selecciona myths abajo · pulsa COMBAT para empezar
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
                                 {turnOverlay && (
                                     <div className="absolute inset-0 flex items-center justify-center z-50 pointer-events-none">
                                         <div
@@ -1439,6 +1542,9 @@ export default function BattlePage() {
                                                         setSession(null);
                                                         setLog([]);
                                                         setResult(null);
+                                                        setPrepSlots([null, null, null]);
+                                                        setPrepSearch("");
+                                                        setEnemyRevealIndex(-1);
                                                     }}
                                                     className="px-6 py-2.5 rounded-xl bg-red-700 text-white font-mono font-black text-sm tracking-widest uppercase hover:bg-red-600 transition-all"
                                                 >
@@ -1457,192 +1563,332 @@ export default function BattlePage() {
                                 {/* Suelo decorativo */}
                                 <div
                                     className="absolute bottom-0 left-0 right-0 h-24 pointer-events-none"
-                                    style={{
-                                        background: "linear-gradient(180deg, transparent 0%, rgba(30,45,70,0.4) 100%)",
-                                    }}
+                                    style={{ background: "linear-gradient(180deg, transparent 0%, rgba(30,45,70,0.4) 100%)" }}
                                 />
-
-                                {/* Línea divisoria central sutil */}
+                                {/* Línea divisoria vertical central sutil */}
                                 <div
-                                    className="absolute left-8 right-8 pointer-events-none"
-                                    style={{ top: "50%", height: 1, background: "rgba(255,255,255,0.04)" }}
+                                    className="absolute top-8 bottom-8 pointer-events-none"
+                                    style={{ left: "50%", width: 1, background: "rgba(255,255,255,0.04)" }}
                                 />
 
-                                {/* Proyectil ltr */}
-                                {projectile && <Projectile proj={projectile} />}
-                                {/* Proyectil rtl */}
+                                {/* Proyectil */}
                                 {projectile && <Projectile proj={projectile} />}
 
-                                {/* ── Fila enemigos (arriba, front view) ── */}
-                                <div className="flex justify-around items-end pt-2 relative z-10">
-                                    {session?.enemyTeam.map((myth) => (
-                                        <ArenaMyth
-                                            key={myth.instanceId}
-                                            myth={myth}
-                                            side="enemy"
-                                            mythRef={getMythRef(myth.instanceId)}
-                                            isActing={myth.instanceId === currentActorId}
-                                            targeted={myth.instanceId === targetEnemyMythId && currentActorIsPlayer}
-                                            flashAffinity={flashMap[myth.instanceId]}
-                                            floatingDmg={floatMap[myth.instanceId]}
-                                            spriteSize={150}
-                                            onClick={() => {
-                                                if (!myth.defeated && !animating && currentActorIsPlayer)
-                                                    setTargetEnemyMythId(myth.instanceId);
-                                            }}
-                                        />
-                                    ))}
-                                </div>
+                                {/* ── Enemigos (derecha) — posiciones según círculos del mapa ── */}
+                                {/* idx=0: arriba-derecha pegado a la pared; idx=1: medio avanzado al centro; idx=2: abajo-derecha */}
+                                {(phase === "prep" ? [null, null, null] : (session?.enemyTeam ?? [null,null,null])).map((myth: any, idx: number) => {
+                                    // Posiciones X: 0=pegado derecha, 1=más al centro, 2=pegado derecha
+                                    const xOffsets = ["right-6", "right-24", "right-6"];
+                                    // Posiciones Y en % del campo
+                                    const yPcts = ["15%", "45%", "75%"];
+                                    const isPrepSlot = phase === "prep" || !myth;
+                                    const revealed = myth && (idx < enemyRevealIndex);
+                                    return (
+                                        <div
+                                            key={myth ? myth.instanceId : `eslot-${idx}`}
+                                            className={`absolute ${xOffsets[idx]} z-10`}
+                                            style={{ top: yPcts[idx], transform: "translateY(-50%)", opacity: isPrepSlot ? 0.2 : (revealed ? 1 : 0), animation: (!isPrepSlot && revealed) ? `enemyLand 0.6s cubic-bezier(0.34,1.56,0.64,1) forwards` : undefined }}
+                                        >
+                                            {isPrepSlot ? (
+                                                <div className="rounded-full border-2 border-dashed border-red-500/50" style={{ width: spriteSize, height: spriteSize, background: "rgba(239,68,68,0.05)" }} />
+                                            ) : (
+                                                <ArenaMyth
+                                                    myth={myth}
+                                                    side="enemy"
+                                                    mythRef={getMythRef(myth.instanceId)}
+                                                    isActing={myth.instanceId === currentActorId}
+                                                    targeted={myth.instanceId === targetEnemyMythId && currentActorIsPlayer}
+                                                    flashAffinity={flashMap[myth.instanceId]}
+                                                    floatingDmg={floatMap[myth.instanceId]}
+                                                    spriteSize={spriteSize}
+                                                    onClick={() => { if (!myth.defeated && !animating && currentActorIsPlayer) setTargetEnemyMythId(myth.instanceId); }}
+                                                />
+                                            )}
+                                        </div>
+                                    );
+                                })}
 
-                                {/* ── Info turno central ── */}
-                                <div className="flex items-center justify-between px-4 py-1 relative z-10">
-                                    <span className="font-mono text-xs text-slate-600 tracking-widest">
-                                        T{session?.turn ?? 0}
-                                    </span>
-                                    <div className="flex items-center gap-3">
-                                        {animating && (
-                                            <span className="font-mono text-xs text-yellow-400 animate-pulse">
-                                                ⚡ Resolviendo...
-                                            </span>
-                                        )}
-                                        {currentActorIsPlayer && !animating && (
-                                            <div
-                                                className={`flex items-center gap-1.5 font-mono text-xs font-black tabular-nums
-                                            ${timer <= 5 ? "text-red-400 animate-pulse" : timer <= 10 ? "text-yellow-400" : "text-slate-400"}`}
-                                            >
-                                                ⏱ {timer}s
-                                                <div className="w-12 h-1 bg-slate-800 rounded-full overflow-hidden">
-                                                    <div
-                                                        className={`h-full rounded-full transition-all duration-1000 ease-linear
-                                                    ${timer <= 5 ? "bg-red-500" : timer <= 10 ? "bg-yellow-500" : "bg-emerald-500"}`}
-                                                        style={{ width: `${(timer / 15) * 100}%` }}
-                                                    />
-                                                </div>
-                                            </div>
-                                        )}
-                                        {currentActorIsPlayer ? (
-                                            <span className="text-yellow-300 text-xs font-mono animate-pulse">
-                                                ⚔️ {currentActor?.name} →{" "}
-                                                {targetEnemy ? `🎯 ${targetEnemy.name}` : "elige objetivo"}
-                                            </span>
-                                        ) : (
-                                            <span className="text-slate-500 text-xs font-mono animate-pulse">
-                                                👾{" "}
-                                                {session
-                                                    ? ([...session.playerTeam, ...session.enemyTeam].find(
-                                                          (m) => m.instanceId === currentActorId,
-                                                      )?.name ?? "...")
-                                                    : "..."}
-                                            </span>
-                                        )}
+                                {/* ── Barra de turno central — grande y visual ── */}
+                                <div className="absolute left-0 right-0 flex flex-col items-center justify-center gap-2 z-20 pointer-events-none" style={{ top: "50%", transform: "translateY(-50%)" }}>
+                                    {/* Turno número */}
+                                    <div className="flex items-center gap-2 bg-black/60 backdrop-blur-md rounded-full px-5 py-1 border border-white/10">
+                                        <span className="font-mono text-xs text-slate-500 tracking-[0.2em] uppercase">Turno</span>
+                                        <span className="font-mono font-black text-white text-base">{session?.turn ?? 0}</span>
                                     </div>
-                                    <span className="w-10" />
-                                </div>
 
-                                {/* ── Fila jugador (abajo, back view) ── */}
-                                <div className="flex justify-around items-start pb-2 relative z-10">
-                                    {session?.playerTeam.map((myth) => (
-                                        <ArenaMyth
-                                            key={myth.instanceId}
-                                            myth={myth}
-                                            side="player"
-                                            mythRef={getMythRef(myth.instanceId)}
-                                            isActing={myth.instanceId === currentActorId}
-                                            flashAffinity={flashMap[myth.instanceId]}
-                                            floatingDmg={floatMap[myth.instanceId]}
-                                            spriteSize={150}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* ── Panel de moves — ocupa el espacio restante inferior ── */}
-                            <div
-                                className="flex-shrink-0 border-t border-slate-800 bg-[#070b14]"
-                                style={{ height: "clamp(150px, 20vh, 200px)", overflow: "hidden", flexShrink: 0 }}
-                            >
-                                {(() => {
-                                    // Si el actor actual es del jugador y está vivo, úsalo.
-                                    // Si está muerto (acaba de caer), usa el siguiente myth vivo del jugador.
-                                    const actorForMoves =
-                                        currentActorIsPlayer && currentActor && !currentActor.defeated
-                                            ? currentActor
-                                            : currentActorIsPlayer
-                                              ? (session?.playerTeam.find((m) => !m.defeated) ?? null)
-                                              : null;
-
-                                    return actorForMoves ? (
-                                        <div className="p-3">
-                                            <p className="font-mono text-xs text-yellow-400 font-bold mb-2 px-1">
-                                                Moves de {actorForMoves.name}
-                                            </p>
-                                            <div className="grid grid-cols-2 gap-2">
-                                                {actorForMoves.moves.map((move) => {
-                                                    const cfg = AFFINITY_CONFIG[move.affinity];
-                                                    const onCooldown = !!(actorForMoves.cooldownsLeft?.[move.id] > 0);
-                                                    const cdLeft = actorForMoves.cooldownsLeft?.[move.id] ?? 0;
-                                                    const ok =
-                                                        !animating &&
-                                                        !!targetEnemy &&
-                                                        !targetEnemy.defeated &&
-                                                        !onCooldown;
-                                                    return (
-                                                        <button
-                                                            key={move.id}
-                                                            onClick={() => ok && handleMove(move.id)}
-                                                            disabled={!ok}
-                                                            className={`flex items-start gap-3 px-4 py-3 rounded-xl border text-left transition-all
-                                    ${
-                                        ok
-                                            ? `${cfg.bg} ${cfg.color} border-white/10 hover:border-white/30 hover:scale-[1.02] active:scale-[0.98]`
-                                            : "bg-slate-900/40 border-slate-800 text-slate-600 cursor-not-allowed opacity-50"
-                                    }`}
-                                                        >
-                                                            <span className="text-2xl mt-0.5">{cfg.emoji}</span>
-                                                            <div className="min-w-0 flex-1">
-                                                                <div className="flex items-center gap-2 mb-0.5">
-                                                                    <p className="font-mono text-sm font-bold">
-                                                                        {move.name}
-                                                                    </p>
-                                                                    {onCooldown && (
-                                                                        <span className="text-xs text-red-400 font-mono font-black">
-                                                                            ⏳{cdLeft}t
-                                                                        </span>
-                                                                    )}
-                                                                </div>
-                                                                <p className="text-xs opacity-70 font-mono mb-1">
-                                                                    {move.power > 0 ? `💥 ${move.power}` : "estado"} ·
-                                                                    🎯 {move.accuracy}%
-                                                                    {move.cooldown > 0 && ` · CD${move.cooldown}`}
-                                                                </p>
-                                                                <p className="text-xs opacity-60 leading-snug line-clamp-2">
-                                                                    {move.description}
-                                                                </p>
-                                                            </div>
-                                                        </button>
-                                                    );
-                                                })}
+                                    {/* Timer — solo visible en turno del jugador */}
+                                    {currentActorIsPlayer && !animating && (
+                                        <div className="flex flex-col items-center gap-1">
+                                            <div
+                                                className={`flex items-center gap-2 px-6 py-2 rounded-2xl border backdrop-blur-md font-mono font-black tabular-nums
+                                                    ${timer <= 5 ? "border-red-500/60 bg-red-900/40 text-red-300" : timer <= 10 ? "border-yellow-500/50 bg-yellow-900/30 text-yellow-300" : "border-emerald-500/40 bg-emerald-900/20 text-emerald-300"}`}
+                                                style={{ fontSize: "1.5rem", boxShadow: timer <= 5 ? "0 0 24px rgba(239,68,68,0.4)" : timer <= 10 ? "0 0 20px rgba(250,204,21,0.3)" : "0 0 16px rgba(52,211,153,0.2)" }}
+                                            >
+                                                <span style={{ fontSize: "1.1rem" }}>⏱</span>
+                                                <span>{timer}s</span>
+                                            </div>
+                                            {/* Barra de progreso del timer */}
+                                            <div className="w-32 h-2 bg-black/40 rounded-full overflow-hidden border border-white/10">
+                                                <div
+                                                    className={`h-full rounded-full transition-all duration-1000 ease-linear ${timer <= 5 ? "bg-red-500" : timer <= 10 ? "bg-yellow-400" : "bg-emerald-400"}`}
+                                                    style={{ width: `${(timer / 15) * 100}%`, boxShadow: timer <= 5 ? "0 0 8px #ef4444" : timer <= 10 ? "0 0 8px #facc15" : "0 0 8px #4ade80" }}
+                                                />
+                                            </div>
+                                            <div className="text-xs font-mono font-bold text-yellow-300/90 tracking-wide" style={{ textShadow: "0 0 10px rgba(253,224,71,0.5)" }}>
+                                                ⚔️ {currentActor?.name} → {targetEnemy ? `🎯 ${targetEnemy.name}` : "elige objetivo"}
                                             </div>
                                         </div>
-                                    ) : (
+                                    )}
+                                </div>
+
+                                {/* ── Jugador (izquierda) — posiciones según círculos del mapa ── */}
+                                {/* idx=0: arriba-izq; idx=1: medio más al centro; idx=2: abajo-izq */}
+                                {[0, 1, 2].map((i) => {
+                                    // X: 0=pegado izquierda, 1=avanzado hacia el centro, 2=pegado izquierda
+                                    const xOffsets = ["left-6", "left-24", "left-6"];
+                                    const yPcts = ["15%", "45%", "75%"];
+                                    const myth = phase === "prep" ? prepSlots[i] : session?.playerTeam[i];
+
+                                    // Handler de drop para prep
+                                    const handleDrop = (e: React.DragEvent) => {
+                                        e.preventDefault();
+                                        const data = e.dataTransfer.getData("mythId");
+                                        const from = e.dataTransfer.getData("fromSlot");
+                                        const found = allMyths.find((m) => (m.id ?? m.instanceId) === data);
+                                        if (!found) return;
+                                        const ns = [...prepSlots];
+                                        if (from !== "") {
+                                            const fromIdx = parseInt(from);
+                                            if (!isNaN(fromIdx)) ns[fromIdx] = null;
+                                        }
+                                        const displaced = ns[i];
+                                        ns[i] = found;
+                                        if (displaced && from !== "" && !isNaN(parseInt(from))) ns[parseInt(from)] = displaced;
+                                        setPrepSlots(ns);
+                                    };
+
+                                    return (
                                         <div
-                                            className="flex items-center justify-center h-full"
-                                            style={{ minHeight: 0 }}
+                                            key={i}
+                                            className={`absolute ${xOffsets[i]} z-10`}
+                                            style={{ top: yPcts[i], transform: "translateY(-50%)" }}
+                                            onDragOver={phase === "prep" ? (e) => e.preventDefault() : undefined}
+                                            onDrop={phase === "prep" ? handleDrop : undefined}
                                         >
-                                            <p className="text-slate-200 text-sm font-mono font-bold">
-                                                {animating
-                                                    ? "⚡ Resolviendo..."
-                                                    : `👾 Turno de ${
+                                            {phase === "prep" ? (
+                                                <div
+                                                    className={`flex flex-col items-center gap-1 rounded-2xl transition-all p-1
+                                                        ${myth ? "" : "border-2 border-dashed border-cyan-400/50 bg-cyan-400/5 hover:border-cyan-400/80 hover:bg-cyan-400/10"}`}
+                                                    style={{ minWidth: spriteSize + 12, minHeight: spriteSize + 36, justifyContent: "center" }}
+                                                >
+                                                    {myth ? (
+                                                        <div
+                                                            draggable
+                                                            onDragStart={(e) => { e.dataTransfer.setData("mythId", myth.id ?? myth.instanceId); e.dataTransfer.setData("fromSlot", String(i)); }}
+                                                            onClick={() => { const ns = [...prepSlots]; ns[i] = null; setPrepSlots(ns); }}
+                                                            className="flex flex-col items-center gap-1 cursor-grab active:cursor-grabbing"
+                                                        >
+                                                            <MythArt art={myth.art} px={spriteSize} className="animate-myth-idle" />
+                                                            <p className="font-mono text-xs text-white font-bold truncate text-center" style={{ maxWidth: spriteSize + 8 }}>{myth.name}</p>
+                                                            <p className="font-mono text-[10px] text-slate-400">Nv.{myth.level}</p>
+                                                            <span className="text-[9px] text-red-400/50 font-mono">✕ quitar</span>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex flex-col items-center gap-1 opacity-40 pointer-events-none">
+                                                            <span className="text-cyan-400 text-2xl">＋</span>
+                                                            <p className="font-mono text-[10px] text-cyan-400">Slot {i + 1}</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ) : myth ? (
+                                                <ArenaMyth
+                                                    myth={myth}
+                                                    side="player"
+                                                    mythRef={getMythRef(myth.instanceId)}
+                                                    isActing={myth.instanceId === currentActorId}
+                                                    flashAffinity={flashMap[myth.instanceId]}
+                                                    floatingDmg={floatMap[myth.instanceId]}
+                                                    spriteSize={spriteSize}
+                                                />
+                                            ) : null}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            {/* ── Panel inferior — selector (prep) o moves (batalla) ── */}
+                            <div
+                                className="flex-shrink-0 border-t border-slate-800 bg-[#070b14]"
+                                style={{ height: "200px", overflow: "hidden", flexShrink: 0 }}
+                            >
+                                {phase === "prep" ? (
+                                    // ── Selector de myths ──
+                                    <div className="flex h-full">
+                                        {/* Lista scrollable */}
+                                        <div className="flex-1 flex flex-col min-w-0">
+                                            {/* Buscador */}
+                                            <div className="flex items-center gap-2 px-3 pt-2 pb-1.5 border-b border-slate-800 flex-shrink-0">
+                                                <span className="text-slate-500 text-xs">🔍</span>
+                                                <input
+                                                    type="text"
+                                                    value={prepSearch}
+                                                    onChange={(e) => setPrepSearch(e.target.value)}
+                                                    placeholder="Buscar myth..."
+                                                    className="flex-1 bg-transparent text-xs font-mono text-white placeholder-slate-600 outline-none"
+                                                />
+                                                <span className="text-slate-600 text-[10px] font-mono">
+                                                    {prepSlots.filter(Boolean).length}/3
+                                                </span>
+                                            </div>
+                                            {/* Cards */}
+                                            <div className="flex-1 overflow-x-auto overflow-y-hidden">
+                                                <div className="flex gap-2 px-3 py-2 h-full items-center" style={{ width: "max-content" }}>
+                                                    {allMyths
+                                                        .filter((m) => {
+                                                            const inSlot = prepSlots.some(
+                                                                (s) => s && (s.id ?? s.instanceId) === (m.id ?? m.instanceId),
+                                                            );
+                                                            const matchSearch =
+                                                                !prepSearch ||
+                                                                m.name.toLowerCase().includes(prepSearch.toLowerCase());
+                                                            return !inSlot && matchSearch;
+                                                        })
+                                                        .map((myth) => {
+                                                            const canAdd = prepSlots.some((s) => !s);
+                                                            return (
+                                                                <div
+                                                                    key={myth.id ?? myth.instanceId}
+                                                                    draggable={canAdd}
+                                                                    onDragStart={(e) => {
+                                                                        e.dataTransfer.setData("mythId", myth.id ?? myth.instanceId);
+                                                                        e.dataTransfer.setData("fromSlot", "");
+                                                                    }}
+                                                                    onClick={() => {
+                                                                        if (!canAdd) return;
+                                                                        const ns = [...prepSlots];
+                                                                        const idx = ns.findIndex((s) => !s);
+                                                                        if (idx !== -1) { ns[idx] = myth; setPrepSlots(ns); }
+                                                                    }}
+                                                                    className={`flex flex-col items-center gap-1 p-2 rounded-xl border transition-all select-none flex-shrink-0
+                                                                        ${canAdd ? "border-slate-700 bg-slate-800/60 hover:border-blue-500/60 hover:bg-blue-500/10 cursor-pointer hover:scale-105" : "border-slate-800 bg-slate-900/40 opacity-40 cursor-not-allowed"}`}
+                                                                    style={{ width: 72 }}
+                                                                >
+                                                                    <MythArt art={myth.art} px={40} />
+                                                                    <p className="font-mono text-[10px] text-white font-bold truncate w-full text-center">{myth.name}</p>
+                                                                    <p className="text-slate-500 text-[10px] font-mono">Nv.{myth.level}</p>
+                                                                    {myth.isInParty && <span className="text-[9px] text-blue-400 font-mono">equipo</span>}
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    {allMyths.filter((m) => {
+                                                        const inSlot = prepSlots.some(
+                                                            (s) => s && (s.id ?? s.instanceId) === (m.id ?? m.instanceId),
+                                                        );
+                                                        return !inSlot && (!prepSearch || m.name.toLowerCase().includes(prepSearch.toLowerCase()));
+                                                    }).length === 0 && (
+                                                        <p className="text-slate-600 text-xs font-mono italic px-4">
+                                                            {prepSearch ? "Sin resultados" : "Todos en posición"}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {/* Botón combatir */}
+                                        <div className="flex-shrink-0 flex items-center justify-center px-4 border-l border-slate-800">
+                                            <button
+                                                onClick={() => {
+                                                    const order = prepSlots
+                                                        .filter(Boolean)
+                                                        .map((m) => m.id ?? m.instanceId);
+                                                    if (order.length >= 1 && !loadingStart) handleStart(order);
+                                                }}
+                                                disabled={prepSlots.every((s) => !s) || loadingStart}
+                                                className={`flex flex-col items-center gap-1.5 px-5 py-3 rounded-2xl border font-mono font-black text-sm tracking-widest uppercase transition-all
+                                                    ${prepSlots.some(Boolean) && !loadingStart
+                                                        ? "bg-red-900/30 border-red-500/60 text-red-400 hover:bg-red-900/50 hover:scale-105 shadow-lg shadow-red-900/30"
+                                                        : "bg-slate-900/40 border-slate-800 text-slate-600 cursor-not-allowed opacity-40"
+                                                    }`}
+                                            >
+                                                <span className="text-2xl">{loadingStart ? "⏳" : "⚔️"}</span>
+                                                <span>{loadingStart ? "..." : "COMBAT"}</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    // ── Moves de batalla ──
+                                    (() => {
+                                        const actorForMoves =
+                                            currentActorIsPlayer && currentActor && !currentActor.defeated
+                                                ? currentActor
+                                                : currentActorIsPlayer
+                                                  ? (session?.playerTeam.find((m) => !m.defeated) ?? null)
+                                                  : null;
+
+                                        return actorForMoves ? (
+                                            <div className="p-2">
+                                                <p className="font-mono text-xs text-yellow-400 font-bold mb-1.5 px-1">
+                                                    Moves de {actorForMoves.name}
+                                                </p>
+                                                <div className="grid grid-cols-2 gap-1.5">
+                                                    {actorForMoves.moves.map((move) => {
+                                                        const cfg = AFFINITY_CONFIG[move.affinity];
+                                                        const onCooldown = !!(actorForMoves.cooldownsLeft?.[move.id] > 0);
+                                                        const cdLeft = actorForMoves.cooldownsLeft?.[move.id] ?? 0;
+                                                        const ok =
+                                                            !animating &&
+                                                            !!targetEnemy &&
+                                                            !targetEnemy.defeated &&
+                                                            !onCooldown;
+                                                        return (
+                                                            <button
+                                                                key={move.id}
+                                                                onClick={() => ok && handleMove(move.id)}
+                                                                disabled={!ok}
+                                                                className={`flex items-start gap-2 px-3 py-2 rounded-xl border text-left transition-all
+                                                                    ${ok
+                                                                        ? `${cfg.bg} ${cfg.color} border-white/10 hover:border-white/30 hover:scale-[1.02] active:scale-[0.98]`
+                                                                        : "bg-slate-900/40 border-slate-800 text-slate-600 cursor-not-allowed opacity-50"
+                                                                    }`}
+                                                            >
+                                                                <span className="text-xl mt-0.5">{cfg.emoji}</span>
+                                                                <div className="min-w-0 flex-1">
+                                                                    <div className="flex items-center gap-2 mb-0.5">
+                                                                        <p className="font-mono text-sm font-bold">{move.name}</p>
+                                                                        {onCooldown && (
+                                                                            <span className="text-xs text-red-400 font-mono font-black">
+                                                                                ⏳{cdLeft}t
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                    <p className="text-xs opacity-70 font-mono mb-0.5">
+                                                                        {move.power > 0 ? `💥 ${move.power}` : "estado"} · 🎯{" "}
+                                                                        {move.accuracy}%
+                                                                        {move.cooldown > 0 && ` · CD${move.cooldown}`}
+                                                                    </p>
+                                                                    <p className="text-xs opacity-60 leading-snug line-clamp-1">
+                                                                        {move.description}
+                                                                    </p>
+                                                                </div>
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="flex items-center justify-center h-full">
+                                                <p className="text-slate-400 text-sm font-mono">
+                                                    {`👾 Turno de ${
                                                           session
                                                               ? ([...session.playerTeam, ...session.enemyTeam].find(
                                                                     (m) => m.instanceId === currentActorId,
                                                                 )?.name ?? "rival")
                                                               : "rival"
                                                       }...`}
-                                            </p>
-                                        </div>
-                                    );
-                                })()}
+                                                </p>
+                                            </div>
+                                        );
+                                    })()
+                                )}
                             </div>
                         </div>
 
@@ -1703,6 +1949,8 @@ export default function BattlePage() {
                 <ImpactExplosion
                     x={explosion.x}
                     y={explosion.y}
+                    fromX={explosion.fromX}
+                    fromY={explosion.fromY}
                     affinity={explosion.affinity}
                     level={explosion.level}
                     onDone={() => setExplosion(null)}
