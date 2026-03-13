@@ -45,6 +45,9 @@ interface BattleMyth {
     attack: number;
     defense: number;
     speed: number;
+    accuracy: number;       // 0–100, base hit chance
+    critChance: number;     // 0–100, % probabilidad crítico
+    critDamage: number;     // multiplicador base ej: 150 = ×1.5, 200 = ×2.0
     affinities: Affinity[];
     moves: Move[];
     art: { portrait: string; front: string; back: string };
@@ -673,41 +676,40 @@ function ArenaMyth({
             {/* Daño / curación flotante — no renderizar si es +0 */}
             {floatingDmg && (!floatingDmg.heal || floatingDmg.value > 0) && (
                 <>
-                    {/* Texto CRÍTICO — fondo blanco, texto rojo con contorno rojo oscuro */}
+                    {/* Texto CRÍTICO — solo texto, rojo agresivo, animación propia más grande */}
                     {floatingDmg.crit && !floatingDmg.heal && (
                         <div
-                            className="absolute z-31 pointer-events-none font-black tracking-widest uppercase animate-float-dmg"
+                            className="absolute z-31 pointer-events-none font-black uppercase animate-crit-label"
                             style={{
-                                top: -72,
+                                top: -88,
                                 left: "50%",
                                 transform: "translateX(-50%)",
-                                fontSize: "1.45rem",
-                                color: "#cc0000",
-                                background: "white",
-                                borderRadius: 6,
-                                padding: "1px 10px 2px 10px",
-                                border: "2.5px solid #cc0000",
-                                WebkitTextStroke: "0.5px #7f0000",
-                                letterSpacing: "0.15em",
+                                fontSize: "2.1rem",
+                                color: "#ff1111",
+                                WebkitTextStroke: "1.5px #7f0000",
+                                letterSpacing: "0.12em",
                                 whiteSpace: "nowrap",
-                                boxShadow: "0 0 16px #ff000066, 0 2px 8px rgba(0,0,0,0.7)",
+                                textShadow: "0 0 20px #ff0000, 0 0 45px #ff000088, 0 0 80px #ff000044, 0 3px 8px rgba(0,0,0,1)",
+                                lineHeight: 1,
                             }}
                         >
-                            ¡CRÍTICO!
+                            CRÍTICO
                         </div>
                     )}
+                    {/* Número de daño */}
                     <div
-                        className={`absolute z-30 pointer-events-none animate-float-dmg font-black tracking-tighter
+                        className={`absolute z-30 pointer-events-none font-black tracking-tighter
+                            ${floatingDmg.heal ? "animate-float-dmg" : floatingDmg.crit ? "animate-crit-dmg" : "animate-float-dmg"}
                             ${floatingDmg.heal ? "text-emerald-400" : floatingDmg.crit ? "text-red-400" : floatingDmg.mult >= 2 ? "text-orange-400" : floatingDmg.mult <= 0.5 ? "text-blue-300" : "text-white"}`}
                         style={{
-                            top: -24,
+                            top: floatingDmg.crit ? -40 : -24,
                             left: "50%",
                             transform: "translateX(-50%)",
-                            fontSize: floatingDmg.crit ? "2.6rem" : "1.8rem",
+                            fontSize: floatingDmg.crit ? "3.2rem" : "1.8rem",
                             textShadow: floatingDmg.heal
                                 ? "0 0 12px #4ade80, 0 2px 4px rgba(0,0,0,0.8)"
                                 : floatingDmg.crit
-                                  ? "0 0 20px #ff2222, 0 0 40px #ff000088, 0 2px 4px rgba(0,0,0,0.9)"
+                                  ? "0 0 24px #ff2222, 0 0 50px #ff000088, 0 2px 6px rgba(0,0,0,1)"
                                   : "0 0 10px currentColor, 0 2px 4px rgba(0,0,0,0.8)",
                             letterSpacing: "-0.02em",
                         }}
@@ -791,12 +793,39 @@ function ArenaMyth({
                         style={{ background: `radial-gradient(circle, ${cfg.glow}66 0%, transparent 70%)` }}
                     />
                 )}
-                {/* Target ring */}
+                {/* Target ring — enemy selected effect */}
                 {targeted && !myth.defeated && (
-                    <div
-                        className="absolute inset-0 rounded-full border-2 animate-pulse pointer-events-none"
-                        style={{ borderColor: targetColor ?? "rgba(248,113,113,0.7)" }}
-                    />
+                    <>
+                        {/* Anillo exterior pulsante */}
+                        <div
+                            className="absolute rounded-full pointer-events-none"
+                            style={{
+                                inset: -6,
+                                border: `2px solid ${targetColor ?? "rgba(248,113,113,0.75)"}`,
+                                borderRadius: "50%",
+                                animation: "targetRingOuter 1.1s ease-in-out infinite",
+                                boxShadow: `0 0 10px ${targetColor ?? "rgba(248,113,113,0.5)"}, 0 0 22px ${targetColor ?? "rgba(248,113,113,0.25)"}`,
+                            }}
+                        />
+                        {/* Anillo interior — desfasado */}
+                        <div
+                            className="absolute rounded-full pointer-events-none"
+                            style={{
+                                inset: 2,
+                                border: `1.5px solid ${targetColor ?? "rgba(248,113,113,0.45)"}`,
+                                borderRadius: "50%",
+                                animation: "targetRingInner 1.1s ease-in-out 0.28s infinite",
+                            }}
+                        />
+                        {/* Glow relleno central suave */}
+                        <div
+                            className="absolute inset-0 rounded-full pointer-events-none"
+                            style={{
+                                background: `radial-gradient(circle, ${targetColor ?? "rgba(248,113,113,0.12)"} 0%, transparent 70%)`,
+                                animation: "targetGlowFill 1.1s ease-in-out infinite",
+                            }}
+                        />
+                    </>
                 )}
 
                 {myth.defeated ? (
@@ -863,7 +892,7 @@ function ArenaMyth({
                     <>
                         {/* Barra de nivel + HP integrados */}
                         <div className="flex items-center gap-1 w-full justify-center">
-                            {/* Badge de nivel — ligeramente más alto que la barra */}
+                            {/* Badge de nivel */}
                             <div
                                 className="flex-shrink-0 flex items-center justify-center font-black font-mono rounded"
                                 style={{
@@ -1292,7 +1321,7 @@ export default function BattlePage() {
         setKoOverlays((prev) => ({ ...prev, [instanceId]: true }));
         setTimeout(() => {
             setKoOverlays((prev) => { const n = { ...prev }; delete n[instanceId]; return n; });
-        }, 2400);
+        }, 3600);
     }
 
     function showSupportOverlay(instanceId: string, text: string, color: string, glow: string, duration = 1800) {
@@ -1302,7 +1331,16 @@ export default function BattlePage() {
         }, duration);
     }
 
-    const [log, setLog] = useState<{ text: string; type: string }[]>([]);
+    const [log, setLog] = useState<{
+        text: string;
+        type: string;
+        actorName?: string;
+        actorAffinity?: string;
+        targetName?: string;
+        targetAffinity?: string;
+        damage?: number;
+        isCrit?: boolean;
+    }[]>([]);
     const logRef = useRef<HTMLDivElement>(null);
     // Scroll al fondo del log cada vez que llega un mensaje — estilo Twitch
     useEffect(() => {
@@ -1371,6 +1409,125 @@ export default function BattlePage() {
         }
     }
     const [turnOverlay, setTurnOverlay] = useState<string | null>(null);
+    // Último myth del jugador que actuó — se muestra en el panel inferior durante turnos NPC
+    const [lastPlayerActorId, setLastPlayerActorId] = useState<string | null>(null);
+
+    // ── Bloquear navegación durante combate ──
+    const [showExitConfirm, setShowExitConfirm] = useState(false);
+    const pendingNavRef = useRef<string | null>(null);
+    const battleLockedRef = useRef(false);
+
+    // Sincronizar phase con la ref Y con localStorage (señal global para otras páginas)
+    useEffect(() => {
+        const locked = phase === "battle";
+        battleLockedRef.current = locked;
+        if (locked) {
+            localStorage.setItem("mythara_battle_active", "1");
+        } else {
+            localStorage.removeItem("mythara_battle_active");
+        }
+    }, [phase]);
+
+    // Limpiar localStorage al desmontar el componente
+    useEffect(() => {
+        return () => { localStorage.removeItem("mythara_battle_active"); };
+    }, []);
+
+    // Interceptar clics en CUALQUIER elemento (links <a> y botones con navigate)
+    useEffect(() => {
+        function handleClick(e: MouseEvent) {
+            if (!battleLockedRef.current) return;
+            const anchor = (e.target as Element)?.closest("a[href]") as HTMLAnchorElement | null;
+            if (!anchor) return;
+            const href = anchor.getAttribute("href") ?? "";
+            if (href.startsWith("/") && !anchor.target) {
+                e.preventDefault();
+                e.stopPropagation();
+                pendingNavRef.current = href;
+                setShowExitConfirm(true);
+            }
+        }
+        document.addEventListener("click", handleClick, true);
+        return () => document.removeEventListener("click", handleClick, true);
+    }, []);
+
+    // Interceptar botón atrás del navegador
+    useEffect(() => {
+        window.history.pushState(null, "", window.location.href);
+        function handlePop() {
+            if (!battleLockedRef.current) return;
+            window.history.pushState(null, "", window.location.href);
+            pendingNavRef.current = null;
+            setShowExitConfirm(true);
+        }
+        window.addEventListener("popstate", handlePop);
+        return () => window.removeEventListener("popstate", handlePop);
+    }, []);
+
+    // Monkey-patch de window.history.pushState para interceptar navigate() de react-router
+    // react-router v6 llama pushState internamente — esto captura logout y cualquier navigate()
+    useEffect(() => {
+        const originalPush = window.history.pushState.bind(window.history);
+        window.history.pushState = function(state: any, unused: string, url?: string | URL | null) {
+            // Si hay batalla activa y la URL destino es diferente a /battle → interceptar
+            if (battleLockedRef.current && url) {
+                const dest = typeof url === "string" ? url : url.toString();
+                const destPath = dest.startsWith("/") ? dest : new URL(dest, window.location.origin).pathname;
+                if (destPath !== "/battle" && destPath !== window.location.pathname) {
+                    // Cancelar el push y mostrar modal
+                    pendingNavRef.current = destPath;
+                    setShowExitConfirm(true);
+                    return; // no llamamos a originalPush → navegación bloqueada
+                }
+            }
+            return originalPush(state, unused, url);
+        };
+        return () => {
+            window.history.pushState = originalPush;
+        };
+    }, []);
+
+    // Interceptar cierre/recarga del navegador — muestra diálogo nativo
+    useEffect(() => {
+        function handleBeforeUnload(e: BeforeUnloadEvent) {
+            if (!battleLockedRef.current) return;
+            e.preventDefault();
+            e.returnValue = "Tienes un combate en curso. Si sales, el combate contará como derrota.";
+        }
+        window.addEventListener("beforeunload", handleBeforeUnload);
+        return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+    }, []);
+
+
+    async function handleForfeit(proceed: boolean) {
+        setShowExitConfirm(false);
+        if (proceed) {
+            // 1. Llamar al endpoint de rendición — registra derrota y cierra la sesión
+            try {
+                if (session?.battleId) {
+                    await api.battleNpcForfeit(session.battleId);
+                }
+            } catch (_) {
+                // Si falla la llamada (ej: ya terminó), seguimos igualmente
+            }
+            // 2. Limpiar estado local completamente
+            battleLockedRef.current = false;
+            localStorage.removeItem("mythara_battle_active");
+            setSession(null);
+            setPhase("prepare");
+            setSelectedMythIds([]);
+            setEnemyTargetId(null);
+            // 3. Navegar al destino pendiente o quedarse en /battle (pantalla preparación)
+            const dest = pendingNavRef.current;
+            pendingNavRef.current = null;
+            if (dest && dest !== "/battle") {
+                navigate(dest);
+            }
+            // Si no había destino o era /battle, se queda en /battle mostrando la preparación
+        } else {
+            pendingNavRef.current = null;
+        }
+    }
 
     useEffect(() => {
         api.creatures()
@@ -1411,6 +1568,11 @@ export default function BattlePage() {
         if (isPlayer) {
             const firstEnemy = s.enemyTeam.find((m) => !m.defeated);
             if (firstEnemy) setTargetEnemyMythId(firstEnemy.instanceId);
+            setLastPlayerActorId(actorId);
+        } else {
+            // Inicialmente no hay "último jugador", cogemos el primero vivo
+            const firstPlayer = s.playerTeam.find((m) => !m.defeated);
+            if (firstPlayer) setLastPlayerActorId(firstPlayer.instanceId);
         }
         return { actorId, isPlayer };
     }
@@ -1422,8 +1584,12 @@ export default function BattlePage() {
     const animatingRef = useRef(false);
     useEffect(() => { animatingRef.current = animating; }, [animating]);
 
-    function addLog(text: string, type = "normal") {
-        setLog((l) => [...l.slice(-50), { text, type }]);
+    function addLog(text: string, type = "normal", meta?: {
+        actorName?: string; actorAffinity?: string;
+        targetName?: string; targetAffinity?: string;
+        damage?: number; isCrit?: boolean;
+    }) {
+        setLog((l) => [...l.slice(-50), { text, type, ...meta }]);
     }
 
     function sleep(ms: number) {
@@ -1512,7 +1678,20 @@ export default function BattlePage() {
             addLog(action.blockedByStatus, "status");
         } else {
             const logPrefix = action.isPlayerMyth ? "" : "👾 ";
-            addLog(`${logPrefix}${action.actorName} usa ${action.move} → ${action.targetName}`, "normal");
+            // Buscar afinidades de actor y target para badges en el log
+            const allMythsFlat2 = [...(sessionForLookup?.playerTeam ?? []), ...(sessionForLookup?.enemyTeam ?? [])];
+            const logActor  = allMythsFlat2.find(m => m.instanceId === action.actorInstanceId);
+            const logTarget = allMythsFlat2.find(m => m.instanceId === action.targetInstanceId);
+            addLog(
+                `${logPrefix}${action.actorName} usa ${action.move}${action.targetName ? ` → ${action.targetName}` : ""}`,
+                "normal",
+                {
+                    actorName:      action.actorName,
+                    actorAffinity:  logActor?.affinities?.[0],
+                    targetName:     action.targetName,
+                    targetAffinity: logTarget?.affinities?.[0],
+                }
+            );
             const moveObj = (sessionForLookup?.playerTeam ?? [])
                 .concat(sessionForLookup?.enemyTeam ?? [])
                 .find((m) => m.instanceId === action.actorInstanceId)
@@ -1591,10 +1770,18 @@ export default function BattlePage() {
                     addLog("¡Falló!", "miss");
                 }
 
+                // Daño infligido — siempre que haya daño real
+                if (action.damage > 0 && !action.crit) {
+                    addLog(`−${action.damage} dmg`, action.isPlayerMyth ? "dmg_player" : "dmg_enemy", { damage: action.damage });
+                }
                 if (action.mult >= 2) addLog(`⚡ ¡Súper eficaz! ×${action.mult}`, action.isPlayerMyth ? "good" : "bad");
                 else if (action.mult > 0 && action.mult < 1)
                     addLog(`💤 Poco eficaz ×${action.mult}`, action.isPlayerMyth ? "bad" : "good");
-                if (action.crit) addLog("💥 ¡Golpe crítico!", "crit");
+                if (action.crit) addLog(
+                    `💥 ¡CRÍTICO! −${action.damage} dmg`,
+                    "crit",
+                    { damage: action.damage, isCrit: true }
+                );
 
                 if (action.statusApplied) {
                     const icon = STATUS_ICONS[action.statusApplied] ?? "⚠️";
@@ -1647,6 +1834,11 @@ export default function BattlePage() {
                 if (was && !was.defeated && m.defeated) triggerKo(m.instanceId);
             }
         }
+        // Guardar el último actor jugador que actuó (para panel inferior durante turno NPC)
+        const currentActor = currentActorIdRef.current;
+        if (currentActor && prev?.playerTeam.some((m) => m.instanceId === currentActor)) {
+            setLastPlayerActorId(currentActor);
+        }
         setSession(newSession);
         if (newSession.status === "win" || newSession.status === "lose") {
             addLog(
@@ -1660,6 +1852,7 @@ export default function BattlePage() {
         }
         setCurrentActorId(nextActorId);
         if (nextActorIsPlayer && nextActorId) {
+            setLastPlayerActorId(nextActorId);
             const actorName =
                 [...newSession.playerTeam, ...newSession.enemyTeam].find((m) => m.instanceId === nextActorId)?.name ??
                 "TU MYTH";
@@ -1796,10 +1989,77 @@ export default function BattlePage() {
     }
 
     // ── Arena + Prep integrada ──
+    const battleLocked = phase === "battle";
+
     return (
         <>
             {screenWarningOverlay}
-            <Layout sidebar={<TrainerSidebar />}>
+
+            {/* ── Modal confirmación salida del combate ── */}
+            {showExitConfirm && (
+                <div className="fixed inset-0 z-[9998] flex items-center justify-center"
+                    style={{ background: "rgba(4,8,16,0.85)", backdropFilter: "blur(10px)" }}>
+                    <div className="max-w-sm w-full mx-4 rounded-2xl p-8 flex flex-col gap-5 text-center"
+                        style={{
+                            background: "linear-gradient(135deg, #1a1f2e 0%, #0f1520 100%)",
+                            border: "1.5px solid rgba(239,68,68,0.4)",
+                            boxShadow: "0 0 60px rgba(239,68,68,0.15), 0 24px 60px rgba(0,0,0,0.7)",
+                        }}>
+                        <div className="w-16 h-16 rounded-full flex items-center justify-center text-3xl mx-auto"
+                            style={{ background: "rgba(239,68,68,0.12)", border: "1.5px solid rgba(239,68,68,0.3)" }}>
+                            ⚔️
+                        </div>
+                        <div className="flex flex-col gap-2">
+                            <h2 className="font-mono font-black text-lg tracking-wider uppercase text-white">
+                                ¿Abandonar combate?
+                            </h2>
+                            <p className="text-sm leading-relaxed" style={{ color: "#94a3b8" }}>
+                                Si sales ahora, el combate contará como <span style={{ color: "#f87171", fontWeight: 700 }}>derrota</span>.
+                            </p>
+                        </div>
+                        <div className="flex flex-col gap-2.5">
+                            <button
+                                onClick={() => handleForfeit(true)}
+                                className="w-full py-3 rounded-xl font-mono font-black text-sm tracking-widest uppercase transition-all hover:scale-[1.02] active:scale-[0.98]"
+                                style={{
+                                    background: "linear-gradient(135deg, rgba(239,68,68,0.20) 0%, rgba(185,28,28,0.25) 100%)",
+                                    border: "1.5px solid rgba(239,68,68,0.55)",
+                                    color: "#f87171",
+                                    boxShadow: "0 0 20px rgba(239,68,68,0.15)",
+                                }}>
+                                Salir y perder combate
+                            </button>
+                            <button
+                                onClick={() => handleForfeit(false)}
+                                className="w-full py-3 rounded-xl font-mono font-black text-sm tracking-widest uppercase transition-all hover:scale-[1.02] active:scale-[0.98]"
+                                style={{
+                                    background: "linear-gradient(135deg, rgba(34,197,94,0.18) 0%, rgba(21,128,61,0.22) 100%)",
+                                    border: "1.5px solid rgba(34,197,94,0.50)",
+                                    color: "#4ade80",
+                                    boxShadow: "0 0 20px rgba(34,197,94,0.12)",
+                                }}>
+                                ⚔️ Seguir luchando
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <Layout sidebar={
+                <div className="relative h-full">
+                    <TrainerSidebar />
+                    {/* Overlay que bloquea clics en el sidebar durante combate activo.
+                        El click interceptor y popstate capturan cualquier navigate() (incluido logout). */}
+                    {battleLocked && (
+                        <div
+                            className="absolute inset-0 z-[200]"
+                            style={{ cursor: "not-allowed", background: "rgba(4,8,16,0.50)" }}
+                            onClick={(e) => { e.stopPropagation(); setShowExitConfirm(true); }}
+                            title="Tienes un combate en curso"
+                        />
+                    )}
+                </div>
+            }>
                 <div className="flex-1 flex flex-col overflow-hidden" style={{ minHeight: 0 }}>
                     <TabBar mode={mode} onSwitch={setMode} battleActive={phase === "battle"} />
 
@@ -1915,20 +2175,42 @@ export default function BattlePage() {
                                         <div
                                             className="animate-turn-overlay text-center"
                                             style={{
-                                                background:
-                                                    "linear-gradient(135deg, rgba(7,11,20,0.92) 0%, rgba(30,45,69,0.95) 100%)",
-                                                border: "2px solid rgba(253,214,10,0.7)",
-                                                borderRadius: 20,
-                                                padding: "18px 48px",
-                                                boxShadow: "0 0 60px rgba(253,214,10,0.35), 0 8px 40px rgba(0,0,0,0.7)",
+                                                background: "linear-gradient(135deg, rgba(7,11,20,0.94) 0%, rgba(25,40,65,0.96) 100%)",
+                                                border: "1.5px solid rgba(253,224,71,0.55)",
+                                                borderRadius: 24,
+                                                padding: "20px 56px 18px",
+                                                boxShadow: [
+                                                    "0 0 0 1px rgba(253,224,71,0.08)",
+                                                    "0 0 40px rgba(253,224,71,0.22)",
+                                                    "0 0 100px rgba(253,224,71,0.08)",
+                                                    "0 16px 60px rgba(0,0,0,0.75)",
+                                                    "inset 0 1px 0 rgba(255,255,255,0.06)",
+                                                ].join(", "),
                                             }}
                                         >
-                                            <p className="font-mono text-xs text-yellow-400/70 tracking-widest uppercase mb-1">
+                                            {/* Número de turno pequeño arriba */}
+                                            <div className="flex items-center justify-center gap-2 mb-2">
+                                                <div style={{ flex: 1, height: 1, background: "linear-gradient(90deg, transparent, rgba(253,224,71,0.3))" }} />
+                                                <span className="font-mono text-[10px] text-yellow-400/50 tracking-[0.25em] uppercase">
+                                                    Turno {session?.turn ?? ""}
+                                                </span>
+                                                <div style={{ flex: 1, height: 1, background: "linear-gradient(90deg, rgba(253,224,71,0.3), transparent)" }} />
+                                            </div>
+                                            {/* Label */}
+                                            <p className="font-mono text-[11px] text-yellow-400/60 tracking-[0.2em] uppercase mb-1.5">
                                                 Tu turno
                                             </p>
+                                            {/* Nombre del myth */}
                                             <p
-                                                className="font-mono font-black text-3xl text-yellow-300 tracking-widest uppercase"
-                                                style={{ textShadow: "0 0 24px rgba(253,214,10,0.9), 0 0 48px rgba(253,214,10,0.5)" }}
+                                                className="font-black tracking-wide uppercase"
+                                                style={{
+                                                    fontFamily: "'Rajdhani', sans-serif",
+                                                    fontSize: "2rem",
+                                                    color: "#fde047",
+                                                    textShadow: "0 0 20px rgba(253,224,71,0.85), 0 0 45px rgba(253,224,71,0.40), 0 2px 8px rgba(0,0,0,0.9)",
+                                                    letterSpacing: "0.06em",
+                                                    lineHeight: 1.1,
+                                                }}
                                             >
                                                 ⚔️ {turnOverlay}
                                             </p>
@@ -2122,21 +2404,57 @@ export default function BattlePage() {
                                     );
                                 })}
 
-                                {/* ── Barra de turno central — grande y visual ── */}
-                                <div className="absolute left-0 right-0 flex flex-col items-center justify-center gap-2 z-20 pointer-events-none" style={{ top: "50%", transform: "translateY(-50%)" }}>
-                                    {/* Turno número */}
-                                    <div className="flex items-center gap-2 bg-black/60 backdrop-blur-md rounded-full px-5 py-1 border border-white/10">
-                                        <span className="font-mono text-xs text-slate-500 tracking-[0.2em] uppercase">Turno</span>
-                                        <span className="font-mono font-black text-white text-base">{session?.turn ?? 0}</span>
-                                    </div>
-
-                                    {/* Indicador turno jugador — sin timer */}
-                                    {currentActorIsPlayer && !animating && (
-                                        <div className="text-xs font-mono font-bold text-yellow-300/90 tracking-wide" style={{ textShadow: "0 0 10px rgba(253,224,71,0.5)" }}>
-                                            ⚔️ {currentActor?.name} → {targetEnemy ? `🎯 ${targetEnemy.name}` : "elige objetivo"}
+                                {/* ── Indicador central de turno — bonito ── */}
+                                {phase === "battle" && session && (
+                                    <div className="absolute left-1/2 z-20 pointer-events-none"
+                                        style={{ top: "10px", transform: "translateX(-50%)" }}>
+                                        <div className="flex flex-col items-center gap-1">
+                                            {/* Badge número de turno */}
+                                            <div className="flex items-center gap-2 rounded-full px-4 py-1"
+                                                style={{
+                                                    background: "linear-gradient(135deg, rgba(7,11,20,0.88) 0%, rgba(20,30,50,0.92) 100%)",
+                                                    border: "1px solid rgba(255,255,255,0.12)",
+                                                    boxShadow: "0 0 20px rgba(0,0,0,0.6), 0 2px 12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)",
+                                                    backdropFilter: "blur(12px)",
+                                                }}>
+                                                {/* Separador izq */}
+                                                <div style={{ width: 18, height: 1, background: "linear-gradient(90deg, transparent, rgba(148,163,184,0.4))" }} />
+                                                <span className="font-mono text-[10px] text-slate-500 tracking-[0.22em] uppercase">Turno</span>
+                                                <span className="font-mono font-black text-white tabular-nums"
+                                                    style={{ fontSize: "1rem", textShadow: "0 0 12px rgba(255,255,255,0.3)", letterSpacing: "-0.01em" }}>
+                                                    {session.turn}
+                                                </span>
+                                                {/* Separador der */}
+                                                <div style={{ width: 18, height: 1, background: "linear-gradient(90deg, rgba(148,163,184,0.4), transparent)" }} />
+                                            </div>
+                                            {/* Sub-línea — quién actúa */}
+                                            {!animating && (
+                                                <div className="flex items-center gap-1.5 px-3 py-0.5 rounded-full"
+                                                    style={{
+                                                        background: currentActorIsPlayer
+                                                            ? "rgba(234,179,8,0.10)"
+                                                            : "rgba(239,68,68,0.10)",
+                                                        border: currentActorIsPlayer
+                                                            ? "1px solid rgba(234,179,8,0.25)"
+                                                            : "1px solid rgba(239,68,68,0.20)",
+                                                    }}>
+                                                    <span style={{ fontSize: "9px" }}>{currentActorIsPlayer ? "⚔️" : "👾"}</span>
+                                                    <span className="font-mono font-bold"
+                                                        style={{
+                                                            fontSize: "10px",
+                                                            color: currentActorIsPlayer ? "rgba(253,224,71,0.9)" : "rgba(248,113,113,0.85)",
+                                                            textShadow: currentActorIsPlayer ? "0 0 8px rgba(253,224,71,0.4)" : "0 0 8px rgba(248,113,113,0.3)",
+                                                            letterSpacing: "0.04em",
+                                                        }}>
+                                                        {currentActorIsPlayer
+                                                            ? (targetEnemy ? `${currentActor?.name ?? ""} → 🎯 ${targetEnemy.name}` : `${currentActor?.name ?? ""} — elige objetivo`)
+                                                            : `${currentActor?.name ?? "Rival"} atacando...`}
+                                                    </span>
+                                                </div>
+                                            )}
                                         </div>
-                                    )}
-                                </div>
+                                    </div>
+                                )}
 
                                 {/* ── Jugador (izquierda) — posiciones según círculos del mapa ── */}
                                 {/* idx=0: arriba-izq; idx=1: medio más al centro; idx=2: abajo-izq */}
@@ -2361,110 +2679,195 @@ export default function BattlePage() {
                                                     <div className="absolute inset-0 pointer-events-none z-[1]"
                                                         style={{ background: "linear-gradient(180deg, rgba(7,11,20,0.40) 0%, rgba(7,11,20,0.62) 60%, rgba(7,11,20,0.80) 100%)" }} />
 
-                                                    {/* Contenido sobre el fondo */}
-                                                    <div className="relative z-[2] flex flex-col h-full px-3 py-2 gap-1">
-
-                                                        {/* Nombre */}
-                                                        <p className="font-black leading-none truncate"
-                                                            style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: "1.25rem", color: "#f0f8ff", letterSpacing: "0.01em", textShadow: "0 1px 6px rgba(0,0,0,0.9)" }}>
-                                                            {actorForMoves.name}
-                                                        </p>
-
-                                                        {/* Nivel + afinidad en fila */}
-                                                        <div className="flex items-center gap-1.5 flex-wrap">
-                                                            <div className="flex items-center justify-center font-black font-mono rounded-md px-1.5"
+                                                    {/* Gradient de HP — color de la caja cambia según vida actual */}
+                                                    {(() => {
+                                                        const hpR = actorForMoves.maxHp > 0
+                                                            ? Math.max(0, Math.min(1, actorForMoves.hp / actorForMoves.maxHp))
+                                                            : 0;
+                                                        const hpPctPanel = Math.round(hpR * 100);
+                                                        // El color activo varía según HP:
+                                                        // >50% → verde | 25-50% → naranja | <25% → rojo
+                                                        // El gradient siempre cubre solo el % de vida (de izquierda a derecha)
+                                                        // El color del gradient mismo cambia según HP — así al 100% todo es verde,
+                                                        // al 50% lo que queda es naranja, al 20% rojo.
+                                                        const hpGrad = hpR > 0.50
+                                                            ? `linear-gradient(90deg, rgba(16,120,55,0.28) 0%, rgba(74,222,128,0.22) 100%)`
+                                                            : hpR > 0.25
+                                                            ? `linear-gradient(90deg, rgba(146,64,14,0.30) 0%, rgba(251,191,36,0.22) 100%)`
+                                                            : `linear-gradient(90deg, rgba(127,29,29,0.35) 0%, rgba(248,113,113,0.22) 100%)`;
+                                                        return (
+                                                            <div
+                                                                className="absolute pointer-events-none z-[2]"
                                                                 style={{
-                                                                    height: 18,
-                                                                    background: "linear-gradient(135deg, #1e3a5f 0%, #0f2340 100%)",
-                                                                    border: "1px solid rgba(96,165,250,0.6)",
-                                                                    boxShadow: "0 0 8px rgba(96,165,250,0.3)",
-                                                                    fontSize: "11px", color: "#93c5fd", letterSpacing: "0.02em",
-                                                                }}>
-                                                                Lv{actorForMoves.level}
-                                                            </div>
-                                                            {(() => {
-                                                                const af = actorForMoves.affinities?.[0];
-                                                                const afCfg2 = af ? AFFINITY_CONFIG[af] : null;
-                                                                return afCfg2 ? (
-                                                                    <div className="flex items-center gap-1 rounded-full px-2"
+                                                                    top: 0, left: 0, bottom: 0,
+                                                                    width: `${hpPctPanel}%`,
+                                                                    background: hpGrad,
+                                                                    transition: "width 0.5s ease, background 0.5s ease",
+                                                                    borderRadius: "inherit",
+                                                                }}
+                                                            />
+                                                        );
+                                                    })()}
+
+                                                    {/* Contenido sobre el fondo */}
+                                                    <div className="relative z-[3] flex flex-col h-full px-3 py-2 gap-1">
+
+                                                        {/* Fila única: nombre · nivel · tipo · ❤️% */}
+                                                        {(() => {
+                                                            const hpR2 = actorForMoves.maxHp > 0 ? Math.max(0, Math.min(1, actorForMoves.hp / actorForMoves.maxHp)) : 0;
+                                                            const hpPct2 = Math.round(hpR2 * 100);
+                                                            const hpClr2 = hpR2 > 0.5 ? "#4ade80" : hpR2 > 0.25 ? "#fbbf24" : "#f87171";
+                                                            const af = actorForMoves.affinities?.[0];
+                                                            const afCfg2 = af ? AFFINITY_CONFIG[af] : null;
+                                                            return (
+                                                                <div className="flex items-center gap-1.5 w-full" style={{ minWidth: 0 }}>
+                                                                    {/* Nombre — crece pero no empuja el corazón */}
+                                                                    <span className="font-black leading-none truncate flex-shrink min-w-0"
+                                                                        style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: "1.05rem", color: "#f0f8ff", letterSpacing: "0.01em", textShadow: "0 1px 6px rgba(0,0,0,0.9)" }}>
+                                                                        {actorForMoves.name}
+                                                                    </span>
+                                                                    {/* Nivel */}
+                                                                    <div className="flex items-center justify-center font-black font-mono rounded-md px-1 flex-shrink-0"
                                                                         style={{
-                                                                            height: 18,
-                                                                            background: `${afCfg2.glow}28`,
-                                                                            border: `1px solid ${afCfg2.glow}80`,
-                                                                            boxShadow: `0 0 8px ${afCfg2.glow}44`,
+                                                                            height: 16, minWidth: 28,
+                                                                            background: "linear-gradient(135deg, #1e3a5f 0%, #0f2340 100%)",
+                                                                            border: "1px solid rgba(96,165,250,0.6)",
+                                                                            fontSize: "10px", color: "#93c5fd", letterSpacing: "0.01em",
                                                                         }}>
-                                                                        <span style={{ fontSize: "12px" }}>{afCfg2.emoji}</span>
-                                                                        <span className="font-mono font-black" style={{ fontSize: "10px", color: afCfg2.glow, letterSpacing: "0.05em" }}>
-                                                                            {afCfg2.label.toUpperCase()}
+                                                                        Lv{actorForMoves.level}
+                                                                    </div>
+                                                                    {/* Tipo */}
+                                                                    {afCfg2 && (
+                                                                        <div className="flex items-center gap-0.5 rounded-full px-1.5 flex-shrink-0"
+                                                                            style={{
+                                                                                height: 16,
+                                                                                background: `${afCfg2.glow}28`,
+                                                                                border: `1px solid ${afCfg2.glow}80`,
+                                                                            }}>
+                                                                            <span style={{ fontSize: "10px", lineHeight: 1 }}>{afCfg2.emoji}</span>
+                                                                            <span className="font-mono font-black" style={{ fontSize: "9px", color: afCfg2.glow, letterSpacing: "0.04em" }}>
+                                                                                {afCfg2.label.toUpperCase()}
+                                                                            </span>
+                                                                        </div>
+                                                                    )}
+                                                                    {/* Spacer */}
+                                                                    <div className="flex-1" />
+                                                                    {/* ❤️ HP% — derecha, más grande */}
+                                                                    <div className="flex items-center gap-0.5 flex-shrink-0">
+                                                                        <span style={{ fontSize: "13px", filter: `drop-shadow(0 0 5px ${hpClr2}bb)`, lineHeight: 1 }}>❤️</span>
+                                                                        <span className="font-mono font-black tabular-nums"
+                                                                            style={{ fontSize: "13px", color: hpClr2, textShadow: `0 0 10px ${hpClr2}88`, lineHeight: 1 }}>
+                                                                            {hpPct2}%
                                                                         </span>
                                                                     </div>
-                                                                ) : null;
-                                                            })()}
-                                                        </div>
+                                                                </div>
+                                                            );
+                                                        })()}
 
                                                         {/* Separador */}
                                                         <div className="h-px bg-slate-700/60 my-0.5" />
 
-                                                        {/* Stats ATK / DEF / SPD con formato base→real */}
-                                                        <div className="flex flex-col gap-1 flex-1">
-                                                            {(["attack","defense","speed"] as const).map((stat) => {
-                                                                const baseVal = actorForMoves[stat];
-                                                                const buffKey = stat === "attack" ? "atk" : stat === "defense" ? "def" : "spd";
-                                                                const buffStages = actorForMoves.buffs?.[buffKey] ?? 0;
-                                                                const buffMult = buffStages > 0 ? 1 + buffStages * 0.25 : buffStages < 0 ? 1 / (1 + Math.abs(buffStages) * 0.25) : 1;
-                                                                const realVal = Math.round(baseVal * buffMult);
-                                                                const pctDiff = buffStages !== 0 ? Math.round((buffMult - 1) * 100) : 0;
-                                                                const label = stat === "attack" ? "ATK" : stat === "defense" ? "DEF" : "SPD";
-                                                                const icon = stat === "attack" ? "⚔️" : stat === "defense" ? "🛡️" : "💨";
-                                                                return (
-                                                                    <div key={stat} className="flex items-baseline gap-1.5">
-                                                                        <span className="text-[11px] flex-shrink-0">{icon}</span>
-                                                                        <span className="font-mono text-[10px] text-slate-400 flex-shrink-0" style={{ width: 24 }}>{label}</span>
-                                                                        {pctDiff !== 0 ? (
-                                                                            <>
-                                                                                <span className="font-mono text-[11px] text-slate-400">{baseVal}</span>
-                                                                                <span className="font-mono text-[9px] text-yellow-400 font-bold">{pctDiff > 0 ? `+${pctDiff}%` : `${pctDiff}%`}</span>
-                                                                                <span className={`font-mono text-[13px] font-black ${pctDiff > 0 ? "text-emerald-400" : "text-red-400"}`}
-                                                                                    style={{ textShadow: pctDiff > 0 ? "0 0 8px rgba(74,222,128,0.5)" : "0 0 8px rgba(248,113,113,0.5)" }}>
-                                                                                    {realVal}
-                                                                                </span>
-                                                                            </>
-                                                                        ) : (
-                                                                            <span className="font-mono text-[13px] font-black text-white">{baseVal}</span>
-                                                                        )}
-                                                                    </div>
-                                                                );
-                                                            })}
+                                                        {/* Stats: ATK/DEF/SPD/ACC + CRIT%/CRIT.DMG */}
+                                                        <div className="flex flex-col gap-[3px] flex-1">
+                                                            {(() => {
+                                                                // Helper: calcula el valor real de un stat aplicando buffs con cap ±50%
+                                                                function calcStat(baseVal: number, buffKey: string) {
+                                                                    const safe = (typeof baseVal === "number" && isFinite(baseVal)) ? baseVal : 0;
+                                                                    const raw = (actorForMoves.buffs ?? [])
+                                                                        .filter((b: Buff) => b.stat === buffKey)
+                                                                        .reduce((acc: number, b: Buff) => acc * b.multiplier, 1);
+                                                                    const mult = Math.max(0.5, Math.min(1.5, raw));
+                                                                    const realVal = Math.round(safe * mult);
+                                                                    const pct = mult !== 1 ? Math.round((mult - 1) * 100) : 0;
+                                                                    return { baseVal: safe, realVal, pct, buffed: pct > 0, nerfed: pct < 0 };
+                                                                }
+
+                                                                // Fórmula CRIT.DMG escalable:
+                                                                // Base: ×1.5 (150). Cada punto sobre 150 añade 0.5% más de multiplicador.
+                                                                // Ej: 150 → ×1.50 | 200 → ×1.75 | 300 → ×2.25 | 400 → ×2.75
+                                                                // Cap suave: a partir de 300 el rendimiento decrece (raíz cuadrada del exceso)
+                                                                function calcCritMult(critDmg: number) {
+                                                                    const base = 150;
+                                                                    if (critDmg <= base) return 1.5;
+                                                                    const excess = critDmg - base;
+                                                                    const scaled = excess <= 150
+                                                                        ? excess * 0.005           // tramo lineal: 150–300
+                                                                        : 0.75 + Math.sqrt(excess - 150) * 0.025; // tramo logarítmico: >300
+                                                                    return Math.round((1.5 + scaled) * 100) / 100;
+                                                                }
+
+                                                                const atk = calcStat(actorForMoves.attack,  "atk");
+                                                                const def = calcStat(actorForMoves.defense, "def");
+                                                                const spd = calcStat(actorForMoves.speed,   "spd");
+                                                                const acc = calcStat(actorForMoves.accuracy ?? 100, "acc");
+
+                                                                // CRIT% y CRIT.DMG no tienen buffs de stat por ahora — se muestran como base
+                                                                const critChance = actorForMoves.critChance ?? 15;
+                                                                const critDmgRaw = actorForMoves.critDamage ?? 150;
+                                                                const critMult   = calcCritMult(critDmgRaw);
+
+                                                                // CRIT% y CRIT.DMG también pasan por calcStat para soportar buffs futuros
+                                                                const critChanceStat = calcStat(critChance, "crit_chance");
+                                                                const critDmgStat    = calcStat(critDmgRaw, "crit_dmg");
+
+                                                                const rows: { icon: string; label: string; baseVal: number; realVal: number; pct: number; buffed: boolean; nerfed: boolean; suffix: string }[] = [
+                                                                    { icon: "⚔️",  label: "ATK",      ...atk,          suffix: ""  },
+                                                                    { icon: "🛡️",  label: "DEF",      ...def,          suffix: ""  },
+                                                                    { icon: "💨",  label: "SPD",      ...spd,          suffix: ""  },
+                                                                    { icon: "🎯",  label: "ACC",      ...acc,          suffix: "%" },
+                                                                    { icon: "💥",  label: "%CRIT",    ...critChanceStat, suffix: "%" },
+                                                                    { icon: "🔥",  label: "CRIT DMG", ...critDmgStat,   suffix: "%" },
+                                                                ];
+
+                                                                return rows.map(({ icon, label, baseVal, realVal, pct, buffed, nerfed, suffix }) => {
+                                                                    const isModified = pct !== 0;
+                                                                    const valColor = isModified ? (buffed ? "#4ade80" : "#f87171") : "#ffffff";
+                                                                    const valGlow  = isModified ? (buffed ? "0 0 7px rgba(74,222,128,0.6)" : "0 0 7px rgba(248,113,113,0.6)") : "none";
+                                                                    return (
+                                                                        // Grid de 4 columnas: icono | label | [base + delta] | valor final
+                                                                        // Esto garantiza alineación vertical perfecta en todas las filas
+                                                                        <div key={label}
+                                                                            style={{
+                                                                                display: "grid",
+                                                                                gridTemplateColumns: "14px 58px 1fr auto",
+                                                                                alignItems: "center",
+                                                                                columnGap: "6px",
+                                                                                minWidth: 0,
+                                                                            }}>
+                                                                            {/* Icono */}
+                                                                            <span style={{ fontSize: "11px", lineHeight: 1, textAlign: "center" }}>{icon}</span>
+                                                                            {/* Label */}
+                                                                            <span className="font-mono font-black uppercase tracking-wide text-slate-400 truncate"
+                                                                                style={{ fontSize: "11px" }}>
+                                                                                {label}
+                                                                            </span>
+                                                                            {/* Base + delta (solo si modificado) */}
+                                                                            <div className="flex items-center gap-1 justify-end">
+                                                                                {isModified && (
+                                                                                    <>
+                                                                                        <span className="font-mono tabular-nums text-slate-600"
+                                                                                            style={{ fontSize: "10px" }}>
+                                                                                            {baseVal}{suffix}
+                                                                                        </span>
+                                                                                        <span className="font-mono font-black tabular-nums text-yellow-400"
+                                                                                            style={{ fontSize: "10px", textShadow: "0 0 6px rgba(250,204,21,0.5)" }}>
+                                                                                            {pct > 0 ? `+${pct}%` : `${pct}%`}
+                                                                                        </span>
+                                                                                    </>
+                                                                                )}
+                                                                            </div>
+                                                                            {/* Valor final — siempre alineado a la derecha */}
+                                                                            <span className="font-mono font-black tabular-nums"
+                                                                                style={{ fontSize: "13px", color: valColor, textShadow: valGlow, textAlign: "right" }}>
+                                                                                {realVal}{suffix}
+                                                                            </span>
+                                                                        </div>
+                                                                    );
+                                                                });
+                                                            })()}
                                                         </div>
 
-                                                        {/* Barra HP — gruesa, full-width */}
-                                                        <div className="mt-auto pt-1">
-                                                            <div className="flex items-center justify-between mb-1">
-                                                                <span className="font-mono text-[10px] font-bold text-slate-300">HP</span>
-                                                                <span className="font-mono font-black tabular-nums"
-                                                                    style={{ fontSize: "11px", color: "#e2e8f0", textShadow: "0 1px 4px rgba(0,0,0,0.8)" }}>
-                                                                    <span className="text-white">{actorForMoves.hp}</span>
-                                                                    <span className="text-slate-500 font-normal">/{actorForMoves.maxHp}</span>
-                                                                </span>
-                                                            </div>
-                                                            <div className="h-3 rounded-full bg-slate-900/80 overflow-hidden w-full"
-                                                                style={{ boxShadow: "inset 0 1px 3px rgba(0,0,0,0.6)" }}>
-                                                                <div className="h-full rounded-full transition-all duration-300"
-                                                                    style={{
-                                                                        width: `${Math.max(0, (actorForMoves.hp / actorForMoves.maxHp) * 100)}%`,
-                                                                        background: actorForMoves.hp / actorForMoves.maxHp > 0.5
-                                                                            ? "linear-gradient(90deg, #16a34a, #4ade80)"
-                                                                            : actorForMoves.hp / actorForMoves.maxHp > 0.25
-                                                                            ? "linear-gradient(90deg, #b45309, #fbbf24)"
-                                                                            : "linear-gradient(90deg, #991b1b, #f87171)",
-                                                                        boxShadow: actorForMoves.hp / actorForMoves.maxHp > 0.5
-                                                                            ? "0 0 8px rgba(74,222,128,0.5)"
-                                                                            : actorForMoves.hp / actorForMoves.maxHp > 0.25
-                                                                            ? "0 0 8px rgba(251,191,36,0.5)"
-                                                                            : "0 0 8px rgba(248,113,113,0.5)",
-                                                                    }} />
-                                                            </div>
-                                                        </div>
+
                                                     </div>
                                                 </div>
 
@@ -2770,17 +3173,134 @@ export default function BattlePage() {
                                                 </div>
                                             </div>
                                         ) : (
-                                            <div className="flex items-center justify-center h-full">
-                                                <p className="text-slate-400 text-sm font-mono">
-                                                    {`👾 Turno de ${
-                                                          session
-                                                              ? ([...session.playerTeam, ...session.enemyTeam].find(
-                                                                    (m) => m.instanceId === currentActorId,
-                                                                )?.name ?? "rival")
-                                                              : "rival"
-                                                      }...`}
-                                                </p>
-                                            </div>
+                                            // ── Turno NPC: panel frozen del último myth jugador ──
+                                            (() => {
+                                                const frozenMyth = session
+                                                    ? (session.playerTeam.find((m) => m.instanceId === lastPlayerActorId && !m.defeated)
+                                                        ?? session.playerTeam.find((m) => !m.defeated)
+                                                        ?? null)
+                                                    : null;
+                                                if (!frozenMyth) return (
+                                                    <div className="flex items-center justify-center h-full">
+                                                        <p className="text-slate-500 text-xs font-mono animate-pulse">Procesando...</p>
+                                                    </div>
+                                                );
+                                                const fAf = frozenMyth.affinities?.[0];
+                                                const fAfCfg = fAf ? AFFINITY_CONFIG[fAf] : null;
+                                                const fBuffMult = (stat: string) => {
+                                                    const key = stat === "attack" ? "atk" : stat === "defense" ? "def" : "spd";
+                                                    const raw = (frozenMyth.buffs ?? []).filter((b: Buff) => b.stat === key).reduce((acc: number, b: Buff) => acc * b.multiplier, 1);
+                                                    return Math.max(0.5, Math.min(1.5, raw));
+                                                };
+                                                return (
+                                                    <div className="flex h-full" style={{ opacity: 0.55, pointerEvents: "none" }}>
+                                                        {/* Stats frozen */}
+                                                        <div className={`flex-shrink-0 border-r flex flex-col justify-between overflow-hidden relative ${rarityClass(frozenMyth.rarity)}`}
+                                                            style={{ width: "22%", minWidth: 0, borderRightColor: "rgba(30,41,59,1)", filter: "saturate(0.45) brightness(0.8)" }}>
+                                                            {frozenMyth.art?.portrait && (
+                                                                <div className="absolute inset-0 pointer-events-none z-0"
+                                                                    style={{ backgroundImage: `url(${frozenMyth.art.portrait})`, backgroundSize: "cover", backgroundPosition: "center", opacity: 0.35 }} />
+                                                            )}
+                                                            <div className="absolute inset-0 pointer-events-none z-[1]"
+                                                                style={{ background: "linear-gradient(180deg, rgba(7,11,20,0.55) 0%, rgba(7,11,20,0.72) 60%, rgba(7,11,20,0.88) 100%)" }} />
+                                                            <div className="relative z-[2] flex flex-col h-full px-3 py-2 gap-1">
+                                                                <p className="font-black leading-none truncate"
+                                                                    style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: "1.25rem", color: "#64748b", letterSpacing: "0.01em" }}>
+                                                                    {frozenMyth.name}
+                                                                </p>
+                                                                <div className="flex items-center gap-1.5 flex-wrap">
+                                                                    <div className="flex items-center justify-center font-black font-mono rounded-md px-1.5"
+                                                                        style={{ height: 18, background: "rgba(15,23,40,0.8)", border: "1px solid rgba(51,65,85,0.5)", fontSize: "11px", color: "#475569" }}>
+                                                                        Lv{frozenMyth.level}
+                                                                    </div>
+                                                                    {fAfCfg && (
+                                                                        <div className="flex items-center gap-1 rounded-full px-2"
+                                                                            style={{ height: 18, background: `${fAfCfg.glow}12`, border: `1px solid ${fAfCfg.glow}30` }}>
+                                                                            <span style={{ fontSize: "11px" }}>{fAfCfg.emoji}</span>
+                                                                            <span className="font-mono font-black" style={{ fontSize: "9px", color: "#475569" }}>{fAfCfg.label.toUpperCase()}</span>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                                <div className="h-px bg-slate-800/60 my-0.5" />
+                                                                <div className="flex flex-col gap-[3px] flex-1">
+                                                                    {(() => {
+                                                                        function calcFrozenStat(baseVal: number, buffKey: string) {
+                                                                            const raw = (frozenMyth.buffs ?? [])
+                                                                                .filter((b: Buff) => b.stat === buffKey)
+                                                                                .reduce((acc: number, b: Buff) => acc * b.multiplier, 1);
+                                                                            const mult = Math.max(0.5, Math.min(1.5, raw));
+                                                                            return { baseVal, realVal: Math.round(baseVal * mult), pct: mult !== 1 ? Math.round((mult - 1) * 100) : 0 };
+                                                                        }
+                                                                        function calcFrozenCritMult(cd: number) {
+                                                                            if (cd <= 150) return 1.5;
+                                                                            const ex = cd - 150;
+                                                                            return Math.round((1.5 + (ex <= 150 ? ex * 0.005 : 0.75 + Math.sqrt(ex - 150) * 0.025)) * 100) / 100;
+                                                                        }
+                                                                        const rows = [
+                                                                            { icon: "⚔️",  label: "ATK",      ...calcFrozenStat(frozenMyth.attack,             "atk") },
+                                                                            { icon: "🛡️",  label: "DEF",      ...calcFrozenStat(frozenMyth.defense,            "def") },
+                                                                            { icon: "💨",  label: "SPD",      ...calcFrozenStat(frozenMyth.speed,              "spd") },
+                                                                            { icon: "🎯",  label: "ACC",      ...calcFrozenStat(frozenMyth.accuracy ?? 100,    "acc"), suffix: "%" },
+                                                                            { icon: "💥",  label: "CRIT%",    baseVal: frozenMyth.critChance ?? 15, realVal: frozenMyth.critChance ?? 15, pct: 0, suffix: "%" },
+                                                                            { icon: "🔥",  label: "CRIT.DMG", baseVal: frozenMyth.critDamage ?? 150, realVal: frozenMyth.critDamage ?? 150, pct: 0, display: `×${calcFrozenCritMult(frozenMyth.critDamage ?? 150)}` },
+                                                                        ] as any[];
+                                                                        return rows.map(({ icon, label, baseVal, realVal, pct, suffix, display }: any) => {
+                                                                            const buffed = pct > 0, nerfed = pct < 0;
+                                                                            const showDisplay = display ?? (realVal + (suffix ?? ""));
+                                                                            return (
+                                                                                <div key={label} className="flex items-baseline gap-1" style={{ opacity: 0.6 }}>
+                                                                                    <span className="text-[10px] flex-shrink-0 leading-none">{icon}</span>
+                                                                                    <span className="font-mono text-[9px] text-slate-600 flex-shrink-0 uppercase tracking-wider" style={{ width: 36 }}>{label}</span>
+                                                                                    {pct !== 0 ? (
+                                                                                        <>
+                                                                                            <span className="font-mono text-[9px] text-slate-600">{baseVal + (suffix ?? "")}</span>
+                                                                                            <span className="font-mono text-[8px] font-black text-yellow-600">{pct > 0 ? `+${pct}%` : `${pct}%`}</span>
+                                                                                            <span className={`font-mono text-[12px] font-black ${buffed ? "text-emerald-700" : "text-red-800"}`}>{showDisplay}</span>
+                                                                                        </>
+                                                                                    ) : (
+                                                                                        <span className="font-mono text-[12px] font-black text-slate-500">{showDisplay}</span>
+                                                                                    )}
+                                                                                </div>
+                                                                            );
+                                                                        });
+                                                                    })()}
+                                                                </div>
+                                                                <div className="mt-auto pt-1">
+                                                                    <div className="flex items-center justify-between mb-1">
+                                                                        <span className="font-mono text-[10px] text-slate-600">HP</span>
+                                                                        <span className="font-mono text-[10px] text-slate-500">{frozenMyth.hp}/{frozenMyth.maxHp}</span>
+                                                                    </div>
+                                                                    <HpBar hp={frozenMyth.hp} maxHp={frozenMyth.maxHp} shield={frozenMyth.shield} />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        {/* Moves frozen */}
+                                                        <div className="flex-1 flex flex-col justify-between overflow-hidden"
+                                                            style={{ background: "rgba(7,11,20,0.3)" }}>
+                                                            <div className="px-3 pt-2 pb-1 border-b border-slate-800/60 flex-shrink-0">
+                                                                <span className="font-mono text-[10px] text-slate-600 uppercase tracking-widest">Movimientos de {frozenMyth.name}</span>
+                                                            </div>
+                                                            <div className="flex-1 overflow-hidden p-2">
+                                                                <div className="grid grid-cols-2 gap-1.5">
+                                                                    {frozenMyth.moves.map((move) => {
+                                                                        const cfg = AFFINITY_CONFIG[move.affinity];
+                                                                        return (
+                                                                            <div key={move.id}
+                                                                                className="flex items-start gap-1.5 px-2 py-1.5 rounded-xl border bg-slate-900/30 border-slate-800/60 opacity-40">
+                                                                                <span className="text-lg mt-0.5">{cfg.emoji}</span>
+                                                                                <div className="min-w-0 flex-1">
+                                                                                    <p className="font-mono text-xs font-bold text-slate-600">{move.name}</p>
+                                                                                    <p className="text-[10px] text-slate-700 font-mono">{move.power > 0 ? `💥 ${move.power}` : "estado"} · 🎯 {move.accuracy}%</p>
+                                                                                </div>
+                                                                            </div>
+                                                                        );
+                                                                    })}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })()
                                         );
                                     })()
                                 )}
@@ -2807,34 +3327,97 @@ export default function BattlePage() {
                                         Esperando acción...
                                     </p>
                                 )}
-                                {log.map((entry, i) => (
-                                    <div key={i} className="animate-log-in flex items-start gap-1">
-                                        <span className="text-slate-700 font-mono text-xs mt-px flex-shrink-0">›</span>
-                                        <p
-                                            className="font-mono text-xs leading-relaxed break-words"
-                                            style={{
-                                                color:
-                                                    entry.type === "good"
-                                                        ? "#4ade80"
-                                                        : entry.type === "bad"
-                                                          ? "#f87171"
-                                                          : entry.type === "crit"
-                                                            ? "#fbbf24"
-                                                            : entry.type === "miss"
-                                                              ? "#64748b"
-                                                              : entry.type === "system"
-                                                                ? "#818cf8"
-                                                                : entry.type === "status"
-                                                                  ? "#fb923c"
-                                                                  : entry.type === "heal"
-                                                                    ? "#34d399"
-                                                                    : "#e2e8f0",
-                                            }}
-                                        >
-                                            {entry.text}
-                                        </p>
-                                    </div>
-                                ))}
+                                {log.map((entry, i) => {
+                                    // Colores base por tipo
+                                    const typeColor: Record<string, string> = {
+                                        good:       "#4ade80",
+                                        bad:        "#f87171",
+                                        crit:       "#ff4444",
+                                        miss:       "#64748b",
+                                        system:     "#818cf8",
+                                        status:     "#fb923c",
+                                        heal:       "#34d399",
+                                        dmg_player: "#e2e8f0",
+                                        dmg_enemy:  "#e2e8f0",
+                                        normal:     "#cbd5e1",
+                                    };
+                                    const color = typeColor[entry.type] ?? "#e2e8f0";
+                                    const isCritLine   = entry.type === "crit";
+                                    const isDmgLine    = entry.type === "dmg_player" || entry.type === "dmg_enemy";
+                                    const isMainAction = entry.type === "normal" && !!entry.actorName;
+
+                                    // Badge de afinidad inline
+                                    function AfBadge({ affinity, name }: { affinity?: string; name?: string }) {
+                                        const upper = name?.toUpperCase();
+                                        if (!affinity || !name) return <span className="font-black">{upper}</span>;
+                                        const cfg = AFFINITY_CONFIG[affinity as keyof typeof AFFINITY_CONFIG];
+                                        if (!cfg) return <span className="font-black">{upper}</span>;
+                                        return (
+                                            <span
+                                                className="inline-flex items-center font-black rounded px-1.5 uppercase"
+                                                style={{
+                                                    background: cfg.color + "2a",
+                                                    border: `1px solid ${cfg.color}55`,
+                                                    color: cfg.glow,
+                                                    fontSize: "11px",
+                                                    lineHeight: "16px",
+                                                    verticalAlign: "middle",
+                                                    whiteSpace: "nowrap",
+                                                    letterSpacing: "0.05em",
+                                                    textShadow: `0 0 6px ${cfg.glow}66`,
+                                                }}
+                                            >
+                                                {upper}
+                                            </span>
+                                        );
+                                    }
+
+                                    return (
+                                        <div key={i} className="animate-log-in flex items-start gap-1">
+                                            <span className="text-slate-700 font-mono text-[10px] mt-[2px] flex-shrink-0">›</span>
+
+                                            {/* Línea principal de acción: actor usa move → target */}
+                                            {isMainAction ? (
+                                                <p className="font-mono text-[11px] leading-relaxed break-words" style={{ color }}>
+                                                    {entry.text.startsWith("👾 ") && <span className="opacity-70">👾 </span>}
+                                                    <AfBadge affinity={entry.actorAffinity} name={entry.actorName} />
+                                                    {" usa "}
+                                                    <span className="font-bold text-white/90">
+                                                        {entry.text.replace(/^👾 /, "").replace(`${entry.actorName} usa `, "").replace(` → ${entry.targetName}`, "")}
+                                                    </span>
+                                                    {entry.targetName && (
+                                                        <>
+                                                            {" → "}
+                                                            <AfBadge affinity={entry.targetAffinity} name={entry.targetName} />
+                                                        </>
+                                                    )}
+                                                </p>
+                                            ) : isCritLine ? (
+                                                /* Línea de crítico — rojo brillante, negrita grande */
+                                                <p className="font-mono text-xs leading-relaxed font-black" style={{ color: "#ff3333", textShadow: "0 0 8px #ff000066" }}>
+                                                    {entry.text.replace(`−${entry.damage} dmg`, "")}
+                                                    {entry.damage != null && entry.damage > 0 && (
+                                                        <span className="font-black" style={{ color: "#ff6666" }}>
+                                                            {" "}−<span style={{ fontSize: "0.95em" }}>{entry.damage}</span>
+                                                            <span className="text-[9px] opacity-70"> dmg</span>
+                                                        </span>
+                                                    )}
+                                                </p>
+                                            ) : isDmgLine ? (
+                                                /* Línea de daño normal — discreta pero legible */
+                                                <p className="font-mono text-xs leading-relaxed" style={{ color: entry.type === "dmg_player" ? "#94a3b8" : "#94a3b8" }}>
+                                                    <span className="font-black text-white/70">−{entry.damage}</span>
+                                                    <span className="text-[9px] text-slate-500"> dmg</span>
+                                                </p>
+                                            ) : (
+                                                /* Resto de líneas */
+                                                <p className="font-mono text-[11px] leading-relaxed break-words" style={{ color, fontWeight: isCritLine ? 900 : 400 }}>
+                                                    {entry.text}
+                                                </p>
+                                            )}
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
                     </div>
@@ -2863,23 +3446,22 @@ function TabBar({ mode, onSwitch, battleActive }: { mode: BattleMode; onSwitch: 
     return (
         <div className="flex border-b border-slate-800 flex-shrink-0">
             {(["npc", "pvp"] as BattleMode[]).map((m) => {
-                const blocked = battleActive && m === "pvp";
+                // Durante combate activo, TODAS las pestañas están bloqueadas
+                const blocked = !!battleActive;
+                const isActive = mode === m;
                 return (
                     <button
                         key={m}
                         onClick={() => { if (!blocked) onSwitch(m); }}
-                        title={blocked ? "No puedes cambiar a PvP con un combate NPC en curso" : undefined}
+                        title={blocked ? "No puedes cambiar de pestaña durante un combate" : undefined}
                         className={`px-6 py-3 font-mono text-sm tracking-widest uppercase transition-colors relative
-                            ${mode === m
-                                ? "text-red-400 border-b-2 border-red-500"
+                            ${isActive
+                                ? blocked ? "text-red-400/50 border-b-2 border-red-500/50" : "text-red-400 border-b-2 border-red-500"
                                 : blocked
                                   ? "text-slate-700 cursor-not-allowed"
                                   : "text-slate-500 hover:text-slate-300"}`}
                     >
                         {m === "npc" ? "⚔️ NPC" : "👥 PvP"}
-                        {blocked && (
-                            <span className="ml-1 text-xs text-slate-700">🔒</span>
-                        )}
                     </button>
                 );
             })}

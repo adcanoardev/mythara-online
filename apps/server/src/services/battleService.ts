@@ -67,6 +67,9 @@ export interface BattleMyth {
     attack: number;
     defense: number;
     speed: number;
+    accuracy: number;
+    critChance: number;
+    critDamage: number;
     affinities: Affinity[];
     moves: Move[];
     art: { portrait: string; front: string; back: string };
@@ -721,6 +724,9 @@ async function buildPlayerMyth(instanceId: string, userId: string): Promise<Batt
         attack: inst.attack,
         defense: inst.defense,
         speed: inst.speed,
+        accuracy:   inst.accuracy   ?? 100,
+        critChance: inst.critChance ?? 15,
+        critDamage: inst.critDamage ?? 150,
         affinities: species.affinities as Affinity[],
         moves: species.moves as Move[],
         art: species.art,
@@ -757,6 +763,9 @@ function buildNpcMyth(speciesId: string, level: number): BattleMyth {
         attack: scale(species.baseStats.atk),
         defense: scale(species.baseStats.def),
         speed: scale(species.baseStats.spd),
+        accuracy:   species.baseStats.acc   ?? 100,
+        critChance: species.baseStats.critChance ?? 15,
+        critDamage: species.baseStats.critDamage ?? 150,
         affinities: species.affinities as Affinity[],
         moves: species.moves as Move[],
         art: species.art,

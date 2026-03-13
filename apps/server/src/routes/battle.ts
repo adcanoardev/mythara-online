@@ -99,6 +99,51 @@ router.get("/battle/stats", async (req: any, res) => {
         res.status(500).json({ error: "Error al obtener estadísticas" });
     }
 });
+// POST /battle/npc/forfeit
+// Registra derrota inmediata cuando el jugador abandona voluntariamente el combate.
+router.post("/battle/npc/forfeit", async (req, res) => {
+    try {
+        const { battleId } = req.body as { battleId: string };
+        const userId = req.user!.userId;
+
+        // Buscar la sesión activa en memoria
+        const session = getActiveBattle(userId);
+
+        // Si ya no hay sesión activa o no coincide el battleId, responder OK (idempotente)
+        if (!session || session.battleId !== battleId) {
+            return res.json({ ok: true, alreadyEnded: true });
+        }
+
+        // Extraer datos del primer myth vivo del jugador y del enemigo
+        // (necesarios para los campos obligatorios de BattleLog)
+        const playerMyth = session.playerTeam?.find((m: any) => !m.defeated) ?? session.playerTeam?.[0];
+        const enemyMyth  = session.enemyTeam?.find((m: any)  => !m.defeated) ?? session.enemyTeam?.[0];
+
+        // Registrar derrota en el log de batallas
+        await prisma.battleLog.create({
+            data: {
+                userId,
+                type: "NPC",
+                result: "LOSE",
+                xpGained:    0,
+                coinsGained: 0,
+                playerSpeciesId: playerMyth?.speciesId ?? "unknown",
+                playerLevel:     playerMyth?.level     ?? 1,
+                enemySpeciesId:  enemyMyth?.speciesId  ?? "unknown",
+                enemyLevel:      enemyMyth?.level      ?? 1,
+            },
+        });
+
+        // Limpiar la sesión en memoria
+        try { await fleeBattle(userId, battleId); } catch (_) {}
+
+        return res.json({ ok: true });
+    } catch (e: any) {
+        console.error("[forfeit]", e.message);
+        return res.status(500).json({ error: "Error al registrar la derrota" });
+    }
+});
+
 // POST /battle/pvp — disabled
 router.post("/battle/pvp", (_req, res) => {
     res.status(503).json({ error: "PvP en desarrollo — próximamente" });

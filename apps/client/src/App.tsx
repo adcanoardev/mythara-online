@@ -1,5 +1,34 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import React, { useEffect } from "react";
+import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "./hooks/useAuth";
+import { api } from "./lib/api";
+
+// Guard global: si hay combate activo, redirige a /battle.
+// Envuelve todas las rutas que NO son /battle, /login, /onboarding, /fragment.
+function BattleGuard({ children }: { children: React.ReactNode }) {
+    const navigate = useNavigate();
+    const location = useLocation();
+    useEffect(() => {
+        // Check rápido sin red
+        if (localStorage.getItem("mythara_battle_active") === "1") {
+            navigate("/battle", { replace: true });
+            return;
+        }
+        // Fallback servidor (cubre apertura directa de URL en otra pestaña)
+        let cancelled = false;
+        api.battleNpcActive()
+            .then((session: any) => {
+                if (cancelled) return;
+                if (session?.status === "ongoing") {
+                    localStorage.setItem("mythara_battle_active", "1");
+                    navigate("/battle", { replace: true });
+                }
+            })
+            .catch(() => {});
+        return () => { cancelled = true; };
+    }, [location.pathname, navigate]);
+    return <>{children}</>;
+}
 import LoginPage from "./pages/LoginPage";
 import CombatPage from "./pages/BattlePage";
 import InventarioPage from "./pages/InventarioPage";
@@ -29,7 +58,7 @@ export default function App() {
                 element={
                     user ? (
                         user.onboardingComplete ? (
-                            <PosadaPage />
+                            <BattleGuard><PosadaPage /></BattleGuard>
                         ) : (
                             <Navigate to="/onboarding" />
                         )
@@ -38,15 +67,15 @@ export default function App() {
                     )
                 }
             />
-            <Route path="/ranking" element={user ? <RankingPage /> : <Navigate to="/login" />} />
+            <Route path="/ranking" element={user ? <BattleGuard><RankingPage /></BattleGuard> : <Navigate to="/login" />} />
             <Route path="/onboarding" element={user ? <OnboardingPage /> : <Navigate to="/login" />} />
-            <Route path="/myths" element={user ? <MythsPage /> : <Navigate to="/login" />} />
-            <Route path="/profile" element={user ? <PerfilPage /> : <Navigate to="/login" />} />
-            <Route path="/team" element={user ? <EquipoPage /> : <Navigate to="/login" />} />
+            <Route path="/myths" element={user ? <BattleGuard><MythsPage /></BattleGuard> : <Navigate to="/login" />} />
+            <Route path="/profile" element={user ? <BattleGuard><PerfilPage /></BattleGuard> : <Navigate to="/login" />} />
+            <Route path="/team" element={user ? <BattleGuard><EquipoPage /></BattleGuard> : <Navigate to="/login" />} />
             <Route path="/battle" element={user ? <CombatPage /> : <Navigate to="/login" />} />
             <Route path="/fragment" element={<FragmentPage />} />
-            <Route path="/inventory" element={user ? <InventarioPage /> : <Navigate to="/login" />} />
-            <Route path="/sanctums" element={user ? <SantuariosPage /> : <Navigate to="/login" />} />
+            <Route path="/inventory" element={user ? <BattleGuard><InventarioPage /></BattleGuard> : <Navigate to="/login" />} />
+            <Route path="/sanctums" element={user ? <BattleGuard><SantuariosPage /></BattleGuard> : <Navigate to="/login" />} />
         </Routes>
     );
 }

@@ -161,6 +161,9 @@ model CreatureInstance {
   attack    Int
   defense   Int
   speed     Int
+  accuracy  Int @default(100)  // Precisión base (0-100). 100 = nunca falla.
+  critChance Int @default(15)  // % probabilidad de golpe crítico (0-100)
+  critDamage Int @default(150) // Multiplicador crítico base. 150 = ×1.5. Fórmula escalable.
 
   isInParty Boolean @default(false)
   slot      Int?

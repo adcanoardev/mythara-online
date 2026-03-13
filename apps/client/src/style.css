@@ -103,9 +103,28 @@ html, body, #root {
     to   { opacity:1; transform:translateX(0); }
 }
 
+/* ── CRÍTICO: texto label — aparece grande, sube despacio y se desvanece ── */
+@keyframes critLabel {
+    0%   { opacity: 0; transform: translateX(-50%) scale(1.6) translateY(8px); filter: blur(3px); }
+    8%   { opacity: 1; transform: translateX(-50%) scale(1.05) translateY(0px);  filter: blur(0px); }
+    30%  { opacity: 1; transform: translateX(-50%) scale(1.08) translateY(-4px); }
+    65%  { opacity: 1; transform: translateX(-50%) scale(1.0)  translateY(-14px); }
+    100% { opacity: 0; transform: translateX(-50%) scale(0.85) translateY(-36px); }
+}
+/* ── CRÍTICO: número de daño — más grande, sube más lento que normal ── */
+@keyframes critDmg {
+    0%   { opacity: 0; transform: translateX(-50%) scale(2.2) rotate(-6deg); filter: blur(5px); }
+    10%  { opacity: 1; transform: translateX(-50%) scale(1.0)  rotate(1deg);  filter: blur(0px); }
+    28%  { opacity: 1; transform: translateX(-50%) scale(1.12) rotate(-0.5deg); }
+    72%  { opacity: 1; transform: translateX(-50%) scale(1.0)  translateY(-12px); }
+    100% { opacity: 0; transform: translateX(-50%) scale(0.88) translateY(-28px); }
+}
+
 .animate-proj-ltr    { animation: projLtr 0.52s cubic-bezier(0.4,0,0.2,1) forwards; }
 .animate-proj-rtl    { animation: projRtl 0.52s cubic-bezier(0.4,0,0.2,1) forwards; }
 .animate-float-dmg   { animation: floatDmg 1.4s cubic-bezier(0.22,1,0.36,1) forwards; }
+.animate-crit-label  { animation: critLabel 1.9s cubic-bezier(0.16,1,0.3,1) forwards; }
+.animate-crit-dmg    { animation: critDmg   1.9s cubic-bezier(0.16,1,0.3,1) forwards; }
 .animate-impact-flash{ animation: impactFlash 0.55s ease-in-out; }
 .animate-myth-shake  { animation: mythShake 0.45s ease-in-out; }
 .animate-myth-idle   { animation: mythIdle 2s ease-in-out infinite; }
@@ -382,17 +401,19 @@ html, body, #root {
    K.O. overlay — cae de grande a pequeño
    ══════════════════════════════════════════ */
 @keyframes koOverlayIn {
-    0%   { opacity: 0;   transform: translateX(-50%) scale(6) translateY(-40px) rotate(-15deg); filter: blur(6px) brightness(3);  }
-    6%   { opacity: 1;   transform: translateX(-50%) scale(3.5) translateY(-20px) rotate(-8deg);  filter: blur(2px) brightness(2);  }
-    14%  { opacity: 1;   transform: translateX(-50%) scale(1.8) translateY(-8px)  rotate(4deg);   filter: blur(0px) brightness(1.5); }
-    22%  { opacity: 1;   transform: translateX(-50%) scale(0.9) translateY(4px)   rotate(-2deg);  filter: brightness(1.2); }
-    28%  { opacity: 1;   transform: translateX(-50%) scale(1.05) translateY(0px)  rotate(0deg);   }
-    36%  { opacity: 1;   transform: translateX(-50%) scale(1.0)  translateY(0px)  rotate(0deg);   }
-    72%  { opacity: 1;   transform: translateX(-50%) scale(1.0)  translateY(0px);  }
-    100% { opacity: 0;   transform: translateX(-50%) scale(0.6)  translateY(8px);  }
+    /* Caída más suave: empieza más centrada, menos rotación, blur reducido */
+    0%   { opacity: 0;   transform: translateX(-50%) scale(4.5) translateY(-28px) rotate(-8deg);  filter: blur(5px) brightness(2.5);  }
+    8%   { opacity: 1;   transform: translateX(-50%) scale(2.6) translateY(-14px) rotate(-4deg);  filter: blur(1.5px) brightness(1.8); }
+    18%  { opacity: 1;   transform: translateX(-50%) scale(1.4) translateY(-4px)  rotate(2deg);   filter: blur(0px) brightness(1.3); }
+    26%  { opacity: 1;   transform: translateX(-50%) scale(0.95) translateY(3px)  rotate(-1deg);  filter: brightness(1.15); }
+    32%  { opacity: 1;   transform: translateX(-50%) scale(1.03) translateY(0px)  rotate(0deg);   }
+    40%  { opacity: 1;   transform: translateX(-50%) scale(1.0)  translateY(0px)  rotate(0deg);   }
+    /* Permanece visible ~1 segundo más antes de desvanecerse */
+    78%  { opacity: 1;   transform: translateX(-50%) scale(1.0)  translateY(0px);  }
+    100% { opacity: 0;   transform: translateX(-50%) scale(0.7)  translateY(6px);  }
 }
 .animate-ko-overlay {
-    animation: koOverlayIn 2.4s cubic-bezier(0.22,1,0.36,1) forwards;
+    animation: koOverlayIn 3.6s cubic-bezier(0.22,1,0.36,1) forwards;
 }
 
 /* ══════════════════════════════════════════
@@ -464,4 +485,40 @@ html, body, #root {
 .rarity-mythic {
     border: 2.5px solid rgba(239,68,68,0.90);
     animation: rarityMythicBorder 4s linear infinite, rarityMythicGlow 4s linear infinite;
+}
+
+/* ══════════════════════════════════════════
+   TARGET ENEMY SELECTED — anillos rojos
+   ══════════════════════════════════════════ */
+
+/* Anillo exterior — late pulsante */
+@keyframes targetRingOuter {
+    0%,100% {
+        transform: scale(1);
+        opacity: 0.85;
+        box-shadow: 0 0 10px rgba(248,113,113,0.50), 0 0 22px rgba(248,113,113,0.25);
+    }
+    50% {
+        transform: scale(1.10);
+        opacity: 1;
+        box-shadow: 0 0 18px rgba(248,113,113,0.75), 0 0 38px rgba(248,113,113,0.40);
+    }
+}
+
+/* Anillo interior — desfasado */
+@keyframes targetRingInner {
+    0%,100% {
+        transform: scale(1);
+        opacity: 0.35;
+    }
+    50% {
+        transform: scale(0.92);
+        opacity: 0.65;
+    }
+}
+
+/* Glow relleno central */
+@keyframes targetGlowFill {
+    0%,100% { opacity: 0.5; }
+    50%      { opacity: 1.0; }
 }
