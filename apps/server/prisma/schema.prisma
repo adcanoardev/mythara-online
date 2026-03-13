@@ -168,8 +168,8 @@ model CreatureInstance {
   isInParty Boolean @default(false)
   slot      Int?
 
-  caughtAt  DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  obtainedAt DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   inNursery Boolean @default(false)
 }

@@ -1,0 +1,4023 @@
+[
+    {
+        "id": "001",
+        "slug": "cindor",
+        "name": "Cindor",
+        "affinities": ["EMBER"],
+        "rarity": "COMMON",
+        "height": 0.60,
+        "weight": 8.5,
+        "description": "Pequeña bestia ígnea cuyo corazón arde como una brasa eterna nacida de las forjas volcánicas de Mythara.",
+        "baseStats": {
+            "hp": 85,
+            "atk": 60,
+            "def": 40,
+            "spd": 47
+        },
+        "evolution": {
+            "evolvesTo": "002",
+            "method": "LEVEL",
+            "value": 16
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/001/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/001/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/001/back.png"
+        },
+        "moves": [
+            {
+                "id": "cindor_punetazo_igneo",
+                "name": "Puñetazo Ígneo",
+                "affinity": "EMBER",
+                "type": "physical",
+                "power": 50,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": null,
+                "description": "Se lanza envuelto en llamas."
+            },
+            {
+                "id": "cindor_tormenta_de_fuego",
+                "name": "Tormenta de Fuego",
+                "affinity": "EMBER",
+                "type": "special",
+                "power": 75,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": null,
+                "description": "Escupe magma fundido."
+            },
+            {
+                "id": "cindor_rugido",
+                "name": "Rugido",
+                "affinity": "EMBER",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 20,
+                    "duration": 2
+                },
+                "description": "Aviva su fuego interno, potenciando su fuerza de ataque."
+            },
+            {
+                "id": "cindor_gran_punetazo_igneo",
+                "name": "Gran Puñetazo Ígneo",
+                "affinity": "EMBER",
+                "type": "physical",
+                "power": 95,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": null,
+                "description": "Araña con garras de fuego."
+            }
+        ]
+    },
+    {
+        "id": "002",
+        "slug": "pyronox",
+        "name": "Pyronox",
+        "affinities": ["EMBER"],
+        "rarity": "RARE",
+        "height": 0.90,
+        "weight": 12.5,
+        "description": "Depredador volcánico que exhala cenizas tóxicas y llamas capaces de fundir roca en segundos.",
+        "baseStats": {
+            "hp": 110,
+            "atk": 55,
+            "def": 65,
+            "spd": 50
+        },
+        "evolution": {
+            "evolvesTo": "003",
+            "method": "LEVEL",
+            "value": 36
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/002/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/002/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/002/back.png"
+        },
+        "moves": [
+            {
+                "id": "pyronox_embestida_ardiente",
+                "name": "Embestida Ardiente",
+                "affinity": "EMBER",
+                "type": "physical",
+                "power": 55,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": null,
+                "description": "Se lanza envuelto en llamas."
+            },
+            {
+                "id": "pyronox_llamarada",
+                "name": "Llamarada",
+                "affinity": "EMBER",
+                "type": "special",
+                "power": 80,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Proyecta un torbellino de fuego, agrietando y quebrando la defensa del oponente."
+            },
+            {
+                "id": "pyronox_aura_de_calor",
+                "name": "Aura de Calor",
+                "affinity": "EMBER",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": {
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Respira nubes de humo caliente, sellando las heridas y restaurando la vitalidad."
+            },
+            {
+                "id": "pyronox_gran_punetazo_igneo",
+                "name": "Gran Puñetazo Ígneo",
+                "affinity": "EMBER",
+                "type": "physical",
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Araña con garras de fuego, dejando brasas que queman lentamente al objetivo."
+            }
+        ]
+    },
+    {
+        "id": "003",
+        "slug": "vulcarion",
+        "name": "Vulcarion",
+        "affinities": ["EMBER"],
+        "rarity": "EPIC",
+        "height": 1.70,
+        "weight": 68.5,
+        "description": "Señor de las forjas de Mythara, un titán envuelto en magma vivo y placas de obsidiana ardiente.",
+        "baseStats": {
+            "hp": 120,
+            "atk": 82,
+            "def": 72,
+            "spd": 67
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/003/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/003/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/003/back.png"
+        },
+        "moves": [
+            {
+                "id": "vulcarion_embestida_ardiente",
+                "name": "Embestida Ardiente",
+                "affinity": "EMBER",
+                "type": "physical",
+                "power": 65,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": {
+                    "type": "debuff_acc",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Se lanza envuelto en llamas, cegando temporalmente y confundiendo al enemigo."
+            },
+            {
+                "id": "vulcarion_llamarada",
+                "name": "Llamarada",
+                "affinity": "EMBER",
+                "type": "special",
+                "power": 90,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 30,
+                    "duration": 2
+                },
+                "description": "Proyecta un torbellino de fuego, potenciando su fuerza de ataque."
+            },
+            {
+                "id": "vulcarion_aura_de_calor",
+                "name": "Aura de Calor",
+                "affinity": "EMBER",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": {
+                    "type": "shield",
+                    "target": "all_allies",
+                    "value": 20,
+                    "duration": 3
+                },
+                "description": "Respira nubes de humo caliente, creando una barrera que absorbe los próximos impactos."
+            },
+            {
+                "id": "vulcarion_gran_llamarada",
+                "name": "Gran Llamarada",
+                "affinity": "EMBER",
+                "type": "special",
+                "power": 130,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": [
+                    {
+                        "type": "apply_status",
+                        "status": "fear",
+                        "target": "enemy",
+                        "chance": 100
+                    },
+                    {
+                        "type": "debuff_def",
+                        "target": "enemy",
+                        "value": 30,
+                        "duration": 3,
+                        "chance": 100
+                    }
+                ],
+                "description": "Dispara una llamarada abrasadora, infundiendo un terror profundo que hiela la sangre del rival. agrietando y quebrando la defensa del oponente."
+            }
+        ]
+    },
+    {
+        "id": "004",
+        "slug": "aquaffin",
+        "name": "Aquaffin",
+        "affinities": ["TIDE"],
+        "rarity": "COMMON",
+        "height": 0.7,
+        "weight": 8.0,
+        "description": "Criatura acuática juguetona capaz de manipular pequeñas corrientes y salpicar con fuerza sorprendente.",
+        "baseStats": {
+            "hp": 80,
+            "atk": 50,
+            "def": 45,
+            "spd": 55
+        },
+        "evolution": {
+            "evolvesTo": "005",
+            "method": "LEVEL",
+            "value": 18
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/004/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/004/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/004/back.png"
+        },
+        "moves": [
+            {
+                "id": "aquaffin_latigazo",
+                "name": "Latigazo",
+                "affinity": "TIDE",
+                "type": "physical",
+                "power": 50,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": null,
+                "description": "Embiste rodeado de corrientes marinas."
+            },
+            {
+                "id": "aquaffin_torrente",
+                "name": "Torrente",
+                "affinity": "TIDE",
+                "type": "special",
+                "power": 75,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": null,
+                "description": "Proyecta un géiser hirviente."
+            },
+            {
+                "id": "aquaffin_marea_curativa",
+                "name": "Marea Curativa",
+                "affinity": "TIDE",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 20,
+                    "duration": 2
+                },
+                "description": "Invoca una bruma protectora, potenciando su fuerza de ataque."
+            },
+            {
+                "id": "aquaffin_gran_latigazo",
+                "name": "Gran Latigazo",
+                "affinity": "TIDE",
+                "type": "physical",
+                "power": 95,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": null,
+                "description": "Golpea con la fuerza aplastante de una ola."
+            }
+        ]
+    },
+    {
+        "id": "005",
+        "slug": "marivor",
+        "name": "Marivor",
+        "affinities": ["TIDE"],
+        "rarity": "RARE",
+        "height": 1.1,
+        "weight": 13.5,
+        "description": "Bestia marina que crea remolinos a su alrededor y usa la presión del agua como arma devastadora.",
+        "baseStats": {
+            "hp": 90,
+            "atk": 65,
+            "def": 45,
+            "spd": 65
+        },
+        "evolution": {
+            "evolvesTo": "006",
+            "method": "LEVEL",
+            "value": 34
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/005/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/005/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/005/back.png"
+        },
+        "moves": [
+            {
+                "id": "marivor_golpe_de_ola",
+                "name": "Golpe de Ola",
+                "affinity": "TIDE",
+                "type": "physical",
+                "power": 55,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": null,
+                "description": "Embiste rodeado de corrientes marinas."
+            },
+            {
+                "id": "marivor_geiser",
+                "name": "Geiser",
+                "affinity": "TIDE",
+                "type": "special",
+                "power": 80,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Desata un tifón en miniatura, agrietando y quebrando la defensa del oponente."
+            },
+            {
+                "id": "marivor_marea_curativa",
+                "name": "Marea Curativa",
+                "affinity": "TIDE",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": {
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Crea una burbuja de agua pura, sellando las heridas y restaurando la vitalidad."
+            },
+            {
+                "id": "marivor_gran_latigazo",
+                "name": "Gran Latigazo",
+                "affinity": "TIDE",
+                "type": "physical",
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Embiste rodeado de corrientes marinas, dejando brasas que queman lentamente al objetivo."
+            }
+        ]
+    },
+    {
+        "id": "006",
+        "slug": "leviandor",
+        "name": "Leviandor",
+        "affinities": ["TIDE"],
+        "rarity": "EPIC",
+        "height": 1.63,
+        "weight": 58.5,
+        "description": "Leviatán ancestral que reina sobre las mareas de Mythara, capaz de invocar tormentas oceánicas colosales.",
+        "baseStats": {
+            "hp": 115,
+            "atk": 90,
+            "def": 65,
+            "spd": 67
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/006/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/006/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/006/back.png"
+        },
+        "moves": [
+            {
+                "id": "leviandor_latigazo",
+                "name": "Latigazo",
+                "affinity": "TIDE",
+                "type": "physical",
+                "power": 65,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": {
+                    "type": "debuff_acc",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Arremete con un impacto hidráulico, cegando temporalmente y confundiendo al enemigo."
+            },
+            {
+                "id": "leviandor_torrente",
+                "name": "Torrente",
+                "affinity": "TIDE",
+                "type": "special",
+                "power": 90,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 30,
+                    "duration": 2
+                },
+                "description": "Desata un tifón en miniatura, potenciando su fuerza de ataque."
+            },
+            {
+                "id": "leviandor_niebla",
+                "name": "Niebla",
+                "affinity": "TIDE",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": {
+                    "type": "shield",
+                    "target": "all_allies",
+                    "value": 20,
+                    "duration": 3
+                },
+                "description": "Invoca una bruma protectora, creando una barrera que absorbe los próximos impactos."
+            },
+            {
+                "id": "leviandor_gran_geiser",
+                "name": "Gran Geiser",
+                "affinity": "TIDE",
+                "type": "special",
+                "power": 130,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": [
+                    {
+                        "type": "apply_status",
+                        "status": "fear",
+                        "target": "enemy",
+                        "chance": 100
+                    },
+                    {
+                        "type": "debuff_def",
+                        "target": "enemy",
+                        "value": 30,
+                        "duration": 3,
+                        "chance": 100
+                    }
+                ],
+                "description": "Proyecta un géiser hirviente, infundiendo un terror profundo que hiela la sangre del rival. agrietando y quebrando la defensa del oponente."
+            }
+        ]
+    },
+    {
+        "id": "007",
+        "slug": "spriglit",
+        "name": "Spriglit",
+        "affinities": ["GROVE"],
+        "rarity": "COMMON",
+        "description": "Espíritu vegetal pequeño y curioso que florece con la luz del amanecer y cura la tierra a su paso.",
+        "baseStats": {
+            "hp": 100,
+            "atk": 45,
+            "def": 55,
+            "spd": 40
+        },
+        "evolution": {
+            "evolvesTo": "008",
+            "method": "LEVEL",
+            "value": 17
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/007/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/007/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/007/back.png"
+        },
+        "moves": [
+            {
+                "id": "spriglit_zarpazo",
+                "name": "Zarpazo",
+                "affinity": "GROVE",
+                "type": "physical",
+                "power": 50,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": null,
+                "description": "Azota con lianas cubiertas de espinas."
+            },
+            {
+                "id": "spriglit_esporas",
+                "name": "Esporas",
+                "affinity": "GROVE",
+                "type": "special",
+                "power": 75,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": null,
+                "description": "Dispara semillas perforantes."
+            },
+            {
+                "id": "spriglit_piel_de_roble",
+                "name": "Piel de Roble",
+                "affinity": "GROVE",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 20,
+                    "duration": 2
+                },
+                "description": "Genera un manto de hojas protectoras, potenciando su fuerza de ataque."
+            },
+            {
+                "id": "spriglit_gran_embate",
+                "name": "Gran Embate",
+                "affinity": "GROVE",
+                "type": "physical",
+                "power": 95,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": null,
+                "description": "Embiste con fuerza salvaje."
+            }
+        ]
+    },
+    {
+        "id": "008",
+        "slug": "florantis",
+        "name": "Florantis",
+        "affinities": ["GROVE"],
+        "rarity": "RARE",
+        "description": "Guardián floral que manipula lianas, raíces y polen curativo para dominar el campo de batalla.",
+        "baseStats": {
+            "hp": 100,
+            "atk": 62,
+            "def": 57,
+            "spd": 57
+        },
+        "evolution": {
+            "evolvesTo": "009",
+            "method": "LEVEL",
+            "value": 35
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/008/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/008/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/008/back.png"
+        },
+        "moves": [
+            {
+                "id": "florantis_zarpazo",
+                "name": "Zarpazo",
+                "affinity": "GROVE",
+                "type": "physical",
+                "power": 55,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": null,
+                "description": "Azota con lianas cubiertas de espinas."
+            },
+            {
+                "id": "florantis_esporas",
+                "name": "Esporas",
+                "affinity": "GROVE",
+                "type": "special",
+                "power": 80,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Dispara semillas perforantes, agrietando y quebrando la defensa del oponente."
+            },
+            {
+                "id": "florantis_piel_de_roble",
+                "name": "Piel de Roble",
+                "affinity": "GROVE",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": {
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Genera un manto de hojas protectoras, sellando las heridas y restaurando la vitalidad."
+            },
+            {
+                "id": "florantis_gran_embate",
+                "name": "Gran Embate",
+                "affinity": "GROVE",
+                "type": "physical",
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Embiste con fuerza salvaje, dejando brasas que queman lentamente al objetivo."
+            }
+        ]
+    },
+    {
+        "id": "009",
+        "slug": "eldergrove",
+        "name": "Eldergrove",
+        "affinities": ["GROVE"],
+        "rarity": "EPIC",
+        "description": "Anciano coloso del bosque, cubierto de musgo y flores eternas, protector sagrado de la vida salvaje en Mythara.",
+        "baseStats": {
+            "hp": 110,
+            "atk": 80,
+            "def": 70,
+            "spd": 75
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/009/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/009/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/009/back.png"
+        },
+        "moves": [
+            {
+                "id": "eldergrove_embate",
+                "name": "Embate",
+                "affinity": "GROVE",
+                "type": "physical",
+                "power": 65,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": {
+                    "type": "debuff_acc",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Azota con lianas cubiertas de espinas, cegando temporalmente y confundiendo al enemigo."
+            },
+            {
+                "id": "eldergrove_esporas",
+                "name": "Esporas",
+                "affinity": "GROVE",
+                "type": "special",
+                "power": 90,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 30,
+                    "duration": 2
+                },
+                "description": "Desata una explosión de polen, potenciando su fuerza de ataque."
+            },
+            {
+                "id": "eldergrove_piel_de_roble",
+                "name": "Piel de Roble",
+                "affinity": "GROVE",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": {
+                    "type": "shield",
+                    "target": "all_allies",
+                    "value": 20,
+                    "duration": 3
+                },
+                "description": "Libera esporas curativas, creando una barrera que absorbe los próximos impactos."
+            },
+            {
+                "id": "eldergrove_gran_hoja_afilada",
+                "name": "Gran Hoja Afilada",
+                "affinity": "GROVE",
+                "type": "special",
+                "power": 130,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": [
+                    {
+                        "type": "apply_status",
+                        "status": "fear",
+                        "target": "enemy",
+                        "chance": 100
+                    },
+                    {
+                        "type": "debuff_def",
+                        "target": "enemy",
+                        "value": 30,
+                        "duration": 3,
+                        "chance": 100
+                    }
+                ],
+                "description": "Lanza hojas afiladas como cuchillas, infundiendo un terror profundo que hiela la sangre del rival. agrietando y quebrando la defensa del oponente."
+            }
+        ]
+    },
+    {
+        "id": "010",
+        "slug": "voltusk",
+        "name": "Voltusk",
+        "affinities": ["VOLT"],
+        "rarity": "COMMON",
+        "description": "Pequeña bestia eléctrica con colmillos cargados de energía estática y reflejos extremadamente rápidos.",
+        "baseStats": {
+            "hp": 80,
+            "atk": 55,
+            "def": 40,
+            "spd": 55
+        },
+        "evolution": {
+            "evolvesTo": "011",
+            "method": "LEVEL",
+            "value": 19
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/010/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/010/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/010/back.png"
+        },
+        "moves": [
+            {
+                "id": "voltusk_dash",
+                "name": "Dash",
+                "affinity": "VOLT",
+                "type": "physical",
+                "power": 50,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": null,
+                "description": "Ataca con garras chispeantes."
+            },
+            {
+                "id": "voltusk_trueno",
+                "name": "Trueno",
+                "affinity": "VOLT",
+                "type": "special",
+                "power": 75,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": null,
+                "description": "Dispara un rayo cegador."
+            },
+            {
+                "id": "voltusk_pulso",
+                "name": "Pulso",
+                "affinity": "VOLT",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 20,
+                    "duration": 2
+                },
+                "description": "Acelera su flujo eléctrico, potenciando su fuerza de ataque."
+            },
+            {
+                "id": "voltusk_gran_puno_rayo",
+                "name": "Gran Puño Rayo",
+                "affinity": "VOLT",
+                "type": "physical",
+                "power": 95,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": null,
+                "description": "Ejecuta una embestida a velocidad sónica."
+            }
+        ]
+    },
+    {
+        "id": "011",
+        "slug": "tharvel",
+        "name": "Tharvel",
+        "affinities": ["VOLT"],
+        "rarity": "RARE",
+        "description": "Sus alas generan campos electromagnéticos que interfieren con cualquier energía cercana.",
+        "baseStats": {
+            "hp": 95,
+            "atk": 70,
+            "def": 50,
+            "spd": 57
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/011/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/011/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/011/back.png"
+        },
+        "moves": [
+            {
+                "id": "tharvel_dash",
+                "name": "Dash",
+                "affinity": "VOLT",
+                "type": "physical",
+                "power": 55,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": null,
+                "description": "Golpea envuelto en electricidad estática."
+            },
+            {
+                "id": "tharvel_trueno",
+                "name": "Trueno",
+                "affinity": "VOLT",
+                "type": "special",
+                "power": 80,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Desata una tormenta electromagnética, agrietando y quebrando la defensa del oponente."
+            },
+            {
+                "id": "tharvel_aura_estatica",
+                "name": "Aura Estática",
+                "affinity": "VOLT",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": {
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Emite pulsos electromagnéticos, sellando las heridas y restaurando la vitalidad."
+            },
+            {
+                "id": "tharvel_gran_puno_rayo",
+                "name": "Gran Puño Rayo",
+                "affinity": "VOLT",
+                "type": "physical",
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Se abalanza como un relámpago, dejando brasas que queman lentamente al objetivo."
+            }
+        ]
+    },
+    {
+        "id": "012",
+        "slug": "dureth",
+        "name": "Dureth",
+        "affinities": ["STONE"],
+        "rarity": "COMMON",
+        "description": "Bestia pétrea de movimientos lentos cuya coraza absorbe golpes que romperían la roca más dura.",
+        "baseStats": {
+            "hp": 100,
+            "atk": 45,
+            "def": 55,
+            "spd": 40
+        },
+        "evolution": {
+            "evolvesTo": "013",
+            "method": "LEVEL",
+            "value": 28
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/012/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/012/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/012/back.png"
+        },
+        "moves": [
+            {
+                "id": "dureth_aplastamiento",
+                "name": "Aplastamiento",
+                "affinity": "STONE",
+                "type": "physical",
+                "power": 50,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": null,
+                "description": "Golpea con puños de granito sólido."
+            },
+            {
+                "id": "dureth_avalancha",
+                "name": "Avalancha",
+                "affinity": "STONE",
+                "type": "special",
+                "power": 75,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": null,
+                "description": "Proyecta lanzas de tierra endurecida."
+            },
+            {
+                "id": "dureth_piel_de_piedra",
+                "name": "Piel de Piedra",
+                "affinity": "STONE",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 20,
+                    "duration": 2
+                },
+                "description": "Levanta un muro de piedra, potenciando su fuerza de ataque."
+            },
+            {
+                "id": "dureth_gran_golpe_sismico",
+                "name": "Gran Golpe Sísmico",
+                "affinity": "STONE",
+                "type": "physical",
+                "power": 95,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": null,
+                "description": "Arremete con fuerza sísmica."
+            }
+        ]
+    },
+    {
+        "id": "013",
+        "slug": "petraxis",
+        "name": "Petraxis",
+        "affinities": ["STONE"],
+        "rarity": "ELITE",
+        "description": "Una fortaleza viviente cuya coraza acumula siglos de presión tectónica lista para estallar en un solo golpe.",
+        "baseStats": {
+            "hp": 110,
+            "atk": 72,
+            "def": 67,
+            "spd": 62
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/013/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/013/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/013/back.png"
+        },
+        "moves": [
+            {
+                "id": "petraxis_aplastamiento",
+                "name": "Aplastamiento",
+                "affinity": "STONE",
+                "type": "physical",
+                "power": 60,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": {
+                    "type": "debuff_spd",
+                    "target": "enemy",
+                    "value": 15,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Golpea con puños de granito sólido, ralentizando drásticamente los movimientos del adversario."
+            },
+            {
+                "id": "petraxis_lanza_de_roca",
+                "name": "Lanza de Roca",
+                "affinity": "STONE",
+                "type": "special",
+                "power": 85,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "boost_def",
+                    "target": "self",
+                    "value": 25,
+                    "duration": 2
+                },
+                "description": "Provoca una avalancha devastadora, endureciendo su resistencia física."
+            },
+            {
+                "id": "petraxis_piel_de_piedra",
+                "name": "Piel de Piedra",
+                "affinity": "STONE",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "stun",
+                    "target": "all_enemies",
+                    "chance": 100
+                },
+                "description": "Levanta un muro de piedra, dejando al adversario completamente aturdido e incapacitado."
+            },
+            {
+                "id": "petraxis_gran_golpe_sismico",
+                "name": "Gran Golpe Sísmico",
+                "affinity": "STONE",
+                "type": "physical",
+                "power": 115,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "drain",
+                    "target": "enemy",
+                    "value": 25
+                },
+                "description": "Arremete con fuerza sísmica, drenando la energía vital del rival para sanarse a sí mismo."
+            }
+        ]
+    },
+    {
+        "id": "014",
+        "slug": "caleth",
+        "name": "Caleth",
+        "affinities": ["FROST"],
+        "rarity": "COMMON",
+        "description": "Criatura de las cumbres heladas que exhala escarcha y paraliza a sus presas con el aliento.",
+        "baseStats": {
+            "hp": 80,
+            "atk": 50,
+            "def": 45,
+            "spd": 55
+        },
+        "evolution": {
+            "evolvesTo": "015",
+            "method": "LEVEL",
+            "value": 22
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/014/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/014/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/014/back.png"
+        },
+        "moves": [
+            {
+                "id": "caleth_golpe",
+                "name": "Golpe",
+                "affinity": "FROST",
+                "type": "physical",
+                "power": 50,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": null,
+                "description": "Ataca con colmillos glaciales."
+            },
+            {
+                "id": "caleth_lanza_de_hielo",
+                "name": "Lanza de Hielo",
+                "affinity": "FROST",
+                "type": "special",
+                "power": 75,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": null,
+                "description": "Proyecta un rayo de cero absoluto."
+            },
+            {
+                "id": "caleth_armadura_hielo",
+                "name": "Armadura Hielo",
+                "affinity": "FROST",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 20,
+                    "duration": 2
+                },
+                "description": "Genera una armadura de escarcha, potenciando su fuerza de ataque."
+            },
+            {
+                "id": "caleth_gran_golpe",
+                "name": "Gran Golpe",
+                "affinity": "FROST",
+                "type": "physical",
+                "power": 95,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": null,
+                "description": "Embiste rodeado de escarcha."
+            }
+        ]
+    },
+    {
+        "id": "015",
+        "slug": "hivrel",
+        "name": "Hivrel",
+        "affinities": ["FROST"],
+        "rarity": "RARE",
+        "description": "Bestia de hielo vivo que congela el aire a su alrededor en un radio de varios metros.",
+        "baseStats": {
+            "hp": 90,
+            "atk": 65,
+            "def": 45,
+            "spd": 65
+        },
+        "evolution": {
+            "evolvesTo": "016",
+            "method": "LEVEL",
+            "value": 40
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/015/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/015/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/015/back.png"
+        },
+        "moves": [
+            {
+                "id": "hivrel_zarpa_glacial",
+                "name": "Zarpa Glacial",
+                "affinity": "FROST",
+                "type": "physical",
+                "power": 55,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": null,
+                "description": "Ataca con colmillos glaciales."
+            },
+            {
+                "id": "hivrel_lanza_de_hielo",
+                "name": "Lanza de Hielo",
+                "affinity": "FROST",
+                "type": "special",
+                "power": 80,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Lanza una ráfaga de nieve cortante, agrietando y quebrando la defensa del oponente."
+            },
+            {
+                "id": "hivrel_velo",
+                "name": "Velo",
+                "affinity": "FROST",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": {
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Baja la temperatura del campo, sellando las heridas y restaurando la vitalidad."
+            },
+            {
+                "id": "hivrel_gran_golpe",
+                "name": "Gran Golpe",
+                "affinity": "FROST",
+                "type": "physical",
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Ataca con colmillos glaciales, dejando brasas que queman lentamente al objetivo."
+            }
+        ]
+    },
+    {
+        "id": "016",
+        "slug": "borelith",
+        "name": "Borelith",
+        "affinities": ["FROST"],
+        "rarity": "ELITE",
+        "description": "Un coloso de hielo eterno cuyo rugido genera ventiscas que congelan todo en kilómetros a la redonda.",
+        "baseStats": {
+            "hp": 105,
+            "atk": 80,
+            "def": 60,
+            "spd": 62
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/016/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/016/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/016/back.png"
+        },
+        "moves": [
+            {
+                "id": "borelith_golpe",
+                "name": "Golpe",
+                "affinity": "FROST",
+                "type": "physical",
+                "power": 60,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": {
+                    "type": "debuff_spd",
+                    "target": "enemy",
+                    "value": 15,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Ataca con colmillos glaciales, ralentizando drásticamente los movimientos del adversario."
+            },
+            {
+                "id": "borelith_ventisca",
+                "name": "Ventisca",
+                "affinity": "FROST",
+                "type": "special",
+                "power": 85,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "boost_def",
+                    "target": "self",
+                    "value": 25,
+                    "duration": 2
+                },
+                "description": "Dispara carámbanos afilados, endureciendo su resistencia física."
+            },
+            {
+                "id": "borelith_armadura_hielo",
+                "name": "Armadura Hielo",
+                "affinity": "FROST",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "stun",
+                    "target": "all_enemies",
+                    "chance": 100
+                },
+                "description": "Genera una armadura de escarcha, dejando al adversario completamente aturdido e incapacitado."
+            },
+            {
+                "id": "borelith_gran_zarpa_glacial",
+                "name": "Gran Zarpa Glacial",
+                "affinity": "FROST",
+                "type": "physical",
+                "power": 115,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "drain",
+                    "target": "enemy",
+                    "value": 25
+                },
+                "description": "Golpea con extremidades congeladas, drenando la energía vital del rival para sanarse a sí mismo."
+            }
+        ]
+    },
+    {
+        "id": "017",
+        "slug": "rumath",
+        "name": "Rumath",
+        "affinities": ["STONE", "EMBER"],
+        "rarity": "RARE",
+        "description": "Nacido en la frontera entre volcanes y montañas, su cuerpo de lava solidificada lo hace impredecible en combate.",
+        "baseStats": {
+            "hp": 110,
+            "atk": 55,
+            "def": 65,
+            "spd": 50
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/017/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/017/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/017/back.png"
+        },
+        "moves": [
+            {
+                "id": "rumath_golpe_sismico",
+                "name": "Golpe Sísmico",
+                "affinity": "STONE",
+                "type": "physical",
+                "power": 55,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": null,
+                "description": "Golpea con puños de granito sólido."
+            },
+            {
+                "id": "rumath_lanza_de_roca",
+                "name": "Lanza de Roca",
+                "affinity": "STONE",
+                "type": "special",
+                "power": 80,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Proyecta lanzas de tierra endurecida, agrietando y quebrando la defensa del oponente."
+            },
+            {
+                "id": "rumath_piel_de_piedra",
+                "name": "Piel de Piedra",
+                "affinity": "STONE",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": {
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Se ancla firmemente a la tierra, sellando las heridas y restaurando la vitalidad."
+            },
+            {
+                "id": "rumath_gran_aplastamiento",
+                "name": "Gran Aplastamiento",
+                "affinity": "STONE",
+                "type": "physical",
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Golpea con puños de granito sólido, dejando brasas que queman lentamente al objetivo."
+            }
+        ]
+    },
+    {
+        "id": "018",
+        "slug": "pyrath",
+        "name": "Pyrath",
+        "affinities": ["EMBER"],
+        "rarity": "COMMON",
+        "description": "Pequeño roedor ígneo que habita cerca de volcanes y lanza chispas al sentirse amenazado.",
+        "baseStats": {
+            "hp": 90,
+            "atk": 52,
+            "def": 47,
+            "spd": 47
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/018/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/018/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/018/back.png"
+        },
+        "moves": [
+            {
+                "id": "pyrath_punetazo_igneo",
+                "name": "Puñetazo Ígneo",
+                "affinity": "EMBER",
+                "type": "physical",
+                "power": 50,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": null,
+                "description": "Se lanza envuelto en llamas."
+            },
+            {
+                "id": "pyrath_tormenta_de_fuego",
+                "name": "Tormenta de Fuego",
+                "affinity": "EMBER",
+                "type": "special",
+                "power": 75,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": null,
+                "description": "Escupe magma fundido."
+            },
+            {
+                "id": "pyrath_aura_de_calor",
+                "name": "Aura de Calor",
+                "affinity": "EMBER",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 20,
+                    "duration": 2
+                },
+                "description": "Aviva su fuego interno, potenciando su fuerza de ataque."
+            },
+            {
+                "id": "pyrath_gran_embestida_ardiente",
+                "name": "Gran Embestida Ardiente",
+                "affinity": "EMBER",
+                "type": "physical",
+                "power": 95,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": null,
+                "description": "Araña con garras de fuego."
+            }
+        ]
+    },
+    {
+        "id": "019",
+        "slug": "toxavel",
+        "name": "Toxavel",
+        "affinities": ["VENOM"],
+        "rarity": "COMMON",
+        "description": "Pequeño depredador cuyas garras segregan un veneno que debilita lentamente a sus enemigos.",
+        "baseStats": {
+            "hp": 80,
+            "atk": 50,
+            "def": 45,
+            "spd": 55
+        },
+        "evolution": {
+            "evolvesTo": "020",
+            "method": "LEVEL",
+            "value": 18
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/019/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/019/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/019/back.png"
+        },
+        "moves": [
+            {
+                "id": "toxavel_aguijon",
+                "name": "Aguijón",
+                "affinity": "VENOM",
+                "type": "physical",
+                "power": 50,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": null,
+                "description": "Golpea con aguijones tóxicos."
+            },
+            {
+                "id": "toxavel_explosion",
+                "name": "Explosión",
+                "affinity": "VENOM",
+                "type": "special",
+                "power": 75,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": null,
+                "description": "Desata una lluvia tóxica."
+            },
+            {
+                "id": "toxavel_aura",
+                "name": "Aura",
+                "affinity": "VENOM",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 20,
+                    "duration": 2
+                },
+                "description": "Se recubre de cieno protector, potenciando su fuerza de ataque."
+            },
+            {
+                "id": "toxavel_gran_aguijon",
+                "name": "Gran Aguijón",
+                "affinity": "VENOM",
+                "type": "physical",
+                "power": 95,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": null,
+                "description": "Muerde segregando veneno corrosivo."
+            }
+        ]
+    },
+    {
+        "id": "020",
+        "slug": "morduvex",
+        "name": "Morduvex",
+        "affinities": ["VENOM"],
+        "rarity": "RARE",
+        "description": "Depredador de los pantanos cuya picadura disuelve la voluntad de combatir en minutos.",
+        "baseStats": {
+            "hp": 90,
+            "atk": 65,
+            "def": 45,
+            "spd": 65
+        },
+        "evolution": {
+            "evolvesTo": "021",
+            "method": "LEVEL",
+            "value": 38
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/020/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/020/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/020/back.png"
+        },
+        "moves": [
+            {
+                "id": "morduvex_mordida",
+                "name": "Mordida",
+                "affinity": "VENOM",
+                "type": "physical",
+                "power": 55,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": null,
+                "description": "Araña con garras empapadas en ponzoña."
+            },
+            {
+                "id": "morduvex_explosion",
+                "name": "Explosión",
+                "affinity": "VENOM",
+                "type": "special",
+                "power": 80,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Proyecta fango venenoso, agrietando y quebrando la defensa del oponente."
+            },
+            {
+                "id": "morduvex_aura",
+                "name": "Aura",
+                "affinity": "VENOM",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": {
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Genera vapores pestilentes, sellando las heridas y restaurando la vitalidad."
+            },
+            {
+                "id": "morduvex_gran_aguijon",
+                "name": "Gran Aguijón",
+                "affinity": "VENOM",
+                "type": "physical",
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Araña con garras empapadas en ponzoña, dejando brasas que queman lentamente al objetivo."
+            }
+        ]
+    },
+    {
+        "id": "021",
+        "slug": "venoxis",
+        "name": "Venoxis",
+        "affinities": ["VENOM"],
+        "rarity": "ELITE",
+        "description": "Señor de los pantanos tóxicos cuya sangre es veneno puro.",
+        "baseStats": {
+            "hp": 105,
+            "atk": 80,
+            "def": 60,
+            "spd": 62
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/021/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/021/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/021/back.png"
+        },
+        "moves": [
+            {
+                "id": "venoxis_aguijon",
+                "name": "Aguijón",
+                "affinity": "VENOM",
+                "type": "physical",
+                "power": 60,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": {
+                    "type": "debuff_spd",
+                    "target": "enemy",
+                    "value": 15,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Inyecta toxinas con un ataque rápido, ralentizando drásticamente los movimientos del adversario."
+            },
+            {
+                "id": "venoxis_explosion",
+                "name": "Explosión",
+                "affinity": "VENOM",
+                "type": "special",
+                "power": 85,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "boost_def",
+                    "target": "self",
+                    "value": 25,
+                    "duration": 2
+                },
+                "description": "Escupe un chorro de ácido corrosivo, endureciendo su resistencia física."
+            },
+            {
+                "id": "venoxis_vapor_toxico",
+                "name": "Vapor Tóxico",
+                "affinity": "VENOM",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "stun",
+                    "target": "all_enemies",
+                    "chance": 100
+                },
+                "description": "Segrega fluidos sanadores pero tóxicos, dejando al adversario completamente aturdido e incapacitado."
+            },
+            {
+                "id": "venoxis_gran_aguijon",
+                "name": "Gran Aguijón",
+                "affinity": "VENOM",
+                "type": "physical",
+                "power": 115,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "drain",
+                    "target": "enemy",
+                    "value": 25
+                },
+                "description": "Golpea con aguijones tóxicos, drenando la energía vital del rival para sanarse a sí mismo."
+            }
+        ]
+    },
+    {
+        "id": "022",
+        "slug": "astryn",
+        "name": "Astryn",
+        "affinities": ["ASTRAL"],
+        "rarity": "COMMON",
+        "description": "Pequeño espíritu estelar nacido del polvo cósmico.",
+        "baseStats": {
+            "hp": 100,
+            "atk": 45,
+            "def": 55,
+            "spd": 40
+        },
+        "evolution": {
+            "evolvesTo": "023",
+            "method": "LEVEL",
+            "value": 20
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/022/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/022/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/022/back.png"
+        },
+        "moves": [
+            {
+                "id": "astryn_impacto",
+                "name": "Impacto",
+                "affinity": "ASTRAL",
+                "type": "physical",
+                "power": 50,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": null,
+                "description": "Embiste atravesando el tejido espacial."
+            },
+            {
+                "id": "astryn_rayo_astral",
+                "name": "Rayo Astral",
+                "affinity": "ASTRAL",
+                "type": "special",
+                "power": 75,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": null,
+                "description": "Proyecta una supernova en miniatura."
+            },
+            {
+                "id": "astryn_escudo",
+                "name": "Escudo",
+                "affinity": "ASTRAL",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 20,
+                    "duration": 2
+                },
+                "description": "Crea una distorsión gravitatoria, potenciando su fuerza de ataque."
+            },
+            {
+                "id": "astryn_gran_puno",
+                "name": "Gran Puño",
+                "affinity": "ASTRAL",
+                "type": "physical",
+                "power": 95,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": null,
+                "description": "Embiste atravesando el tejido espacial."
+            }
+        ]
+    },
+    {
+        "id": "023",
+        "slug": "stellaris",
+        "name": "Stellaris",
+        "affinities": ["ASTRAL"],
+        "rarity": "RARE",
+        "description": "Entidad nacida en la luz de las estrellas moribundas.",
+        "baseStats": {
+            "hp": 100,
+            "atk": 62,
+            "def": 57,
+            "spd": 57
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/023/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/023/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/023/back.png"
+        },
+        "moves": [
+            {
+                "id": "stellaris_puno",
+                "name": "Puño",
+                "affinity": "ASTRAL",
+                "type": "physical",
+                "power": 55,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": null,
+                "description": "Golpea con fuerza cósmica."
+            },
+            {
+                "id": "stellaris_nova",
+                "name": "Nova",
+                "affinity": "ASTRAL",
+                "type": "special",
+                "power": 80,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Desata polvo de estrellas, agrietando y quebrando la defensa del oponente."
+            },
+            {
+                "id": "stellaris_escudo",
+                "name": "Escudo",
+                "affinity": "ASTRAL",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": {
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Invoca polvo estelar curativo, sellando las heridas y restaurando la vitalidad."
+            },
+            {
+                "id": "stellaris_gran_puno",
+                "name": "Gran Puño",
+                "affinity": "ASTRAL",
+                "type": "physical",
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Impacta con la densidad de un meteorito, dejando brasas que queman lentamente al objetivo."
+            }
+        ]
+    },
+    {
+        "id": "024",
+        "slug": "umbrix",
+        "name": "Umbrix",
+        "affinities": ["SHADE"],
+        "rarity": "COMMON",
+        "description": "Criatura de sombras que se desliza entre la penumbra.",
+        "baseStats": {
+            "hp": 80,
+            "atk": 50,
+            "def": 45,
+            "spd": 55
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/024/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/024/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/024/back.png"
+        },
+        "moves": [
+            {
+                "id": "umbrix_daga",
+                "name": "Daga",
+                "affinity": "SHADE",
+                "type": "physical",
+                "power": 50,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": null,
+                "description": "Embiste envuelto en tinieblas."
+            },
+            {
+                "id": "umbrix_drenaje",
+                "name": "Drenaje",
+                "affinity": "SHADE",
+                "type": "special",
+                "power": 75,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": null,
+                "description": "Crea un agujero negro efímero."
+            },
+            {
+                "id": "umbrix_miedo",
+                "name": "Miedo",
+                "affinity": "SHADE",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 20,
+                    "duration": 2
+                },
+                "description": "Se envuelve en un manto de sombras, potenciando su fuerza de ataque."
+            },
+            {
+                "id": "umbrix_gran_daga",
+                "name": "Gran Daga",
+                "affinity": "SHADE",
+                "type": "physical",
+                "power": 95,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": null,
+                "description": "Desgarra con garras de pura sombra."
+            }
+        ]
+    },
+    {
+        "id": "025",
+        "slug": "noctyra",
+        "name": "Noctyra",
+        "affinities": ["SHADE"],
+        "rarity": "RARE",
+        "description": "Predadora nocturna capaz de devorar la luz.",
+        "baseStats": {
+            "hp": 90,
+            "atk": 65,
+            "def": 45,
+            "spd": 65
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/025/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/025/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/025/back.png"
+        },
+        "moves": [
+            {
+                "id": "noctyra_daga",
+                "name": "Daga",
+                "affinity": "SHADE",
+                "type": "physical",
+                "power": 55,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": null,
+                "description": "Se funde con la oscuridad para asestar un golpe."
+            },
+            {
+                "id": "noctyra_abismo",
+                "name": "Abismo",
+                "affinity": "SHADE",
+                "type": "special",
+                "power": 80,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Lanza un rayo de oscuridad absoluta, agrietando y quebrando la defensa del oponente."
+            },
+            {
+                "id": "noctyra_miedo",
+                "name": "Miedo",
+                "affinity": "SHADE",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": {
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Canaliza la oscuridad para restaurarse, sellando las heridas y restaurando la vitalidad."
+            },
+            {
+                "id": "noctyra_gran_zarpa_umbral",
+                "name": "Gran Zarpa Umbral",
+                "affinity": "SHADE",
+                "type": "physical",
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Desgarra con garras de pura sombra, dejando brasas que queman lentamente al objetivo."
+            }
+        ]
+    },
+    {
+        "id": "026",
+        "slug": "umbrion",
+        "name": "Umbrion",
+        "affinities": ["SHADE"],
+        "rarity": "ELITE",
+        "description": "Entidad nacida de la oscuridad pura que devora la luz y la esperanza.",
+        "baseStats": {
+            "hp": 105,
+            "atk": 80,
+            "def": 60,
+            "spd": 62
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/026/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/026/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/026/back.png"
+        },
+        "moves": [
+            {
+                "id": "umbrion_daga",
+                "name": "Daga",
+                "affinity": "SHADE",
+                "type": "physical",
+                "power": 60,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": {
+                    "type": "debuff_spd",
+                    "target": "enemy",
+                    "value": 15,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Se funde con la oscuridad para asestar un golpe, ralentizando drásticamente los movimientos del adversario."
+            },
+            {
+                "id": "umbrion_abismo",
+                "name": "Abismo",
+                "affinity": "SHADE",
+                "type": "special",
+                "power": 85,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "boost_def",
+                    "target": "self",
+                    "value": 25,
+                    "duration": 2
+                },
+                "description": "Lanza un rayo de oscuridad absoluta, endureciendo su resistencia física."
+            },
+            {
+                "id": "umbrion_miedo",
+                "name": "Miedo",
+                "affinity": "SHADE",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "stun",
+                    "target": "all_enemies",
+                    "chance": 100
+                },
+                "description": "Canaliza la oscuridad para restaurarse, dejando al adversario completamente aturdido e incapacitado."
+            },
+            {
+                "id": "umbrion_gran_zarpa_umbral",
+                "name": "Gran Zarpa Umbral",
+                "affinity": "SHADE",
+                "type": "physical",
+                "power": 115,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "drain",
+                    "target": "enemy",
+                    "value": 25
+                },
+                "description": "Desgarra con garras de pura sombra, drenando la energía vital del rival para sanarse a sí mismo."
+            }
+        ]
+    },
+    {
+        "id": "027",
+        "slug": "ferrox",
+        "name": "Ferrox",
+        "affinities": ["IRON"],
+        "rarity": "COMMON",
+        "description": "Criatura metálica que usa su cuerpo de hierro como arma contundente.",
+        "baseStats": {
+            "hp": 100,
+            "atk": 45,
+            "def": 55,
+            "spd": 40
+        },
+        "evolution": {
+            "evolvesTo": "028",
+            "method": "LEVEL",
+            "value": 26
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/027/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/027/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/027/back.png"
+        },
+        "moves": [
+            {
+                "id": "ferrox_golpe_metal",
+                "name": "Golpe Metal",
+                "affinity": "IRON",
+                "type": "physical",
+                "power": 50,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": null,
+                "description": "Aplaza con la fuerza de un yunque."
+            },
+            {
+                "id": "ferrox_proyectil",
+                "name": "Proyectil",
+                "affinity": "IRON",
+                "type": "special",
+                "power": 75,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": null,
+                "description": "Lanza proyectiles metálicos a alta velocidad."
+            },
+            {
+                "id": "ferrox_refuerzo",
+                "name": "Refuerzo",
+                "affinity": "IRON",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 20,
+                    "duration": 2
+                },
+                "description": "Despliega escudos metálicos, potenciando su fuerza de ataque."
+            },
+            {
+                "id": "ferrox_gran_golpe_metal",
+                "name": "Gran Golpe Metal",
+                "affinity": "IRON",
+                "type": "physical",
+                "power": 95,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": null,
+                "description": "Golpea con extremidades metálicas."
+            }
+        ]
+    },
+    {
+        "id": "028",
+        "slug": "ferrothor",
+        "name": "Ferrothor",
+        "affinities": ["IRON"],
+        "rarity": "RARE",
+        "description": "Guerrero mecánico cuyas placas de hierro son casi impenetrables.",
+        "baseStats": {
+            "hp": 100,
+            "atk": 62,
+            "def": 57,
+            "spd": 57
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/028/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/028/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/028/back.png"
+        },
+        "moves": [
+            {
+                "id": "ferrothor_golpe_metal",
+                "name": "Golpe Metal",
+                "affinity": "IRON",
+                "type": "physical",
+                "power": 55,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": null,
+                "description": "Ataca con engranajes cortantes."
+            },
+            {
+                "id": "ferrothor_proyectil",
+                "name": "Proyectil",
+                "affinity": "IRON",
+                "type": "special",
+                "power": 80,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Proyecta fragmentos de metralla, agrietando y quebrando la defensa del oponente."
+            },
+            {
+                "id": "ferrothor_escudo",
+                "name": "Escudo",
+                "affinity": "IRON",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": {
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Magnetiza su armadura, sellando las heridas y restaurando la vitalidad."
+            },
+            {
+                "id": "ferrothor_gran_carga",
+                "name": "Gran Carga",
+                "affinity": "IRON",
+                "type": "physical",
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Ataca con engranajes cortantes, dejando brasas que queman lentamente al objetivo."
+            }
+        ]
+    },
+    {
+        "id": "029",
+        "slug": "aethera",
+        "name": "Aethera",
+        "affinities": ["ASTRAL", "VOLT"],
+        "rarity": "RARE",
+        "description": "Ser de energía estelar que canaliza relámpagos cósmicos.",
+        "baseStats": {
+            "hp": 90,
+            "atk": 60,
+            "def": 55,
+            "spd": 65
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/029/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/029/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/029/back.png"
+        },
+        "moves": [
+            {
+                "id": "aethera_impacto",
+                "name": "Impacto",
+                "affinity": "ASTRAL",
+                "type": "physical",
+                "power": 55,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": null,
+                "description": "Ataca con puños de luz estelar."
+            },
+            {
+                "id": "aethera_nova",
+                "name": "Nova",
+                "affinity": "ASTRAL",
+                "type": "special",
+                "power": 80,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Proyecta una supernova en miniatura, agrietando y quebrando la defensa del oponente."
+            },
+            {
+                "id": "aethera_eco",
+                "name": "Eco",
+                "affinity": "ASTRAL",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": {
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Altera el espacio-tiempo a su alrededor, sellando las heridas y restaurando la vitalidad."
+            },
+            {
+                "id": "aethera_gran_impacto",
+                "name": "Gran Impacto",
+                "affinity": "ASTRAL",
+                "type": "physical",
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Embiste atravesando el tejido espacial, dejando brasas que queman lentamente al objetivo."
+            }
+        ]
+    },
+    {
+        "id": "030",
+        "slug": "celestigon",
+        "name": "Celestigon",
+        "affinities": ["ASTRAL"],
+        "rarity": "EPIC",
+        "description": "Dragón cósmico que habita entre las estrellas.",
+        "baseStats": {
+            "hp": 110,
+            "atk": 85,
+            "def": 60,
+            "spd": 75
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/030/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/030/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/030/back.png"
+        },
+        "moves": [
+            {
+                "id": "celestigon_impacto",
+                "name": "Impacto",
+                "affinity": "ASTRAL",
+                "type": "physical",
+                "power": 65,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": {
+                    "type": "debuff_acc",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Embiste atravesando el tejido espacial, cegando temporalmente y confundiendo al enemigo."
+            },
+            {
+                "id": "celestigon_nova",
+                "name": "Nova",
+                "affinity": "ASTRAL",
+                "type": "special",
+                "power": 90,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 30,
+                    "duration": 2
+                },
+                "description": "Canaliza un rayo de energía galáctica, potenciando su fuerza de ataque."
+            },
+            {
+                "id": "celestigon_escudo",
+                "name": "Escudo",
+                "affinity": "ASTRAL",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": {
+                    "type": "shield",
+                    "target": "all_allies",
+                    "value": 20,
+                    "duration": 3
+                },
+                "description": "Crea una distorsión gravitatoria, creando una barrera que absorbe los próximos impactos."
+            },
+            {
+                "id": "celestigon_gran_rayo_astral",
+                "name": "Gran Rayo Astral",
+                "affinity": "ASTRAL",
+                "type": "special",
+                "power": 130,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": [
+                    {
+                        "type": "apply_status",
+                        "status": "fear",
+                        "target": "enemy",
+                        "chance": 100
+                    },
+                    {
+                        "type": "debuff_def",
+                        "target": "enemy",
+                        "value": 30,
+                        "duration": 3,
+                        "chance": 100
+                    }
+                ],
+                "description": "Canaliza un rayo de energía galáctica, infundiendo un terror profundo que hiela la sangre del rival. agrietando y quebrando la defensa del oponente."
+            }
+        ]
+    },
+    {
+        "id": "031",
+        "slug": "mirelurk",
+        "name": "Mirelurk",
+        "affinities": ["TIDE", "VENOM"],
+        "rarity": "RARE",
+        "description": "Depredador anfibio que acecha en aguas pantanosas cargadas de toxinas naturales.",
+        "baseStats": {
+            "hp": 95,
+            "atk": 70,
+            "def": 50,
+            "spd": 57
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/031/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/031/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/031/back.png"
+        },
+        "moves": [
+            {
+                "id": "mirelurk_latigazo",
+                "name": "Latigazo",
+                "affinity": "TIDE",
+                "type": "physical",
+                "power": 55,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": null,
+                "description": "Embiste rodeado de corrientes marinas."
+            },
+            {
+                "id": "mirelurk_geiser",
+                "name": "Geiser",
+                "affinity": "TIDE",
+                "type": "special",
+                "power": 80,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Proyecta un géiser hirviente, agrietando y quebrando la defensa del oponente."
+            },
+            {
+                "id": "mirelurk_niebla",
+                "name": "Niebla",
+                "affinity": "TIDE",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": {
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Manipula las corrientes curativas del agua, sellando las heridas y restaurando la vitalidad."
+            },
+            {
+                "id": "mirelurk_gran_golpe_de_ola",
+                "name": "Gran Golpe de Ola",
+                "affinity": "TIDE",
+                "type": "physical",
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Azota con látigos de agua, dejando brasas que queman lentamente al objetivo."
+            }
+        ]
+    },
+    {
+        "id": "032",
+        "slug": "bramblisk",
+        "name": "Bramblisk",
+        "affinities": ["GROVE", "STONE"],
+        "rarity": "RARE",
+        "description": "Criatura espinosa que fusiona raíces vivas con una coraza de roca antigua.",
+        "baseStats": {
+            "hp": 110,
+            "atk": 55,
+            "def": 65,
+            "spd": 50
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/032/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/032/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/032/back.png"
+        },
+        "moves": [
+            {
+                "id": "bramblisk_zarpazo",
+                "name": "Zarpazo",
+                "affinity": "GROVE",
+                "type": "physical",
+                "power": 55,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": null,
+                "description": "Golpea con raíces endurecidas como piedra."
+            },
+            {
+                "id": "bramblisk_hoja_afilada",
+                "name": "Hoja Afilada",
+                "affinity": "GROVE",
+                "type": "special",
+                "power": 80,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Proyecta una ráfaga de esporas volátiles, agrietando y quebrando la defensa del oponente."
+            },
+            {
+                "id": "bramblisk_piel_de_roble",
+                "name": "Piel de Roble",
+                "affinity": "GROVE",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": {
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Libera esporas curativas, sellando las heridas y restaurando la vitalidad."
+            },
+            {
+                "id": "bramblisk_gran_zarpazo",
+                "name": "Gran Zarpazo",
+                "affinity": "GROVE",
+                "type": "physical",
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Azota con lianas cubiertas de espinas, dejando brasas que queman lentamente al objetivo."
+            }
+        ]
+    },
+    {
+        "id": "033",
+        "slug": "volcryst",
+        "name": "Volcryst",
+        "affinities": ["VOLT", "FROST"],
+        "rarity": "RARE",
+        "description": "Ser inestable de rayos helados cuyos cristales cargados crujen antes de estallar.",
+        "baseStats": {
+            "hp": 100,
+            "atk": 62,
+            "def": 57,
+            "spd": 57
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/033/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/033/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/033/back.png"
+        },
+        "moves": [
+            {
+                "id": "volcryst_puno_rayo",
+                "name": "Puño Rayo",
+                "affinity": "VOLT",
+                "type": "physical",
+                "power": 55,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": null,
+                "description": "Golpea envuelto en electricidad estática."
+            },
+            {
+                "id": "volcryst_trueno",
+                "name": "Trueno",
+                "affinity": "VOLT",
+                "type": "special",
+                "power": 80,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Desata una tormenta electromagnética, agrietando y quebrando la defensa del oponente."
+            },
+            {
+                "id": "volcryst_pulso",
+                "name": "Pulso",
+                "affinity": "VOLT",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": {
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Se sobrecarga de energía estática, sellando las heridas y restaurando la vitalidad."
+            },
+            {
+                "id": "volcryst_gran_puno_rayo",
+                "name": "Gran Puño Rayo",
+                "affinity": "VOLT",
+                "type": "physical",
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Se abalanza como un relámpago, dejando brasas que queman lentamente al objetivo."
+            }
+        ]
+    },
+    {
+        "id": "034",
+        "slug": "ironjaw",
+        "name": "Ironjaw",
+        "affinities": ["IRON"],
+        "rarity": "COMMON",
+        "description": "Bestia mecánica de fauces prensiles capaz de triturar armaduras con facilidad.",
+        "baseStats": {
+            "hp": 80,
+            "atk": 50,
+            "def": 45,
+            "spd": 55
+        },
+        "evolution": {
+            "evolvesTo": "035",
+            "method": "LEVEL",
+            "value": 27
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/034/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/034/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/034/back.png"
+        },
+        "moves": [
+            {
+                "id": "ironjaw_golpe_metal",
+                "name": "Golpe Metal",
+                "affinity": "IRON",
+                "type": "physical",
+                "power": 50,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": null,
+                "description": "Aplaza con la fuerza de un yunque."
+            },
+            {
+                "id": "ironjaw_proyectil",
+                "name": "Proyectil",
+                "affinity": "IRON",
+                "type": "special",
+                "power": 75,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": null,
+                "description": "Lanza proyectiles metálicos a alta velocidad."
+            },
+            {
+                "id": "ironjaw_escudo",
+                "name": "Escudo",
+                "affinity": "IRON",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 20,
+                    "duration": 2
+                },
+                "description": "Refuerza su chasis con aleaciones, potenciando su fuerza de ataque."
+            },
+            {
+                "id": "ironjaw_gran_carga",
+                "name": "Gran Carga",
+                "affinity": "IRON",
+                "type": "physical",
+                "power": 95,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": null,
+                "description": "Aplaza con la fuerza de un yunque."
+            }
+        ]
+    },
+    {
+        "id": "035",
+        "slug": "steelmaw",
+        "name": "Steelmaw",
+        "affinities": ["IRON"],
+        "rarity": "RARE",
+        "description": "Depredador blindado cuyo rugido metálico hace temblar el campo de batalla.",
+        "baseStats": {
+            "hp": 90,
+            "atk": 65,
+            "def": 45,
+            "spd": 65
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/035/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/035/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/035/back.png"
+        },
+        "moves": [
+            {
+                "id": "steelmaw_golpe_metal",
+                "name": "Golpe Metal",
+                "affinity": "IRON",
+                "type": "physical",
+                "power": 55,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": null,
+                "description": "Aplaza con la fuerza de un yunque."
+            },
+            {
+                "id": "steelmaw_rayo",
+                "name": "Rayo",
+                "affinity": "IRON",
+                "type": "special",
+                "power": 80,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Lanza proyectiles metálicos a alta velocidad, agrietando y quebrando la defensa del oponente."
+            },
+            {
+                "id": "steelmaw_escudo",
+                "name": "Escudo",
+                "affinity": "IRON",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": {
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Refuerza su chasis con aleaciones, sellando las heridas y restaurando la vitalidad."
+            },
+            {
+                "id": "steelmaw_gran_carga",
+                "name": "Gran Carga",
+                "affinity": "IRON",
+                "type": "physical",
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Aplaza con la fuerza de un yunque, dejando brasas que queman lentamente al objetivo."
+            }
+        ]
+    },
+    {
+        "id": "036",
+        "slug": "shadefin",
+        "name": "Shadefin",
+        "affinities": ["SHADE", "TIDE"],
+        "rarity": "RARE",
+        "description": "Cazador abisal que emerge desde aguas negras donde no llega la luz.",
+        "baseStats": {
+            "hp": 95,
+            "atk": 70,
+            "def": 50,
+            "spd": 57
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/036/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/036/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/036/back.png"
+        },
+        "moves": [
+            {
+                "id": "shadefin_daga",
+                "name": "Daga",
+                "affinity": "SHADE",
+                "type": "physical",
+                "power": 55,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": null,
+                "description": "Desgarra con garras de pura sombra."
+            },
+            {
+                "id": "shadefin_drenaje",
+                "name": "Drenaje",
+                "affinity": "SHADE",
+                "type": "special",
+                "power": 80,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Lanza un rayo de oscuridad absoluta, agrietando y quebrando la defensa del oponente."
+            },
+            {
+                "id": "shadefin_miedo",
+                "name": "Miedo",
+                "affinity": "SHADE",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": {
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Oscurece completamente el campo de batalla, sellando las heridas y restaurando la vitalidad."
+            },
+            {
+                "id": "shadefin_gran_daga",
+                "name": "Gran Daga",
+                "affinity": "SHADE",
+                "type": "physical",
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Ataca desde ángulos invisibles, dejando brasas que queman lentamente al objetivo."
+            }
+        ]
+    },
+    {
+        "id": "037",
+        "slug": "emberhorn",
+        "name": "Emberhorn",
+        "affinities": ["EMBER", "IRON"],
+        "rarity": "RARE",
+        "description": "Bestia acorazada cuyos cuernos candentes pueden perforar metal y roca.",
+        "baseStats": {
+            "hp": 110,
+            "atk": 55,
+            "def": 65,
+            "spd": 50
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/037/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/037/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/037/back.png"
+        },
+        "moves": [
+            {
+                "id": "emberhorn_punetazo_igneo",
+                "name": "Puñetazo Ígneo",
+                "affinity": "EMBER",
+                "type": "physical",
+                "power": 55,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": null,
+                "description": "Desata una patada ígnea."
+            },
+            {
+                "id": "emberhorn_llamarada",
+                "name": "Llamarada",
+                "affinity": "EMBER",
+                "type": "special",
+                "power": 80,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Desata una explosión térmica, agrietando y quebrando la defensa del oponente."
+            },
+            {
+                "id": "emberhorn_rugido",
+                "name": "Rugido",
+                "affinity": "EMBER",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": {
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Respira nubes de humo caliente, sellando las heridas y restaurando la vitalidad."
+            },
+            {
+                "id": "emberhorn_gran_punetazo_igneo",
+                "name": "Gran Puñetazo Ígneo",
+                "affinity": "EMBER",
+                "type": "physical",
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Golpea con el cuerpo al rojo vivo, dejando brasas que queman lentamente al objetivo."
+            }
+        ]
+    },
+    {
+        "id": "038",
+        "slug": "bloomora",
+        "name": "Bloomora",
+        "affinities": ["GROVE", "ASTRAL"],
+        "rarity": "RARE",
+        "description": "Entidad floral iluminada por polvo estelar que sana lo que toca y castiga a quien profana el bosque.",
+        "baseStats": {
+            "hp": 100,
+            "atk": 62,
+            "def": 57,
+            "spd": 57
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/038/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/038/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/038/back.png"
+        },
+        "moves": [
+            {
+                "id": "bloomora_zarpazo",
+                "name": "Zarpazo",
+                "affinity": "GROVE",
+                "type": "physical",
+                "power": 55,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": null,
+                "description": "Golpea con raíces endurecidas como piedra."
+            },
+            {
+                "id": "bloomora_hoja_afilada",
+                "name": "Hoja Afilada",
+                "affinity": "GROVE",
+                "type": "special",
+                "power": 80,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Proyecta una ráfaga de esporas volátiles, agrietando y quebrando la defensa del oponente."
+            },
+            {
+                "id": "bloomora_cura_natural",
+                "name": "Cura Natural",
+                "affinity": "GROVE",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": {
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Libera esporas curativas, sellando las heridas y restaurando la vitalidad."
+            },
+            {
+                "id": "bloomora_gran_embate",
+                "name": "Gran Embate",
+                "affinity": "GROVE",
+                "type": "physical",
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Araña con garras de madera afilada, dejando brasas que queman lentamente al objetivo."
+            }
+        ]
+    },
+    {
+        "id": "039",
+        "slug": "stormeid",
+        "name": "Stormeid",
+        "affinities": ["VOLT"],
+        "rarity": "RARE",
+        "description": "Ave tempestuosa que surca tormentas eléctricas para alimentarse de rayos puros.",
+        "baseStats": {
+            "hp": 90,
+            "atk": 60,
+            "def": 55,
+            "spd": 65
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/039/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/039/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/039/back.png"
+        },
+        "moves": [
+            {
+                "id": "stormeid_dash",
+                "name": "Dash",
+                "affinity": "VOLT",
+                "type": "physical",
+                "power": 55,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": null,
+                "description": "Ejecuta una embestida a velocidad sónica."
+            },
+            {
+                "id": "stormeid_descarga",
+                "name": "Descarga",
+                "affinity": "VOLT",
+                "type": "special",
+                "power": 80,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Dispara un rayo cegador, agrietando y quebrando la defensa del oponente."
+            },
+            {
+                "id": "stormeid_pulso",
+                "name": "Pulso",
+                "affinity": "VOLT",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": {
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Genera un campo magnético, sellando las heridas y restaurando la vitalidad."
+            },
+            {
+                "id": "stormeid_gran_puno_rayo",
+                "name": "Gran Puño Rayo",
+                "affinity": "VOLT",
+                "type": "physical",
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Golpea envuelto en electricidad estática, dejando brasas que queman lentamente al objetivo."
+            }
+        ]
+    },
+    {
+        "id": "040",
+        "slug": "tidalp",
+        "name": "Tidalp",
+        "affinities": ["TIDE"],
+        "rarity": "COMMON",
+        "description": "Criatura marina que genera minimareas a su alrededor para desestabilizar a sus rivales en combate.",
+        "baseStats": {
+            "hp": 80,
+            "atk": 55,
+            "def": 40,
+            "spd": 55
+        },
+        "evolution": {
+            "evolvesTo": "041",
+            "method": "LEVEL",
+            "value": 24
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/040/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/040/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/040/back.png"
+        },
+        "moves": [
+            {
+                "id": "tidalp_latigazo",
+                "name": "Latigazo",
+                "affinity": "TIDE",
+                "type": "physical",
+                "power": 50,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": null,
+                "description": "Golpea con la fuerza aplastante de una ola."
+            },
+            {
+                "id": "tidalp_torrente",
+                "name": "Torrente",
+                "affinity": "TIDE",
+                "type": "special",
+                "power": 75,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": null,
+                "description": "Dispara un torrente de agua a alta presión."
+            },
+            {
+                "id": "tidalp_marea_curativa",
+                "name": "Marea Curativa",
+                "affinity": "TIDE",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 20,
+                    "duration": 2
+                },
+                "description": "Manipula las corrientes curativas del agua, potenciando su fuerza de ataque."
+            },
+            {
+                "id": "tidalp_gran_golpe_de_ola",
+                "name": "Gran Golpe de Ola",
+                "affinity": "TIDE",
+                "type": "physical",
+                "power": 95,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": null,
+                "description": "Arremete con un impacto hidráulico."
+            }
+        ]
+    },
+    {
+        "id": "041",
+        "slug": "abysvel",
+        "name": "Abysvel",
+        "affinities": ["TIDE"],
+        "rarity": "RARE",
+        "description": "Leviatán de aguas profundas cuya presencia distorsiona las corrientes oceánicas de Mythara.",
+        "baseStats": {
+            "hp": 95,
+            "atk": 70,
+            "def": 50,
+            "spd": 57
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/041/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/041/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/041/back.png"
+        },
+        "moves": [
+            {
+                "id": "abysvel_latigazo",
+                "name": "Latigazo",
+                "affinity": "TIDE",
+                "type": "physical",
+                "power": 55,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": null,
+                "description": "Golpea con la fuerza aplastante de una ola."
+            },
+            {
+                "id": "abysvel_torrente",
+                "name": "Torrente",
+                "affinity": "TIDE",
+                "type": "special",
+                "power": 80,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Dispara un torrente de agua a alta presión, agrietando y quebrando la defensa del oponente."
+            },
+            {
+                "id": "abysvel_niebla",
+                "name": "Niebla",
+                "affinity": "TIDE",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": {
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Absorbe la humedad del aire, sellando las heridas y restaurando la vitalidad."
+            },
+            {
+                "id": "abysvel_gran_golpe_de_ola",
+                "name": "Gran Golpe de Ola",
+                "affinity": "TIDE",
+                "type": "physical",
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Arremete con un impacto hidráulico, dejando brasas que queman lentamente al objetivo."
+            }
+        ]
+    },
+    {
+        "id": "042",
+        "slug": "sprivok",
+        "name": "Sprivok",
+        "affinities": ["GROVE"],
+        "rarity": "COMMON",
+        "description": "Criatura que se camufla entre las raíces del bosque y usa lianas como látigos en combate.",
+        "baseStats": {
+            "hp": 100,
+            "atk": 45,
+            "def": 55,
+            "spd": 40
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/042/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/042/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/042/back.png"
+        },
+        "moves": [
+            {
+                "id": "sprivok_embate",
+                "name": "Embate",
+                "affinity": "GROVE",
+                "type": "physical",
+                "power": 50,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": null,
+                "description": "Araña con garras de madera afilada."
+            },
+            {
+                "id": "sprivok_esporas",
+                "name": "Esporas",
+                "affinity": "GROVE",
+                "type": "special",
+                "power": 75,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": null,
+                "description": "Dispara semillas perforantes."
+            },
+            {
+                "id": "sprivok_cura_natural",
+                "name": "Cura Natural",
+                "affinity": "GROVE",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 20,
+                    "duration": 2
+                },
+                "description": "Genera un manto de hojas protectoras, potenciando su fuerza de ataque."
+            },
+            {
+                "id": "sprivok_gran_zarpazo",
+                "name": "Gran Zarpazo",
+                "affinity": "GROVE",
+                "type": "physical",
+                "power": 95,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": null,
+                "description": "Araña con garras de madera afilada."
+            }
+        ]
+    },
+    {
+        "id": "043",
+        "slug": "scoravel",
+        "name": "Scoravel",
+        "affinities": ["EMBER", "STONE"],
+        "rarity": "RARE",
+        "description": "Escorpión de lava solidificada cuyo aguijón inyecta magma fundido directamente en sus presas.",
+        "baseStats": {
+            "hp": 100,
+            "atk": 62,
+            "def": 57,
+            "spd": 57
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/043/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/043/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/043/back.png"
+        },
+        "moves": [
+            {
+                "id": "scoravel_punetazo_igneo",
+                "name": "Puñetazo Ígneo",
+                "affinity": "EMBER",
+                "type": "physical",
+                "power": 55,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": null,
+                "description": "Araña con garras de fuego."
+            },
+            {
+                "id": "scoravel_llamarada",
+                "name": "Llamarada",
+                "affinity": "EMBER",
+                "type": "special",
+                "power": 80,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Dispara una llamarada abrasadora, agrietando y quebrando la defensa del oponente."
+            },
+            {
+                "id": "scoravel_rugido",
+                "name": "Rugido",
+                "affinity": "EMBER",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": {
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Aviva su fuego interno, sellando las heridas y restaurando la vitalidad."
+            },
+            {
+                "id": "scoravel_gran_embestida_ardiente",
+                "name": "Gran Embestida Ardiente",
+                "affinity": "EMBER",
+                "type": "physical",
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Desata una patada ígnea, dejando brasas que queman lentamente al objetivo."
+            }
+        ]
+    },
+    {
+        "id": "044",
+        "slug": "grimveil",
+        "name": "Grimveil",
+        "affinities": ["SHADE"],
+        "rarity": "COMMON",
+        "description": "Un ser envuelto en un manto de oscuridad perpetua que absorbe toda la luz a su alrededor.",
+        "baseStats": {
+            "hp": 80,
+            "atk": 50,
+            "def": 45,
+            "spd": 55
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/044/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/044/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/044/back.png"
+        },
+        "moves": [
+            {
+                "id": "grimveil_daga",
+                "name": "Daga",
+                "affinity": "SHADE",
+                "type": "physical",
+                "power": 50,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": null,
+                "description": "Embiste envuelto en tinieblas."
+            },
+            {
+                "id": "grimveil_abismo",
+                "name": "Abismo",
+                "affinity": "SHADE",
+                "type": "special",
+                "power": 75,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": null,
+                "description": "Proyecta vacío que engulle la luz."
+            },
+            {
+                "id": "grimveil_miedo",
+                "name": "Miedo",
+                "affinity": "SHADE",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 20,
+                    "duration": 2
+                },
+                "description": "Se envuelve en un manto de sombras, potenciando su fuerza de ataque."
+            },
+            {
+                "id": "grimveil_gran_daga",
+                "name": "Gran Daga",
+                "affinity": "SHADE",
+                "type": "physical",
+                "power": 95,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": null,
+                "description": "Desgarra con garras de pura sombra."
+            }
+        ]
+    },
+    {
+        "id": "045",
+        "slug": "lumivex",
+        "name": "Lumivex",
+        "affinities": ["ASTRAL", "VOLT"],
+        "rarity": "RARE",
+        "description": "Criatura que canaliza energía estelar en descargas eléctricas de precisión quirúrgica.",
+        "baseStats": {
+            "hp": 90,
+            "atk": 65,
+            "def": 45,
+            "spd": 65
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/045/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/045/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/045/back.png"
+        },
+        "moves": [
+            {
+                "id": "lumivex_impacto",
+                "name": "Impacto",
+                "affinity": "ASTRAL",
+                "type": "physical",
+                "power": 55,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": null,
+                "description": "Ataca con puños de luz estelar."
+            },
+            {
+                "id": "lumivex_nova",
+                "name": "Nova",
+                "affinity": "ASTRAL",
+                "type": "special",
+                "power": 80,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Proyecta una supernova en miniatura, agrietando y quebrando la defensa del oponente."
+            },
+            {
+                "id": "lumivex_escudo",
+                "name": "Escudo",
+                "affinity": "ASTRAL",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": {
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Altera el espacio-tiempo a su alrededor, sellando las heridas y restaurando la vitalidad."
+            },
+            {
+                "id": "lumivex_gran_impacto",
+                "name": "Gran Impacto",
+                "affinity": "ASTRAL",
+                "type": "physical",
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Embiste atravesando el tejido espacial, dejando brasas que queman lentamente al objetivo."
+            }
+        ]
+    },
+    {
+        "id": "046",
+        "slug": "thornax",
+        "name": "Thornax",
+        "affinities": ["GROVE"],
+        "rarity": "COMMON",
+        "description": "Sus espinas segregan una savia que ralentiza los reflejos de cualquier criatura que las toque.",
+        "baseStats": {
+            "hp": 85,
+            "atk": 60,
+            "def": 40,
+            "spd": 47
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/046/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/046/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/046/back.png"
+        },
+        "moves": [
+            {
+                "id": "thornax_zarpazo",
+                "name": "Zarpazo",
+                "affinity": "GROVE",
+                "type": "physical",
+                "power": 50,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": null,
+                "description": "Embiste con fuerza salvaje."
+            },
+            {
+                "id": "thornax_esporas",
+                "name": "Esporas",
+                "affinity": "GROVE",
+                "type": "special",
+                "power": 75,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": null,
+                "description": "Lanza hojas afiladas como cuchillas."
+            },
+            {
+                "id": "thornax_cura_natural",
+                "name": "Cura Natural",
+                "affinity": "GROVE",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 20,
+                    "duration": 2
+                },
+                "description": "Atrae la energía de la tierra, potenciando su fuerza de ataque."
+            },
+            {
+                "id": "thornax_gran_embate",
+                "name": "Gran Embate",
+                "affinity": "GROVE",
+                "type": "physical",
+                "power": 95,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": null,
+                "description": "Azota con lianas cubiertas de espinas."
+            }
+        ]
+    },
+    {
+        "id": "047",
+        "slug": "cryoveth",
+        "name": "Cryoveth",
+        "affinities": ["FROST", "SHADE"],
+        "rarity": "RARE",
+        "description": "Criatura que congela las sombras para crear trampas invisibles que atrapan a sus enemigos.",
+        "baseStats": {
+            "hp": 110,
+            "atk": 55,
+            "def": 65,
+            "spd": 50
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/047/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/047/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/047/back.png"
+        },
+        "moves": [
+            {
+                "id": "cryoveth_golpe",
+                "name": "Golpe",
+                "affinity": "FROST",
+                "type": "physical",
+                "power": 55,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": null,
+                "description": "Embiste rodeado de escarcha."
+            },
+            {
+                "id": "cryoveth_ventisca",
+                "name": "Ventisca",
+                "affinity": "FROST",
+                "type": "special",
+                "power": 80,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "debuff_def",
+                    "target": "enemy",
+                    "value": 20,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Desata una ventisca helada, agrietando y quebrando la defensa del oponente."
+            },
+            {
+                "id": "cryoveth_velo",
+                "name": "Velo",
+                "affinity": "FROST",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": {
+                    "type": "heal",
+                    "target": "self",
+                    "value": 25
+                },
+                "description": "Genera una armadura de escarcha, sellando las heridas y restaurando la vitalidad."
+            },
+            {
+                "id": "cryoveth_gran_zarpa_glacial",
+                "name": "Gran Zarpa Glacial",
+                "affinity": "FROST",
+                "type": "physical",
+                "power": 105,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "burn",
+                    "target": "enemy",
+                    "chance": 100
+                },
+                "description": "Desgarra con garras de hielo perpetuo, dejando brasas que queman lentamente al objetivo."
+            }
+        ]
+    },
+    {
+        "id": "048",
+        "slug": "stoven",
+        "name": "Stoven",
+        "affinities": ["STONE"],
+        "rarity": "COMMON",
+        "description": "Criatura que habita cuevas profundas y usa su cuerpo pétreo como proyectil rodante de alto impacto.",
+        "baseStats": {
+            "hp": 90,
+            "atk": 52,
+            "def": 47,
+            "spd": 47
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/048/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/048/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/048/back.png"
+        },
+        "moves": [
+            {
+                "id": "stoven_golpe_sismico",
+                "name": "Golpe Sísmico",
+                "affinity": "STONE",
+                "type": "physical",
+                "power": 50,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": null,
+                "description": "Arremete con fuerza sísmica."
+            },
+            {
+                "id": "stoven_lanza_de_roca",
+                "name": "Lanza de Roca",
+                "affinity": "STONE",
+                "type": "special",
+                "power": 75,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": null,
+                "description": "Hace llover cantos rodados."
+            },
+            {
+                "id": "stoven_piel_de_piedra",
+                "name": "Piel de Piedra",
+                "affinity": "STONE",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "boost_atk",
+                    "target": "self",
+                    "value": 20,
+                    "duration": 2
+                },
+                "description": "Endurece su piel con minerales, potenciando su fuerza de ataque."
+            },
+            {
+                "id": "stoven_gran_golpe_sismico",
+                "name": "Gran Golpe Sísmico",
+                "affinity": "STONE",
+                "type": "physical",
+                "power": 95,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": null,
+                "description": "Embiste como un alud de rocas."
+            }
+        ]
+    },
+    {
+        "id": "049",
+        "slug": "embralith",
+        "name": "Embralith",
+        "affinities": ["EMBER", "GROVE"],
+        "rarity": "ELITE",
+        "description": "Guardián ancestral de los bosques volcánicos de Mythara, su cuerpo es madera viva impregnada de magma.",
+        "baseStats": {
+            "hp": 100,
+            "atk": 70,
+            "def": 65,
+            "spd": 70
+        },
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/049/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/049/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/049/back.png"
+        },
+        "moves": [
+            {
+                "id": "embralith_punetazo_igneo",
+                "name": "Puñetazo Ígneo",
+                "affinity": "EMBER",
+                "type": "physical",
+                "power": 60,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": {
+                    "type": "debuff_spd",
+                    "target": "enemy",
+                    "value": 15,
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Desata una patada ígnea, ralentizando drásticamente los movimientos del adversario."
+            },
+            {
+                "id": "embralith_tormenta_de_fuego",
+                "name": "Tormenta de Fuego",
+                "affinity": "EMBER",
+                "type": "special",
+                "power": 85,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": {
+                    "type": "boost_def",
+                    "target": "self",
+                    "value": 25,
+                    "duration": 2
+                },
+                "description": "Proyecta un torbellino de fuego, endureciendo su resistencia física."
+            },
+            {
+                "id": "embralith_aura_de_calor",
+                "name": "Aura de Calor",
+                "affinity": "EMBER",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "stun",
+                    "target": "all_enemies",
+                    "chance": 100
+                },
+                "description": "Aviva su fuego interno, dejando al adversario completamente aturdido e incapacitado."
+            },
+            {
+                "id": "embralith_gran_embestida_ardiente",
+                "name": "Gran Embestida Ardiente",
+                "affinity": "EMBER",
+                "type": "physical",
+                "power": 115,
+                "accuracy": 100,
+                "cooldown": 4,
+                "effect": {
+                    "type": "drain",
+                    "target": "enemy",
+                    "value": 25
+                },
+                "description": "Golpea con el cuerpo al rojo vivo, drenando la energía vital del rival para sanarse a sí mismo."
+            }
+        ]
+    },
+    {
+        "id": "050",
+        "slug": "nyxareth",
+        "name": "Nyxareth",
+        "affinities": ["SHADE", "ASTRAL"],
+        "rarity": "LEGENDARY",
+        "description": "El Devorador de Ecos. Una entidad nacida en el vacío entre las estrellas muertas de Mythara, cuya sola presencia apaga la luz y borra los recuerdos de quienes lo contemplan.",
+        "baseStats": {
+            "hp": 136,
+            "atk": 115,
+            "def": 100,
+            "spd": 85
+        },
+        "evolution": null,
+        "art": {
+            "portrait": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/050/portrait.png",
+            "front": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/050/front.png",
+            "back": "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@main/myths/050/back.png"
+        },
+        "moves": [
+            {
+                "id": "nyxareth_zarpa_umbral",
+                "name": "Zarpa Umbral",
+                "affinity": "SHADE",
+                "type": "physical",
+                "power": 70,
+                "accuracy": 100,
+                "cooldown": 0,
+                "effect": {
+                    "type": "boost_spd",
+                    "target": "self",
+                    "value": 25,
+                    "duration": 2
+                },
+                "description": "Desgarra con zarpas de vacío puro; el impacto absorbe luz y acelera sus movimientos."
+            },
+            {
+                "id": "nyxareth_abismo",
+                "name": "Abismo",
+                "affinity": "SHADE",
+                "type": "special",
+                "power": 100,
+                "accuracy": 100,
+                "cooldown": 2,
+                "effect": [
+                    {
+                        "type": "drain",
+                        "target": "enemy",
+                        "value": 25
+                    },
+                    {
+                        "type": "debuff_atk",
+                        "target": "enemy",
+                        "value": 20,
+                        "duration": 2,
+                        "chance": 100
+                    }
+                ],
+                "description": "Abre fisuras de oscuridad que drenan la vitalidad del rival y merman su fuerza de ataque."
+            },
+            {
+                "id": "nyxareth_silencio",
+                "name": "Silencio de Sombras",
+                "affinity": "SHADE",
+                "type": "support",
+                "power": 0,
+                "accuracy": 100,
+                "cooldown": 3,
+                "effect": {
+                    "type": "silence",
+                    "target": "all_enemies",
+                    "duration": 2,
+                    "chance": 100
+                },
+                "description": "Envuelve al equipo enemigo en un silencio fantasmagórico que suprime sus habilidades más poderosas."
+            },
+            {
+                "id": "nyxareth_gran_abismo",
+                "name": "Gran Abismo",
+                "affinity": "ASTRAL",
+                "type": "special",
+                "power": 140,
+                "accuracy": 100,
+                "cooldown": 5,
+                "effect": {
+                    "type": "apply_status",
+                    "status": "curse",
+                    "target": "all_enemies",
+                    "chance": 100
+                },
+                "description": "Colapsa el espacio en un punto de oscuridad total, maldiciéndolo todo a su paso."
+            }
+        ]
+    }
+]
