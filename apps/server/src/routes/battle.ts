@@ -7,6 +7,7 @@ import {
     fleeBattle,
     captureMyth,
     getActiveBattle,
+    beginTurn,
 } from "../services/battleService.js";
 import { getCreature } from "../services/creatureService.js";
 const router = Router();
@@ -38,6 +39,18 @@ router.post("/battle/npc/turn", async (req, res) => {
         res.status(400).json({ error: e.message });
     }
 });
+// POST /battle/npc/begin-turn — resuelve distorsión del jugador antes de elegir move
+router.post("/battle/npc/begin-turn", async (req, res) => {
+    try {
+        const { battleId } = req.body as { battleId: string };
+        if (!battleId) return res.status(400).json({ error: "battleId requerido" });
+        const result = await beginTurn(req.user!.userId, battleId);
+        res.json(result);
+    } catch (e: any) {
+        res.status(400).json({ error: e.message });
+    }
+});
+
 // POST /battle/npc/flee
 router.post("/battle/npc/flee", async (req, res) => {
     try {

@@ -98,6 +98,8 @@ export interface BattleMyth {
     debuffHealTurns: number;
     // Turno en el que este Myth distorsiona (null si no hay distorsión pendiente)
     distortionTriggerTurn: number | null;
+    // Turno en que empezó la forma actual (1 para la forma base, triggerTurn anterior tras distorsionar)
+    distortionFormStartTurn: number;
     // Rareza de la forma actual (se actualiza al distorsionar)
     rarity: string;
     defeated: boolean;
@@ -194,37 +196,37 @@ function effectiveSpeed(m: BattleMyth): number {
     return spd;
 }
 
-function effectiveAtk(m: BattleMyth): number {
-    let atk = m.attack;
-    // fear implícito: -20% ATK
-    if (m.status === "fear") atk = Math.floor(atk * 0.8);
-    // Acumular multiplicadores de buffs ATK, capeados a ±50%
-    let atkMult = 1;
-    for (const b of m.buffs) {
-        if (b.stat === "atk") atkMult *= b.multiplier;
+// Fórmula aditiva: stat_final = stat_base + stat_base * Σ(%buff)
+// Los porcentajes de buff/debuff se suman (no se multiplican entre sí).
+// Cada buff/debuff almacena su multiplier como (1 + val/100) o (1 - val/100).
+// Convertimos a delta porcentual: (multiplier - 1), sumamos todos, cap ±50%, y aplicamos al base.
+function sumBonusPct(buffs: Buff[], stat: string): number {
+    let total = 0;
+    for (const b of buffs) {
+        if (b.stat === stat) total += b.multiplier - 1; // delta: +0.30 o -0.30
     }
-    atkMult = Math.max(0.5, Math.min(1.5, atkMult));
-    return Math.floor(atk * atkMult);
+    return Math.max(-0.5, Math.min(0.5, total)); // cap ±50%
+}
+
+function effectiveAtk(m: BattleMyth): number {
+    const base = m.attack;
+    const fearMod = m.status === "fear" ? -0.20 : 0;
+    const buffPct = sumBonusPct(m.buffs, "atk");
+    const total   = Math.max(-0.5, Math.min(0.5, buffPct + fearMod));
+    return Math.max(1, Math.floor(base + base * total));
 }
 
 function effectiveDef(m: BattleMyth): number {
-    let def = m.defense;
-    // Acumular multiplicadores de buffs DEF, capeados a ±50%
-    let defMult = 1;
-    for (const b of m.buffs) {
-        if (b.stat === "def") defMult *= b.multiplier;
-    }
-    defMult = Math.max(0.5, Math.min(1.5, defMult));
-    return Math.floor(def * defMult);
+    const base = m.defense;
+    const buffPct = sumBonusPct(m.buffs, "def");
+    return Math.max(1, Math.floor(base + base * buffPct));
 }
 
 function effectiveAcc(m: BattleMyth): number {
-    // fear implícito: -20% ACC
-    let acc = m.status === "fear" ? 0.8 : 1.0;
-    for (const b of m.buffs) {
-        if (b.stat === "acc") acc *= b.multiplier;
-    }
-    return acc;
+    const fearMod = m.status === "fear" ? -0.20 : 0;
+    const buffPct = sumBonusPct(m.buffs, "acc");
+    const total   = Math.max(-0.5, Math.min(0.5, buffPct + fearMod));
+    return Math.max(0.1, 1 + total);
 }
 
 // Obtener el Myth que debe actuar ahora
@@ -604,56 +606,83 @@ function applySingleEffect(
             }
             return { logMsgs: [`✂️ Curas de ${tgts.map(t => t.name).join(", ")} reducidas ${dur} turnos`] };
         }
-        // ── BUFFS (boost_*) ────────────────────────────────────────────────
+        // ── BUFFS (boost_*) — máx 1 del mismo tipo por aliado ──────────────
         case "boost_atk":
         case "buff_atk": {
             const tgts = resolveTarget(eff.target ?? "self");
             const buff: Buff = { type: "boost_atk", stat: "atk", multiplier: 1 + val / 100, turnsLeft: dur, emoji: "⬆", label: "⬆ATK" };
-            for (const tgt of tgts) tgt.buffs.push({ ...buff });
+            for (const tgt of tgts) {
+                tgt.buffs = tgt.buffs.filter(b => b.type !== "boost_atk" && b.type !== "buff_atk");
+                tgt.buffs.push({ ...buff });
+            }
             return { buffApplied: buff, logMsgs: [`⬆ATK ${tgts.map(t => t.name).join(", ")} +${val}% ATK`] };
         }
         case "boost_def":
         case "buff_def": {
             const tgts = resolveTarget(eff.target ?? "self");
             const buff: Buff = { type: "boost_def", stat: "def", multiplier: 1 + val / 100, turnsLeft: dur, emoji: "⬆", label: "⬆DEF" };
-            for (const tgt of tgts) tgt.buffs.push({ ...buff });
+            for (const tgt of tgts) {
+                tgt.buffs = tgt.buffs.filter(b => b.type !== "boost_def" && b.type !== "buff_def");
+                tgt.buffs.push({ ...buff });
+            }
             return { buffApplied: buff, logMsgs: [`⬆DEF ${tgts.map(t => t.name).join(", ")} +${val}% DEF`] };
         }
         case "boost_spd": {
             const tgts = resolveTarget(eff.target ?? "self");
             const buff: Buff = { type: "boost_spd", stat: "spd", multiplier: 1 + val / 100, turnsLeft: dur, emoji: "⬆", label: "⬆SPD" };
-            for (const tgt of tgts) tgt.buffs.push({ ...buff });
+            for (const tgt of tgts) {
+                tgt.buffs = tgt.buffs.filter(b => b.type !== "boost_spd");
+                tgt.buffs.push({ ...buff });
+            }
             return { buffApplied: buff, logMsgs: [`⬆SPD ${tgts.map(t => t.name).join(", ")} +${val}% SPD`] };
         }
         case "boost_acc": {
             const tgts = resolveTarget(eff.target ?? "self");
             const buff: Buff = { type: "boost_acc", stat: "acc", multiplier: 1 + val / 100, turnsLeft: dur, emoji: "⬆", label: "⬆ACC" };
-            for (const tgt of tgts) tgt.buffs.push({ ...buff });
+            for (const tgt of tgts) {
+                tgt.buffs = tgt.buffs.filter(b => b.type !== "boost_acc");
+                tgt.buffs.push({ ...buff });
+            }
             return { buffApplied: buff, logMsgs: [`⬆ACC ${tgts.map(t => t.name).join(", ")} +${val}% ACC`] };
         }
-        // ── DEBUFFS (debuff_*) ─────────────────────────────────────────────
+        // ── DEBUFFS (debuff_*) — máx 1 del mismo tipo por target ─────────────
+        // El debuff siempre calcula su multiplier sobre el stat BASE (val es % fijo del stat base).
+        // El cap ±50% se aplica en calcDamage al combinar todos los multiplicadores activos.
+        // Si ya hay un debuff del mismo tipo: reemplaza (no acumula), excepto poison (hasta 3 stacks).
         case "debuff_atk": {
             const tgts = resolveTarget(eff.target ?? "enemy");
             const buff: Buff = { type: "debuff_atk", stat: "atk", multiplier: 1 - val / 100, turnsLeft: dur, emoji: "⬇", label: "⬇ATK" };
-            for (const tgt of tgts) tgt.buffs.push({ ...buff });
+            for (const tgt of tgts) {
+                tgt.buffs = tgt.buffs.filter(b => b.type !== "debuff_atk");
+                tgt.buffs.push({ ...buff });
+            }
             return { buffApplied: buff, logMsgs: [`⬇ATK ${tgts.map(t => t.name).join(", ")} -${val}% ATK`] };
         }
         case "debuff_def": {
             const tgts = resolveTarget(eff.target ?? "enemy");
             const buff: Buff = { type: "debuff_def", stat: "def", multiplier: 1 - val / 100, turnsLeft: dur, emoji: "⬇", label: "⬇DEF" };
-            for (const tgt of tgts) tgt.buffs.push({ ...buff });
+            for (const tgt of tgts) {
+                tgt.buffs = tgt.buffs.filter(b => b.type !== "debuff_def");
+                tgt.buffs.push({ ...buff });
+            }
             return { buffApplied: buff, logMsgs: [`⬇DEF ${tgts.map(t => t.name).join(", ")} -${val}% DEF`] };
         }
         case "debuff_spd": {
             const tgts = resolveTarget(eff.target ?? "enemy");
             const buff: Buff = { type: "debuff_spd", stat: "spd", multiplier: 1 - val / 100, turnsLeft: dur, emoji: "⬇", label: "⬇SPD" };
-            for (const tgt of tgts) tgt.buffs.push({ ...buff });
+            for (const tgt of tgts) {
+                tgt.buffs = tgt.buffs.filter(b => b.type !== "debuff_spd");
+                tgt.buffs.push({ ...buff });
+            }
             return { buffApplied: buff, logMsgs: [`⬇SPD ${tgts.map(t => t.name).join(", ")} -${val}% SPD`] };
         }
         case "debuff_acc": {
             const tgts = resolveTarget(eff.target ?? "enemy");
             const buff: Buff = { type: "debuff_acc", stat: "acc", multiplier: 1 - val / 100, turnsLeft: dur, emoji: "⬇", label: "⬇ACC" };
-            for (const tgt of tgts) tgt.buffs.push({ ...buff });
+            for (const tgt of tgts) {
+                tgt.buffs = tgt.buffs.filter(b => b.type !== "debuff_acc");
+                tgt.buffs.push({ ...buff });
+            }
             return { buffApplied: buff, logMsgs: [`⬇ACC ${tgts.map(t => t.name).join(", ")} -${val}% ACC`] };
         }
         // ── dispel ─────────────────────────────────────────────────────────
@@ -792,6 +821,7 @@ async function buildPlayerMyth(instanceId: string, userId: string): Promise<Batt
         debuffHealPct: 0,
         debuffHealTurns: 0,
         distortionTriggerTurn,
+        distortionFormStartTurn: 1,
         rarity: (species as any).rarity ?? "COMMON",
         defeated: false,
     };
@@ -836,6 +866,7 @@ function buildNpcMyth(speciesId: string, level: number): BattleMyth {
         debuffHealPct: 0,
         debuffHealTurns: 0,
         distortionTriggerTurn,
+        distortionFormStartTurn: 1,
         rarity: (species as any).rarity ?? "COMMON",
         defeated: false,
     };
@@ -942,6 +973,9 @@ export interface TurnResult {
 // ─────────────────────────────────────────
 
 function applyDistortion(myth: BattleMyth, currentTurn: number): string | null {
+    // ⚠️ Nunca distorsionar un myth derrotado — un golpe letal no puede ser anulado por la distorsión
+    if (myth.defeated || myth.hp <= 0) return null;
+
     const species = (creaturesData as any[]).find(c => c.id === myth.speciesId);
     if (!species?.distortion?.length) return null;
 
@@ -959,10 +993,10 @@ function applyDistortion(myth: BattleMyth, currentTurn: number): string | null {
     const scale = (base: number) => Math.floor(base * (1 + (myth.level - 1) * 0.08));
     const bs = form.baseStats;
 
-    // HP: heredar porcentaje
+    // HP: heredar porcentaje — floor sin clamp a 1, el guard defeated ya protege el caso hp=0
     const hpPct = myth.maxHp > 0 ? myth.hp / myth.maxHp : 1;
     const newMaxHp = scale(bs.hp * 2 + 10);
-    myth.hp = Math.max(1, Math.floor(newMaxHp * hpPct));
+    myth.hp = Math.floor(newMaxHp * hpPct);
     myth.maxHp = newMaxHp;
 
     myth.name = form.name;
@@ -996,6 +1030,8 @@ function applyDistortion(myth: BattleMyth, currentTurn: number): string | null {
     const currentFormIndex = distortionForms.findIndex((d: any) => d.triggerTurn === currentTurn);
     const nextForm = distortionForms[currentFormIndex + 1] ?? null;
     myth.distortionTriggerTurn = nextForm?.triggerTurn ?? null;
+    // El inicio de la nueva forma es el turno actual (justo después de distorsionar)
+    myth.distortionFormStartTurn = currentTurn;
 
     return `🌀 ¡${myth.name} ha distorsionado!`;
 }

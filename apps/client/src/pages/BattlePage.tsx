@@ -59,6 +59,7 @@ interface BattleMyth {
     silenced?: number;
     rarity?: "COMMON" | "RARE" | "ELITE" | "LEGENDARY" | "MYTHIC";
     distortionTriggerTurn?: number | null; // turno en el que distorsiona (null si no tiene o ya distorsionó)
+    distortionFormStartTurn?: number;       // turno en que empezó la forma actual
     defeated: boolean;
 }
 
@@ -610,67 +611,88 @@ function ImpactExplosion({
 }
 
 // ─────────────────────────────────────────
-// DistortionDots — bolitas de forma bajo la barra de HP
+// DistortionBar — barra de distorsión con segmentos, integrada bajo la HP bar
 // ─────────────────────────────────────────
+// totalForms = número total de formas (base incluida).
+// Segmentos rellenos = formas ya alcanzadas. Segmento actual pulsa si hay pendiente.
+// Color según rareza del myth EN SU FORMA ACTUAL.
 
-function DistortionDots({ myth, distortionTurns }: { myth: BattleMyth; distortionTurns: number | null }) {
-    // Calcular cuántas formas totales tiene y en qué forma está ahora
-    // distortionTurns = null → ya en la última forma (o sin más)
-    // distortionTurns > 0 → quedan N turnos para la siguiente
-    // Necesitamos saber cuántas formas tiene para dibujar N bolitas
-    // Como el frontend no tiene acceso a creaturesData, usamos una convención:
-    // el número de bolitas = formas que ha pasado (activa) + formas pendientes
-    // Usamos distortionTriggerTurn para inferir: si tiene trigger = 1 forma pendiente mínimo
-    // Para simplificar: siempre mostramos 2 bolitas si tiene distortionTriggerTurn, 3 si hay cadena COMMON
-    // La bolita actual siempre activa, las siguientes grises
-    const hasPending = distortionTurns != null && distortionTurns > 0;
-    const isDistorted = distortionTurns === null; // ya distorsionó (no hay más pendientes conocidas)
-
-    // Inferir número de dots desde la rareza del myth (COMMON → 3 formas, RARE/ELITE → 2, LEGENDARY/MYTHIC → 1+1)
-    const rarity = myth.rarity ?? "COMMON";
-    const totalForms = rarity === "COMMON" ? 3 : rarity === "RARE" || rarity === "ELITE" ? 2 : 2;
-
-    // Forma actual: si tiene pending → en la primera forma. Si distortionTurns=null y rarity implica cadena larga → podría ser 2ª forma
-    // Simplificación segura: si no hay pending → en la última forma conocida
-    const currentForm = hasPending ? 0 : totalForms - 1;
-
-    const dotColors: Record<string, { active: string; glow: string }> = {
-        COMMON:    { active: "#c084fc", glow: "#a855f7" },
-        RARE:      { active: "#818cf8", glow: "#6366f1" },
-        EPIC:      { active: "#c084fc", glow: "#a855f7" },
-        ELITE:     { active: "#e2e8f0", glow: "#94a3b8" },
-        LEGENDARY: { active: "#fbbf24", glow: "#f59e0b" },
-        MYTHIC:    { active: "#f87171", glow: "#ef4444" },
+function DistortionBar({
+    myth,
+    info,
+}: {
+    myth: BattleMyth;
+    info: { isFinal: true } | { isFinal: false; elapsed: number; interval: number; distortsThisTurn: boolean };
+}) {
+    const rarityColors: Record<string, { fill: string; dim: string; glow: string }> = {
+        COMMON:    { fill: "#a78bfa", dim: "#2e1065", glow: "#7c3aed"  },
+        RARE:      { fill: "#818cf8", dim: "#1e1b4b", glow: "#4f46e5"  },
+        EPIC:      { fill: "#c084fc", dim: "#3b0764", glow: "#9333ea"  },
+        ELITE:     { fill: "#e2e8f0", dim: "#1e293b", glow: "#94a3b8"  },
+        LEGENDARY: { fill: "#fbbf24", dim: "#451a03", glow: "#d97706"  },
+        MYTHIC:    { fill: "#f87171", dim: "#450a0a", glow: "#dc2626"  },
     };
-    const dc = dotColors[rarity] ?? dotColors.COMMON;
+    const rc = rarityColors[myth.rarity ?? "COMMON"] ?? rarityColors.COMMON;
+
+    // ── DIST MAX: forma final, ya no distorsiona más ──
+    if (info.isFinal) {
+        return (
+            <div style={{ width: "100%", height: 11, marginTop: 3 }}>
+                <div style={{
+                    width: "100%", height: "100%", borderRadius: 5,
+                    background: `linear-gradient(90deg, ${rc.dim} 0%, ${rc.fill}22 100%)`,
+                    border: `1px solid ${rc.glow}33`,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                    <span style={{
+                        fontSize: "8px", fontFamily: "monospace", fontWeight: 900,
+                        color: rc.fill, letterSpacing: "0.12em", opacity: 0.75,
+                    }}>✦ DIST MAX ✦</span>
+                </div>
+            </div>
+        );
+    }
+
+    // ── BARRA DE PROGRESO: elapsed/interval segmentos ──
+    // interval = triggerTurn - startTurn  (ej: turno 3 - turno 1 = 2 si empieza en T1, o 3 si empieza en T0)
+    // elapsed  = currentTurn - startTurn
+    // filled   = min(elapsed, interval) → cuántos segmentos están encendidos
+    // segments = interval               → cuántos segmentos tiene la barra
+    const { elapsed, interval, distortsThisTurn } = info;
+    const segments = Math.max(1, interval);
+    // filled: cuántos segmentos encendidos
+    //   - Mínimo 1 (siempre hay al menos 1 relleno desde el inicio de la forma)
+    //   - Máximo segments-1 MIENTRAS no sea el turno exacto de distorsión
+    //   - Llega a segments SOLO cuando distortsThisTurn=true (turno exacto)
+    //   - Tras distorsionar, el servidor actualiza startTurn → elapsed vuelve a 0 → filled=1
+    const rawFilled = Math.max(1, elapsed + 1);
+    const filled    = distortsThisTurn ? segments : Math.min(rawFilled, segments - 1);
+    const isImminent = distortsThisTurn; // solo pulso cuando es el turno exacto
 
     return (
-        <div className="flex items-center gap-1 justify-center mt-0.5">
-            {Array.from({ length: totalForms }).map((_, i) => {
-                const isActive = i === currentForm;
-                const isPast = i < currentForm;
+        <div style={{ width: "100%", height: 11, display: "flex", gap: 2, marginTop: 3 }}>
+            {Array.from({ length: segments }).map((_, i) => {
+                const isFilled    = i < filled;
+                const isLastFill  = i === filled - 1;
+                const shouldPulse = isImminent ? isFilled : isLastFill;
                 return (
                     <div
                         key={i}
-                        className="rounded-full"
                         style={{
-                            width: isActive ? 7 : 5,
-                            height: isActive ? 7 : 5,
-                            background: isActive
-                                ? dc.active
-                                : isPast
-                                  ? dc.active + "55"
-                                  : "rgba(148,163,184,0.25)",
-                            boxShadow: isActive
-                                ? `0 0 8px ${dc.glow}, 0 0 14px ${dc.glow}66`
-                                : isPast
-                                  ? `0 0 4px ${dc.glow}44`
-                                  : "none",
-                            border: isActive
-                                ? `1px solid ${dc.glow}cc`
-                                : "1px solid rgba(148,163,184,0.15)",
-                            animation: isActive ? "distortionBadgePulse 1.4s ease-in-out infinite" : undefined,
-                            transition: "all 0.4s ease",
+                            flex: 1,
+                            height: "100%",
+                            borderRadius: 5,
+                            background: isFilled
+                                ? (isImminent ? rc.fill : (isLastFill ? rc.fill : rc.fill + "88"))
+                                : rc.dim,
+                            border: `1px solid ${isFilled
+                                ? (isImminent ? rc.glow : rc.glow + (isLastFill ? "cc" : "33"))
+                                : rc.glow + "18"}`,
+                            boxShadow: shouldPulse
+                                ? `0 0 8px ${rc.glow}cc, 0 0 16px ${rc.glow}55`
+                                : isFilled ? `0 0 3px ${rc.glow}33` : "none",
+                            animation: undefined, // sin parpadeo
+                            transition: "background 0.4s ease, box-shadow 0.4s ease",
                         }}
                     />
                 );
@@ -678,6 +700,7 @@ function DistortionDots({ myth, distortionTurns }: { myth: BattleMyth; distortio
         </div>
     );
 }
+
 
 // ─────────────────────────────────────────
 // ArenaMyth — versión estilo Pokémon (sin borde de carta)
@@ -695,7 +718,7 @@ interface ArenaMythProps {
     onClick?: () => void;
     spriteSize?: number;
     mythRef?: React.RefObject<HTMLDivElement | null>;
-    distortionTurns?: number | null; // turnos restantes para distorsionar (null = ya distorsionó o no tiene)
+    distortionInfo?: { isFinal: true } | { isFinal: false; elapsed: number; interval: number; distortsThisTurn: boolean }; // info de distorsión para la barra
 }
 
 function ArenaMyth({
@@ -711,7 +734,7 @@ function ArenaMyth({
     onClick,
     spriteSize = 80,
     mythRef,
-    distortionTurns,
+    distortionInfo,
 }: ArenaMythProps & { targetColor?: string }) {
     const cfg = flashAffinity ? AFFINITY_CONFIG[flashAffinity] : null;
     const canClick = onClick && !myth.defeated;
@@ -962,9 +985,16 @@ function ArenaMyth({
                         </div>
                     )}
                     <p
-                        className={`font-bold truncate font-mono
+                        className={`font-bold font-mono leading-tight text-center
                             ${myth.defeated ? "text-slate-600" : isActing ? "text-yellow-300" : targeted ? "text-red-400" : "text-white/90"}`}
-                        style={{ fontSize: "13px", maxWidth: Math.max(spriteSize - 22, 58) }}
+                        style={{
+                            fontSize: "12px",
+                            maxWidth: Math.max(spriteSize, 96),
+                            wordBreak: "break-word",
+                            overflowWrap: "break-word",
+                            whiteSpace: "normal",
+                            lineHeight: 1.2,
+                        }}
                     >
                         {myth.name}
                     </p>
@@ -977,13 +1007,12 @@ function ArenaMyth({
                             <div
                                 className="flex-shrink-0 flex items-center justify-center font-black font-mono"
                                 style={{
-                                    height: 20, minWidth: 34,
-                                    background: "linear-gradient(135deg, #1e3a5f 0%, #0f2340 100%)",
-                                    border: "1px solid rgba(96,165,250,0.5)",
+                                    height: 24, minWidth: 36,
+                                    background: "#1d4ed8",
+                                    border: "1px solid #3b82f6",
                                     borderRight: "none",
-                                    borderRadius: "10px 0 0 10px",
-                                    boxShadow: "0 0 6px rgba(96,165,250,0.25)",
-                                    fontSize: "11px", color: "#93c5fd",
+                                    borderRadius: "12px 0 0 12px",
+                                    fontSize: "12px", color: "#ffffff",
                                     letterSpacing: "0.02em", flexShrink: 0,
                                     paddingLeft: 5, paddingRight: 5,
                                 }}
@@ -992,8 +1021,8 @@ function ArenaMyth({
                             </div>
                             {/* Barra HP — radio izquierdo 0 para pegarse al badge */}
                             <div className="flex-1 relative" style={{
-                                height: 20, background: "rgba(0,0,0,0.45)",
-                                borderRadius: "0 10px 10px 0",
+                                height: 24, background: "rgba(0,0,0,0.45)",
+                                borderRadius: "0 12px 12px 0",
                                 border: "1px solid rgba(255,255,255,0.08)",
                                 borderLeft: "none",
                                 overflow: "hidden",
@@ -1015,7 +1044,7 @@ function ArenaMyth({
                                             )}
                                             <div className="absolute inset-0 flex items-center justify-center" style={{ zIndex: 2 }}>
                                                 <span className="font-mono font-black tabular-nums leading-none select-none"
-                                                    style={{ fontSize: "11px", color: textColor, textShadow: "0 1px 4px rgba(0,0,0,1)", whiteSpace: "nowrap" }}>
+                                                    style={{ fontSize: "12px", color: textColor, textShadow: "0 1px 4px rgba(0,0,0,1)", whiteSpace: "nowrap" }}>
                                                     {myth.hp}<span style={{ opacity: 0.75, fontWeight: 700 }}>/{myth.maxHp}</span>
                                                 </span>
                                             </div>
@@ -1025,9 +1054,12 @@ function ArenaMyth({
                             </div>
                         </div>
 
-                        {/* Bolitas de forma de distorsión */}
-                        {distortionTurns != null && (
-                            <DistortionDots myth={myth} distortionTurns={distortionTurns} />
+                        {/* Barra de distorsión */}
+                        {distortionInfo && (
+                            <DistortionBar
+                                myth={myth}
+                                info={distortionInfo}
+                            />
                         )}
                     </>
                 )}
@@ -1456,6 +1488,7 @@ export default function BattlePage() {
     // Mapa instanceId → triggerTurn ABSOLUTO (no remaining)
     // Se recalcula desde la sesión en cada finalizeTurn para no perderse
     const [distortionTurnsMap, setDistortionTurnsMap] = useState<Record<string, number>>({});
+    const [distortionStartMap,  setDistortionStartMap]  = useState<Record<string, number>>({});
 
     function triggerKo(instanceId: string) {
         setKoOverlays((prev) => ({ ...prev, [instanceId]: true }));
@@ -1745,8 +1778,11 @@ export default function BattlePage() {
         actorName?: string; actorAffinity?: string;
         targetName?: string; targetAffinity?: string;
         damage?: number; isCrit?: boolean;
+        missed?: boolean; mult?: number;
+        statusApplied?: string; statusIcon?: string;
+        isPlayerMyth?: boolean;
     }) {
-        setLog((l) => [...l.slice(-50), { text, type, ...meta }]);
+        setLog((l) => [...l.slice(-60), { text, type, ...meta }]);
     }
 
     function sleep(ms: number) {
@@ -1818,6 +1854,8 @@ export default function BattlePage() {
                     setSession(currentSession);
                     const freshMap = buildDistortionMap(currentSession);
                     setDistortionTurnsMap(prev => ({ ...prev, ...freshMap }));
+                    const freshStart = buildDistortionStartMap(currentSession);
+                    setDistortionStartMap(prev => ({ ...prev, ...freshStart }));
                 }
                 await triggerDistortion(action.actorInstanceId, actor.name, actor.affinities ?? [], newRarity);
                 action = { ...action, effectMsgs: action.effectMsgs.filter((m: string) => !m.startsWith("🌀")) };
@@ -1862,22 +1900,52 @@ export default function BattlePage() {
             const allMythsFlat2 = [...(sessionForLookup?.playerTeam ?? []), ...(sessionForLookup?.enemyTeam ?? [])];
             const logActor  = allMythsFlat2.find(m => m.instanceId === action.actorInstanceId);
             const logTarget = allMythsFlat2.find(m => m.instanceId === action.targetInstanceId);
-            addLog(
-                `${logPrefix}${action.actorName} usa ${action.move}${action.targetName ? ` → ${action.targetName}` : ""}`,
-                "normal",
-                {
-                    actorName:      action.actorName,
-                    actorAffinity:  logActor?.affinities?.[0],
-                    targetName:     action.targetName,
-                    targetAffinity: logTarget?.affinities?.[0],
-                }
-            );
             const moveObj = (sessionForLookup?.playerTeam ?? [])
                 .concat(sessionForLookup?.enemyTeam ?? [])
                 .find((m) => m.instanceId === action.actorInstanceId)
                 ?.moves.find((mv) => mv.name === action.move);
             const projLevel = moveObj ? getMoveLevel(moveObj) : 1;
             const isSupport = moveObj?.type === "support" || (!action.damage && !action.missed);
+
+            // Para support/buff a self o aliados, el target visual debe ser el propio actor
+            const isBeneficialMove = isSupport && (
+                action.healAmount > 0
+                || (action.buffApplied && action.buffApplied.multiplier > 1)
+                || action.buffApplied?.type === "shield"
+                || action.buffApplied?.type === "regen"
+                || action.buffApplied?.type === "cleanse"
+            );
+            // Si el move beneficia al actor (escudo/buff/cura), mostrar a él como target
+            const logTargetName = isBeneficialMove
+                ? action.actorName
+                : action.targetName;
+            const logTargetAffinity = isBeneficialMove
+                ? logActor?.affinities?.[0]
+                : logTarget?.affinities?.[0];
+            // Log consolidado: todo en una sola entrada, el render se encarga de pintarlo
+            const targetSurvivedCheck = sessionForLookup
+                ? ([...sessionForLookup.playerTeam, ...sessionForLookup.enemyTeam]
+                      .find(m => m.instanceId === action.targetInstanceId)?.hp ?? 1) > 0
+                : true;
+            const statusForLog = (action.statusApplied && targetSurvivedCheck) ? action.statusApplied : null;
+            const statusIconForLog = statusForLog ? (STATUS_ICONS[statusForLog] ?? "⚠️") : undefined;
+            addLog(
+                `${action.actorName} usa ${action.move}`,
+                "normal",
+                {
+                    actorName:      action.actorName,
+                    actorAffinity:  logActor?.affinities?.[0],
+                    targetName:     logTargetName,
+                    targetAffinity: logTargetAffinity,
+                    damage:         action.damage > 0 ? action.damage : undefined,
+                    isCrit:         action.crit,
+                    missed:         action.missed,
+                    mult:           action.mult,
+                    statusApplied:  statusForLog ?? undefined,
+                    statusIcon:     statusIconForLog,
+                    isPlayerMyth:   action.isPlayerMyth,
+                }
+            );
 
             await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
 
@@ -1895,17 +1963,25 @@ export default function BattlePage() {
                     if (action.healAmount > 0) {
                         await flashAndFloat(action.actorInstanceId, action.moveAffinity, action.healAmount, false, 1, true);
                     }
-                    const buffType = action.buffApplied?.type ?? (action.healAmount > 0 ? "heal" : null);
+                    const buffType = (action as any).shieldApplied ? "shield"
+                        : action.buffApplied?.type ?? (action.healAmount > 0 ? "heal" : null);
                     const bo = buffType ? BUFF_OVERLAYS[buffType] : null;
-                    if (bo) {
-                        await showSupportOverlay(action.actorInstanceId, bo.text, bo.color, bo.glow);
-                    } else if (action.buffApplied?.multiplier > 1) {
-                        const statKey = `boost_${action.buffApplied.stat ?? "atk"}`;
-                        const so = BUFF_OVERLAYS[statKey] ?? BUFF_OVERLAYS["boost_atk"];
-                        await showSupportOverlay(action.actorInstanceId, so.text, so.color, so.glow);
-                    } else if (action.healAmount > 0) {
-                        await showSupportOverlay(action.actorInstanceId, "💚 HEALING", "#4ade80", "#22c55e");
+                    // Targets del buff: allTargetInstanceIds si es área, si no el actor mismo
+                    const buffTargets: string[] = (action as any).allTargetInstanceIds?.length
+                        ? (action as any).allTargetInstanceIds
+                        : [action.actorInstanceId];
+                    for (const tid of buffTargets) {
+                        if (bo) {
+                            showSupportOverlay(tid, bo.text, bo.color, bo.glow);
+                        } else if (action.buffApplied?.multiplier > 1) {
+                            const statKey = `boost_${action.buffApplied.stat ?? "atk"}`;
+                            const so = BUFF_OVERLAYS[statKey] ?? BUFF_OVERLAYS["boost_atk"];
+                            showSupportOverlay(tid, so.text, so.color, so.glow);
+                        } else if (action.healAmount > 0) {
+                            showSupportOverlay(tid, "💚 HEALING", "#4ade80", "#22c55e");
+                        }
                     }
+                    await sleep(200);
                 } else if (isDebuff && action.targetInstanceId) {
                     const positions = getProjectilePositions(action.actorInstanceId, action.targetInstanceId);
                     if (positions) {
@@ -1935,37 +2011,33 @@ export default function BattlePage() {
                     setProjectile({ affinity: action.moveAffinity as Affinity, direction, level: projLevel, ...positions });
                     await sleep(duration);
                     setProjectile(null);
+                    // Lanzar impacto y bajar HP bar EN PARALELO — sin await en flashAndFloat
                     setExplosion({ x: positions.toX, y: positions.toY, fromX: positions.fromX, fromY: positions.fromY, affinity: action.moveAffinity as Affinity, level: projLevel });
-                    await sleep(projLevel === 1 ? 200 : projLevel === 2 ? 300 : 600);
+                    if (action.targetInstanceId && action.damage > 0) {
+                        // No await — la HP bar baja inmediatamente junto con la explosión
+                        flashAndFloat(action.targetInstanceId, action.moveAffinity, action.damage, action.crit, action.mult);
+                    } else if (action.missed) {
+                        addLog("¡Falló!", "miss");
+                    }
+                    await sleep(projLevel === 1 ? 180 : projLevel === 2 ? 260 : 500);
                 } else {
                     setProjectile({ affinity: action.moveAffinity as Affinity, direction, level: projLevel, fromX: 0, fromY: 0, toX: 0, toY: 0 });
                     await sleep(480);
                     setProjectile(null);
+                    if (action.targetInstanceId && action.damage > 0) {
+                        flashAndFloat(action.targetInstanceId, action.moveAffinity, action.damage, action.crit, action.mult);
+                    } else if (action.missed) {
+                        addLog("¡Falló!", "miss");
+                    }
                     await sleep(80);
                 }
 
-                if (action.targetInstanceId && action.damage > 0) {
-                    await flashAndFloat(action.targetInstanceId, action.moveAffinity, action.damage, action.crit, action.mult);
-                } else if (action.missed) {
-                    addLog("¡Falló!", "miss");
-                }
-
-                // Daño infligido — siempre que haya daño real
-                if (action.damage > 0 && !action.crit) {
-                    addLog(`−${action.damage} dmg`, action.isPlayerMyth ? "dmg_player" : "dmg_enemy", { damage: action.damage });
-                }
-                if (action.mult >= 2) addLog(`⚡ ¡Súper eficaz! ×${action.mult}`, action.isPlayerMyth ? "good" : "bad");
-                else if (action.mult > 0 && action.mult < 1)
-                    addLog(`💤 Poco eficaz ×${action.mult}`, action.isPlayerMyth ? "bad" : "good");
-                if (action.crit) addLog(
-                    `💥 ¡CRÍTICO! −${action.damage} dmg`,
-                    "crit",
-                    { damage: action.damage, isCrit: true }
-                );
-
-                if (action.statusApplied) {
-                    const icon = STATUS_ICONS[action.statusApplied] ?? "⚠️";
-                    addLog(`${icon} ¡${action.targetName} afectado por ${action.statusApplied}!`, "status");
+                // Solo aplicar estado si el objetivo sobrevive al golpe (ya loggeado arriba en el addLog consolidado)
+                const targetSurvived = sessionForLookup
+                    ? [...sessionForLookup.playerTeam, ...sessionForLookup.enemyTeam]
+                          .find(m => m.instanceId === action.targetInstanceId)?.hp > 0
+                    : true;
+                if (action.statusApplied && targetSurvived) {
                     if (action.targetInstanceId) {
                         const so = STATUS_OVERLAYS[action.statusApplied];
                         // Proyectil de estado — viaja desde el actor al target con el color del estado
@@ -1987,13 +2059,8 @@ export default function BattlePage() {
                         if (so) showSupportOverlay(action.targetInstanceId, so.text, so.color, so.glow, 1600);
                     }
                 }
-                if (action.buffApplied) {
-                    const label = action.buffApplied.label ?? action.buffApplied.stat?.toUpperCase() ?? "";
-                    addLog(`${action.buffApplied.emoji} ${action.actorName} ${label}`, action.isPlayerMyth ? "good" : "bad");
-                }
                 if (action.healAmount && action.healAmount > 0) {
                     await flashAndFloat(action.actorInstanceId, action.moveAffinity, action.healAmount, false, 1, true);
-                    addLog(`💚 ${action.actorName} recupera ${action.healAmount} HP`, "heal");
                 }
                 if (action.effectMsgs?.length) {
                     for (const msg of action.effectMsgs) addLog(msg, "status");
@@ -2008,7 +2075,7 @@ export default function BattlePage() {
             if (actorMyth?.status) {
                 await sleep(300);
                 await flashAndFloat(action.actorInstanceId, action.moveAffinity, action.statusTickDamage, false, 1);
-                addLog(action.statusTickMsg ?? `${action.actorName} sufre daño por estado`, "status");
+                addLog(action.statusTickMsg ?? `🩸 ${action.actorName} sufre daño por estado`, "status");
             }
         }
     }
@@ -2039,6 +2106,8 @@ export default function BattlePage() {
         // Reconstruir mapa de distorsión desde la sesión nueva (merge — nunca borrar triggers conocidos)
         const freshMap = buildDistortionMap(newSession);
         setDistortionTurnsMap(prev => ({ ...prev, ...freshMap }));
+        const freshStart = buildDistortionStartMap(newSession);
+        setDistortionStartMap(prev => ({ ...prev, ...freshStart }));
         if (newSession.status === "win" || newSession.status === "lose") {            addLog(
                 newSession.status === "win" ? "🏆 ¡Victoria!" : "💀 Derrota...",
                 newSession.status === "win" ? "good" : "bad",
@@ -2080,6 +2149,8 @@ export default function BattlePage() {
             // Actualizar siempre el mapa desde la sesión recibida
             const freshMap = buildDistortionMap(newSession);
             setDistortionTurnsMap(prev => ({ ...prev, ...freshMap }));
+            const freshStart = buildDistortionStartMap(newSession);
+            setDistortionStartMap(prev => ({ ...prev, ...freshStart }));
             if (res.distorted) {
                 // Actualizar sesión primero para que el sprite muestre la nueva forma
                 setSession(newSession);
@@ -2147,22 +2218,43 @@ export default function BattlePage() {
     }
 
     // Reconstruye el mapa completo desde la sesión actual (triggerTurn absoluto)
+    // distortionTurnsMap: instanceId → triggerTurn absoluto (o -1 si forma final)
+    // distortionStartMap:  instanceId → turno en que empezó la forma actual
+    // Ambos se actualizan juntos en buildDistortionMap.
+
     function buildDistortionMap(s: BattleSession): Record<string, number> {
         const map: Record<string, number> = {};
         for (const m of [...s.playerTeam, ...s.enemyTeam]) {
             const trigger = (m as any).distortionTriggerTurn;
-            if (trigger != null) map[m.instanceId] = trigger;
+            map[m.instanceId] = trigger != null ? trigger : -1;
         }
         return map;
     }
 
-    // Calcula remaining desde el mapa absoluto y el turno actual de sesión
-    function getDistortionTurns(myth: BattleMyth): number | null {
+    function buildDistortionStartMap(s: BattleSession): Record<string, number> {
+        const map: Record<string, number> = {};
+        for (const m of [...s.playerTeam, ...s.enemyTeam]) {
+            const start = (m as any).distortionFormStartTurn ?? 1;
+            const trigger = (m as any).distortionTriggerTurn;
+            if (trigger != null) map[m.instanceId] = start;
+        }
+        return map;
+    }
+
+    // getDistortionInfo: devuelve los datos que necesita DistortionBar
+    //   undefined → myth sin distorsión → NO mostrar barra
+    //   { isFinal: true } → forma final → DIST MAX
+    //   { isFinal: false, elapsed, interval } → progreso en el intervalo actual
+    function getDistortionInfo(myth: BattleMyth): undefined | { isFinal: true } | { isFinal: false; elapsed: number; interval: number; distortsThisTurn: boolean } {
         const triggerTurn = distortionTurnsMap[myth.instanceId];
-        if (triggerTurn == null) return null;
-        const currentTurn = session?.turn ?? 0;
-        const remaining = triggerTurn - currentTurn;
-        return remaining > 0 ? remaining : null;
+        if (triggerTurn === undefined) return undefined;  // sin distorsión
+        if (triggerTurn === -1) return { isFinal: true }; // forma final
+        const currentTurn     = session?.turn ?? 1;
+        const startTurn       = distortionStartMap[myth.instanceId] ?? 1;
+        const interval        = Math.max(1, triggerTurn - startTurn);
+        const elapsed         = Math.max(0, currentTurn - startTurn);
+        const distortsThisTurn = currentTurn >= triggerTurn; // es el turno exacto de distorsión
+        return { isFinal: false, elapsed, interval, distortsThisTurn };
     }
 
     async function handleStart(order: string[]) {
@@ -2174,6 +2266,7 @@ export default function BattlePage() {
             setPhase("battle");
             // Inicializar mapa de distorsión desde los triggerTurns de la sesión
             setDistortionTurnsMap(buildDistortionMap(cloned));
+            setDistortionStartMap(buildDistortionStartMap(cloned));
             addLog("⚔️ ¡Comienza el combate!", "system");
             await reload();
             // Revelar enemigos uno a uno y luego fijar reveal permanente
@@ -2653,7 +2746,7 @@ export default function BattlePage() {
                                                     supportOverlay={supportOverlays[myth.instanceId]}
                                                     koOverlay={!!koOverlays[myth.instanceId]}
                                                     spriteSize={spriteSize}
-                                                    distortionTurns={getDistortionTurns(myth)}
+                                                    distortionInfo={getDistortionInfo(myth)}
                                                     onClick={() => { if (!myth.defeated && !animating && currentActorIsPlayer) setTargetEnemyMythId(myth.instanceId); }}
                                                 />
                                             )}
@@ -2784,7 +2877,7 @@ export default function BattlePage() {
                                                     supportOverlay={supportOverlays[myth.instanceId]}
                                                     koOverlay={!!koOverlays[myth.instanceId]}
                                                     spriteSize={spriteSize}
-                                                    distortionTurns={getDistortionTurns(myth)}
+                                                    distortionInfo={getDistortionInfo(myth)}
                                                     onClick={selectedItem && !myth.defeated ? () => handleUseItem(myth.instanceId) : undefined}
                                                 />
                                             ) : null}
@@ -2933,13 +3026,13 @@ export default function BattlePage() {
                                                                 backgroundPosition: "center center",
                                                                 backgroundRepeat: "no-repeat",
                                                                 imageRendering: "pixelated",
-                                                                opacity: 0.45,
-                                                                filter: "saturate(1.15)",
+                                                                opacity: 0.30,
+                                                                filter: "saturate(0.9)",
                                                             }} />
                                                     )}
                                                     {/* Gradiente oscuro sobre la imagen */}
                                                     <div className="absolute inset-0 pointer-events-none z-[1]"
-                                                        style={{ background: "linear-gradient(180deg, rgba(7,11,20,0.40) 0%, rgba(7,11,20,0.62) 60%, rgba(7,11,20,0.80) 100%)" }} />
+                                                        style={{ background: "linear-gradient(180deg, rgba(7,11,20,0.55) 0%, rgba(7,11,20,0.72) 60%, rgba(7,11,20,0.88) 100%)" }} />
 
                                                     {/* Gradient de HP — color de la caja cambia según vida actual */}
                                                     {(() => {
@@ -2953,10 +3046,10 @@ export default function BattlePage() {
                                                         // El color del gradient mismo cambia según HP — así al 100% todo es verde,
                                                         // al 50% lo que queda es naranja, al 20% rojo.
                                                         const hpGrad = hpR > 0.50
-                                                            ? `linear-gradient(90deg, rgba(16,120,55,0.28) 0%, rgba(74,222,128,0.22) 100%)`
+                                                            ? `linear-gradient(90deg, rgba(16,120,55,0.18) 0%, rgba(74,222,128,0.13) 100%)`
                                                             : hpR > 0.25
-                                                            ? `linear-gradient(90deg, rgba(146,64,14,0.30) 0%, rgba(251,191,36,0.22) 100%)`
-                                                            : `linear-gradient(90deg, rgba(127,29,29,0.35) 0%, rgba(248,113,113,0.22) 100%)`;
+                                                            ? `linear-gradient(90deg, rgba(146,64,14,0.20) 0%, rgba(251,191,36,0.14) 100%)`
+                                                            : `linear-gradient(90deg, rgba(127,29,29,0.24) 0%, rgba(248,113,113,0.15) 100%)`;
                                                         return (
                                                             <div
                                                                 className="absolute pointer-events-none z-[2]"
@@ -2974,51 +3067,71 @@ export default function BattlePage() {
                                                     {/* Contenido sobre el fondo */}
                                                     <div className="relative z-[3] flex flex-col h-full px-3 py-2 gap-1">
 
-                                                        {/* Fila única: nombre · nivel · tipo · ❤️% */}
+                                                        {/* Header: nombre + badges integrados en barra */}
                                                         {(() => {
                                                             const hpR2 = actorForMoves.maxHp > 0 ? Math.max(0, Math.min(1, actorForMoves.hp / actorForMoves.maxHp)) : 0;
                                                             const hpPct2 = Math.round(hpR2 * 100);
                                                             const hpClr2 = hpR2 > 0.5 ? "#4ade80" : hpR2 > 0.25 ? "#fbbf24" : "#f87171";
                                                             const af = actorForMoves.affinities?.[0];
                                                             const afCfg2 = af ? AFFINITY_CONFIG[af] : null;
+                                                            const rar = actorForMoves.rarity ?? "COMMON";
+                                                            const rarCfg: Record<string, { color: string; bg: string; label: string }> = {
+                                                                COMMON:    { color: "#ffffff", bg: "#475569",  label: "CMN"  },
+                                                                RARE:      { color: "#ffffff", bg: "#4338ca",  label: "RARE" },
+                                                                EPIC:      { color: "#ffffff", bg: "#7e22ce",  label: "EPIC" },
+                                                                ELITE:     { color: "#0f172a", bg: "#e2e8f0",  label: "ELITE"},
+                                                                LEGENDARY: { color: "#ffffff", bg: "#b45309",  label: "LGND" },
+                                                                MYTHIC:    { color: "#ffffff", bg: "#b91c1c",  label: "MYTH" },
+                                                            };
+                                                            const rc = rarCfg[rar] ?? rarCfg.COMMON;
+                                                            // Barra de identidad: nombre a la izquierda, badges a la derecha, corazón al final
+                                                            const BADGE = ({ bg, border, children }: { bg: string; border?: string; children: React.ReactNode }) => (
+                                                                <div style={{
+                                                                    display: "inline-flex", alignItems: "center", justifyContent: "center",
+                                                                    height: 18, padding: "0 6px", borderRadius: 4,
+                                                                    background: bg, border: `1px solid ${border ?? bg}`,
+                                                                    flexShrink: 0,
+                                                                }}>{children}</div>
+                                                            );
                                                             return (
-                                                                <div className="flex items-center gap-1.5 w-full" style={{ minWidth: 0 }}>
-                                                                    {/* Nombre — crece pero no empuja el corazón */}
-                                                                    <span className="font-black leading-none truncate flex-shrink min-w-0"
-                                                                        style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: "1.05rem", color: "#f0f8ff", letterSpacing: "0.01em", textShadow: "0 1px 6px rgba(0,0,0,0.9)" }}>
+                                                                <div style={{ display: "flex", alignItems: "center", gap: 4, width: "100%", minWidth: 0 }}>
+                                                                    {/* Nombre — crece */}
+                                                                    <span style={{
+                                                                        fontFamily: "'Rajdhani', sans-serif", fontSize: "1.05rem",
+                                                                        fontWeight: 900, color: "#f0f8ff", letterSpacing: "0.01em",
+                                                                        textShadow: "0 1px 6px rgba(0,0,0,0.9)",
+                                                                        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                                                                        flexShrink: 1, minWidth: 0,
+                                                                    }}>
                                                                         {actorForMoves.name}
                                                                     </span>
-                                                                    {/* Nivel */}
-                                                                    <div className="flex items-center justify-center font-black font-mono rounded-md px-1 flex-shrink-0"
-                                                                        style={{
-                                                                            height: 16, minWidth: 28,
-                                                                            background: "linear-gradient(135deg, #1e3a5f 0%, #0f2340 100%)",
-                                                                            border: "1px solid rgba(96,165,250,0.6)",
-                                                                            fontSize: "10px", color: "#93c5fd", letterSpacing: "0.01em",
-                                                                        }}>
-                                                                        Lv{actorForMoves.level}
-                                                                    </div>
+                                                                    {/* Lv */}
+                                                                    <BADGE bg="#1d4ed8" border="#3b82f6">
+                                                                        <span style={{ fontSize: "10px", color: "#fff", fontWeight: 900, fontFamily: "monospace", letterSpacing: "0.02em" }}>
+                                                                            Lv{actorForMoves.level}
+                                                                        </span>
+                                                                    </BADGE>
                                                                     {/* Tipo */}
                                                                     {afCfg2 && (
-                                                                        <div className="flex items-center gap-0.5 rounded-full px-1.5 flex-shrink-0"
-                                                                            style={{
-                                                                                height: 16,
-                                                                                background: `${afCfg2.glow}28`,
-                                                                                border: `1px solid ${afCfg2.glow}80`,
-                                                                            }}>
-                                                                            <span style={{ fontSize: "10px", lineHeight: 1 }}>{afCfg2.emoji}</span>
-                                                                            <span className="font-mono font-black" style={{ fontSize: "9px", color: afCfg2.glow, letterSpacing: "0.04em" }}>
+                                                                        <BADGE bg={afCfg2.color} border={afCfg2.glow}>
+                                                                            <span style={{ fontSize: "10px", lineHeight: 1, marginRight: 2 }}>{afCfg2.emoji}</span>
+                                                                            <span style={{ fontSize: "9px", color: "#fff", fontWeight: 900, fontFamily: "monospace", letterSpacing: "0.04em" }}>
                                                                                 {afCfg2.label.toUpperCase()}
                                                                             </span>
-                                                                        </div>
+                                                                        </BADGE>
                                                                     )}
+                                                                    {/* Rareza */}
+                                                                    <BADGE bg={rc.bg}>
+                                                                        <span style={{ fontSize: "9px", color: rc.color, fontWeight: 900, fontFamily: "monospace", letterSpacing: "0.04em" }}>
+                                                                            {rc.label}
+                                                                        </span>
+                                                                    </BADGE>
                                                                     {/* Spacer */}
-                                                                    <div className="flex-1" />
-                                                                    {/* ❤️ HP% — derecha, más grande */}
-                                                                    <div className="flex items-center gap-0.5 flex-shrink-0">
-                                                                        <span style={{ fontSize: "16px", filter: `drop-shadow(0 0 6px ${hpClr2}bb)`, lineHeight: 1 }}>❤️</span>
-                                                                        <span className="font-mono font-black tabular-nums"
-                                                                            style={{ fontSize: "17px", color: hpClr2, textShadow: `0 0 12px ${hpClr2}88`, lineHeight: 1 }}>
+                                                                    <div style={{ flex: 1 }} />
+                                                                    {/* HP% */}
+                                                                    <div style={{ display: "flex", alignItems: "center", gap: 2, flexShrink: 0 }}>
+                                                                        <span style={{ fontSize: "15px", filter: `drop-shadow(0 0 5px ${hpClr2}bb)`, lineHeight: 1 }}>❤️</span>
+                                                                        <span style={{ fontSize: "16px", color: hpClr2, fontWeight: 900, fontFamily: "monospace", textShadow: `0 0 10px ${hpClr2}88`, lineHeight: 1 }}>
                                                                             {hpPct2}%
                                                                         </span>
                                                                     </div>
@@ -3423,18 +3536,24 @@ export default function BattlePage() {
                                                                 >
                                                                     <span className="text-lg mt-0.5">{cfg.emoji}</span>
                                                                     <div className="min-w-0 flex-1">
-                                                                        <div className="flex items-center gap-1.5 mb-0.5">
-                                                                            <p className="font-mono text-xs font-bold">{move.name}</p>
-                                                                            {onCooldown && (
-                                                                                <span className="text-xs text-red-400 font-mono font-black">
-                                                                                    ⏳{cdLeft}t
+                                                                        {/* Fila nombre + CD activo */}
+                                                                        <div className="flex items-center justify-between gap-1 mb-0.5">
+                                                                            <p className="font-mono text-xs font-bold truncate">{move.name}</p>
+                                                                            {onCooldown ? (
+                                                                                <span className="flex-shrink-0 flex items-center gap-0.5 font-mono font-black rounded px-1.5"
+                                                                                    style={{ fontSize: "11px", background: "rgba(239,68,68,0.25)", border: "1px solid rgba(239,68,68,0.6)", color: "#ffffff" }}>
+                                                                                    ⏳ {cdLeft}t
                                                                                 </span>
-                                                                            )}
+                                                                            ) : move.cooldown > 0 ? (
+                                                                                <span className="flex-shrink-0 flex items-center gap-0.5 font-mono font-black rounded px-1.5"
+                                                                                    style={{ fontSize: "11px", background: "rgba(100,116,139,0.2)", border: "1px solid rgba(100,116,139,0.4)", color: "#ffffff" }}>
+                                                                                    CD {move.cooldown}
+                                                                                </span>
+                                                                            ) : null}
                                                                         </div>
                                                                         <p className="text-[10px] opacity-70 font-mono mb-0.5">
                                                                             {move.power > 0 ? `💥 ${move.power}` : "estado"} · 🎯{" "}
                                                                             {move.accuracy}%
-                                                                            {move.cooldown > 0 && ` · CD${move.cooldown}`}
                                                                         </p>
                                                                         <p className="text-[11px] leading-snug line-clamp-2" style={{ color: "rgba(255,255,255,0.82)" }}>
                                                                             {move.description}
@@ -3494,6 +3613,25 @@ export default function BattlePage() {
                                                                             <span className="font-mono font-black" style={{ fontSize: "9px", color: "#475569" }}>{fAfCfg.label.toUpperCase()}</span>
                                                                         </div>
                                                                     )}
+                                                                    {/* Rareza frozen */}
+                                                                    {(() => {
+                                                                        const fRar = frozenMyth.rarity ?? "COMMON";
+                                                                        const fRarCfg: Record<string, { color: string; border: string; label: string }> = {
+                                                                            COMMON:    { color: "#475569", border: "rgba(71,85,105,0.4)",  label: "CMN"  },
+                                                                            RARE:      { color: "#475569", border: "rgba(71,85,105,0.4)",  label: "RARE" },
+                                                                            EPIC:      { color: "#475569", border: "rgba(71,85,105,0.4)",  label: "EPIC" },
+                                                                            ELITE:     { color: "#475569", border: "rgba(71,85,105,0.4)",  label: "ELITE"},
+                                                                            LEGENDARY: { color: "#475569", border: "rgba(71,85,105,0.4)",  label: "LGND" },
+                                                                            MYTHIC:    { color: "#475569", border: "rgba(71,85,105,0.4)",  label: "MYTH" },
+                                                                        };
+                                                                        const frc = fRarCfg[fRar] ?? fRarCfg.COMMON;
+                                                                        return (
+                                                                            <div className="flex items-center justify-center rounded-full px-1.5 font-mono font-black flex-shrink-0"
+                                                                                style={{ height: 18, background: "rgba(15,23,40,0.8)", border: `1px solid ${frc.border}`, fontSize: "9px", color: frc.color, letterSpacing: "0.04em" }}>
+                                                                                {frc.label}
+                                                                            </div>
+                                                                        );
+                                                                    })()}
                                                                 </div>
                                                                 <div className="h-px bg-slate-800/60 my-0.5" />
                                                                 <div className="flex flex-col gap-[3px] flex-1">
@@ -3593,105 +3731,130 @@ export default function BattlePage() {
                             </div>
                             <div
                                 ref={logRef}
-                                className="flex-1 overflow-y-auto p-2 flex flex-col gap-0.5"
-                                style={{ scrollbarWidth: "thin", scrollbarColor: "#334155 transparent" }}
+                                className="flex-1 overflow-y-auto flex flex-col justify-end min-h-0"
+                                style={{ scrollbarWidth: "thin", scrollbarColor: "#1e293b transparent" }}
                             >
+                                <div className="flex flex-col gap-px p-2">
                                 {log.length === 0 && (
                                     <p className="text-slate-700 text-xs font-mono italic text-center mt-6">
                                         Esperando acción...
                                     </p>
                                 )}
                                 {log.map((entry, i) => {
-                                    // Colores base por tipo
-                                    const typeColor: Record<string, string> = {
-                                        good:       "#4ade80",
-                                        bad:        "#f87171",
-                                        crit:       "#ff4444",
-                                        miss:       "#64748b",
-                                        system:     "#818cf8",
-                                        status:     "#fb923c",
-                                        heal:       "#34d399",
-                                        dmg_player: "#e2e8f0",
-                                        dmg_enemy:  "#e2e8f0",
-                                        normal:     "#cbd5e1",
-                                    };
-                                    const color = typeColor[entry.type] ?? "#e2e8f0";
-                                    const isCritLine   = entry.type === "crit";
-                                    const isDmgLine    = entry.type === "dmg_player" || entry.type === "dmg_enemy";
                                     const isMainAction = entry.type === "normal" && !!entry.actorName;
+                                    const isSystem     = entry.type === "system";
+                                    const isStatus     = entry.type === "status";
+                                    const isGood       = entry.type === "good";
+                                    const isBad        = entry.type === "bad";
+                                    const isHeal       = entry.type === "heal";
+                                    const isMiss       = entry.type === "miss";
 
-                                    // Badge de afinidad inline
+                                    // Badge de nombre — fondo sólido del color de afinidad
                                     function AfBadge({ affinity, name }: { affinity?: string; name?: string }) {
-                                        const upper = name?.toUpperCase();
-                                        if (!affinity || !name) return <span className="font-black">{upper}</span>;
-                                        const cfg = AFFINITY_CONFIG[affinity as keyof typeof AFFINITY_CONFIG];
-                                        if (!cfg) return <span className="font-black">{upper}</span>;
+                                        if (!name) return null;
+                                        const upper = name.toUpperCase();
+                                        const cfg = affinity ? AFFINITY_CONFIG[affinity as keyof typeof AFFINITY_CONFIG] : null;
+                                        if (!cfg) return <span className="font-black text-white/80 text-[11px]">{upper}</span>;
                                         return (
-                                            <span
-                                                className="inline-flex items-center font-black rounded px-1.5 uppercase"
-                                                style={{
-                                                    background: cfg.color + "2a",
-                                                    border: `1px solid ${cfg.color}55`,
-                                                    color: cfg.glow,
-                                                    fontSize: "11px",
-                                                    lineHeight: "16px",
-                                                    verticalAlign: "middle",
-                                                    whiteSpace: "nowrap",
-                                                    letterSpacing: "0.05em",
-                                                    textShadow: `0 0 6px ${cfg.glow}66`,
-                                                }}
-                                            >
+                                            <span style={{
+                                                display: "inline-flex", alignItems: "center",
+                                                background: cfg.color, border: `1px solid ${cfg.glow}`,
+                                                color: "#fff", fontSize: "11px", fontWeight: 900,
+                                                borderRadius: 4, padding: "1px 6px",
+                                                lineHeight: "16px", whiteSpace: "nowrap",
+                                                letterSpacing: "0.04em",
+                                                textShadow: "0 1px 2px rgba(0,0,0,0.9)",
+                                                verticalAlign: "middle",
+                                                fontFamily: "monospace",
+                                                textTransform: "uppercase",
+                                            }}>
                                                 {upper}
                                             </span>
                                         );
                                     }
 
-                                    return (
-                                        <div key={i} className="animate-log-in flex items-start gap-1">
-                                            <span className="text-slate-700 font-mono text-[10px] mt-[2px] flex-shrink-0">›</span>
+                                    // Entrada principal de acción — todo en 1 línea
+                                    if (isMainAction) {
+                                        const actorCfg = entry.actorAffinity
+                                            ? AFFINITY_CONFIG[entry.actorAffinity as keyof typeof AFFINITY_CONFIG]
+                                            : null;
+                                        // Extraer el nombre del move del texto
+                                        const moveName = entry.text.replace(`${entry.actorName} usa `, "");
+                                        const hasDmg   = (entry.damage ?? 0) > 0;
+                                        const isCrit   = entry.isCrit;
+                                        const isMissed = entry.missed;
+                                        const eff      = entry.mult ?? 1;
+                                        const status   = entry.statusApplied;
+                                        const statusIc = entry.statusIcon;
+                                        const isEnemyActor = !entry.isPlayerMyth;
 
-                                            {/* Línea principal de acción: actor usa move → target */}
-                                            {isMainAction ? (
-                                                <p className="font-mono text-[11px] leading-relaxed break-words" style={{ color }}>
-                                                    {entry.text.startsWith("👾 ") && <span className="opacity-70">👾 </span>}
+                                        return (
+                                            <div key={i} className="animate-log-in" style={{
+                                                background: actorCfg ? actorCfg.color + "18" : "rgba(255,255,255,0.03)",
+                                                borderLeft: actorCfg ? `3px solid ${actorCfg.glow}99` : "3px solid #334155",
+                                                borderRadius: "0 5px 5px 0",
+                                                padding: "5px 8px",
+                                                marginBottom: 3,
+                                            }}>
+                                                {/* Línea principal: ACTOR usa MOVE → TARGET [daño] */}
+                                                <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "4px", lineHeight: 1.5 }}>
+                                                    {isEnemyActor && <span style={{ fontSize: "10px", opacity: 0.5 }}>👾</span>}
                                                     <AfBadge affinity={entry.actorAffinity} name={entry.actorName} />
-                                                    {" usa "}
-                                                    <span className="font-bold text-white/90">
-                                                        {entry.text.replace(/^👾 /, "").replace(`${entry.actorName} usa `, "").replace(` → ${entry.targetName}`, "")}
-                                                    </span>
-                                                    {entry.targetName && (
+                                                    <span style={{ fontSize: "11px", color: "#64748b", fontFamily: "monospace" }}>usa</span>
+                                                    <span style={{ fontSize: "12px", color: "#e2e8f0", fontWeight: 700, fontFamily: "monospace" }}>{moveName}</span>
+                                                    {entry.targetName && entry.targetName !== entry.actorName && (
                                                         <>
-                                                            {" → "}
+                                                            <span style={{ fontSize: "10px", color: "#475569" }}>→</span>
                                                             <AfBadge affinity={entry.targetAffinity} name={entry.targetName} />
                                                         </>
                                                     )}
-                                                </p>
-                                            ) : isCritLine ? (
-                                                /* Línea de crítico — rojo brillante, negrita grande */
-                                                <p className="font-mono text-xs leading-relaxed font-black" style={{ color: "#ff3333", textShadow: "0 0 8px #ff000066" }}>
-                                                    {entry.text.replace(`−${entry.damage} dmg`, "")}
-                                                    {entry.damage != null && entry.damage > 0 && (
-                                                        <span className="font-black" style={{ color: "#ff6666" }}>
-                                                            {" "}−<span style={{ fontSize: "0.95em" }}>{entry.damage}</span>
-                                                            <span className="text-[9px] opacity-70"> dmg</span>
+                                                    {/* Daño */}
+                                                    {hasDmg && (
+                                                        <span style={{
+                                                            fontSize: "13px", fontWeight: 900, fontFamily: "monospace",
+                                                            color: isCrit ? "#ff4444" : eff >= 2 ? "#fb923c" : eff <= 0.5 ? "#60a5fa" : "#f1f5f9",
+                                                            textShadow: isCrit ? "0 0 8px #ff000066" : "none",
+                                                            marginLeft: 2,
+                                                        }}>
+                                                            {isCrit ? "💥" : ""}{eff >= 2 ? "⚡" : eff > 0 && eff < 1 ? "💤" : ""}−{entry.damage}
                                                         </span>
                                                     )}
-                                                </p>
-                                            ) : isDmgLine ? (
-                                                /* Línea de daño normal — discreta pero legible */
-                                                <p className="font-mono text-xs leading-relaxed" style={{ color: entry.type === "dmg_player" ? "#94a3b8" : "#94a3b8" }}>
-                                                    <span className="font-black text-white/70">−{entry.damage}</span>
-                                                    <span className="text-[9px] text-slate-500"> dmg</span>
-                                                </p>
-                                            ) : (
-                                                /* Resto de líneas */
-                                                <p className="font-mono text-[11px] leading-relaxed break-words" style={{ color, fontWeight: isCritLine ? 900 : 400 }}>
-                                                    {entry.text}
-                                                </p>
-                                            )}
+                                                    {isMissed && <span style={{ fontSize: "11px", color: "#64748b", fontFamily: "monospace" }}>¡fallo!</span>}
+                                                    {/* Estado aplicado */}
+                                                    {status && (
+                                                        <span style={{ fontSize: "11px", color: "#fb923c", fontFamily: "monospace" }}>
+                                                            {statusIc} {status}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    }
+
+                                    // Líneas secundarias: system, status, good, bad, heal, miss
+                                    const secondaryColor =
+                                        isSystem ? "#818cf8" :
+                                        isStatus ? "#fb923c" :
+                                        isGood   ? "#4ade80" :
+                                        isBad    ? "#f87171" :
+                                        isHeal   ? "#34d399" :
+                                        isMiss   ? "#64748b" : "#94a3b8";
+
+                                    return (
+                                        <div key={i} className="animate-log-in" style={{
+                                            padding: "2px 11px",
+                                            marginBottom: 1,
+                                        }}>
+                                            <span style={{
+                                                fontSize: "11px", fontFamily: "monospace",
+                                                color: secondaryColor, lineHeight: 1.5,
+                                            }}>
+                                                {entry.text}
+                                            </span>
                                         </div>
                                     );
                                 })}
+                                </div>
                             </div>
                         </div>
                     </div>

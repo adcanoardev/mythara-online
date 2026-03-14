@@ -54,6 +54,8 @@ export const api = {
             body: JSON.stringify({ battleId, moveId, ...(targetMythId ? { targetMythId } : {}) }),
         }),
     battleNpcActive: () => request<any>("/battle/npc/active"),
+    battleBeginTurn: (battleId: string) =>
+        request<any>("/battle/npc/begin-turn", { method: "POST", body: JSON.stringify({ battleId }) }),
     battleNpcForfeit: (battleId: string) =>
         request<any>("/battle/npc/forfeit", { method: "POST", body: JSON.stringify({ battleId }) }),
     battlePvp: (defenderUserId: string) =>
