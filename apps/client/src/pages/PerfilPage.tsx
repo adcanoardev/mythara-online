@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Layout from "../components/Layout";
-import TrainerSidebar from "../components/TrainerSidebar";
+
 import { api } from "../lib/api";
 import { useAuth } from "../hooks/useAuth";
 
@@ -119,7 +119,7 @@ export default function PerfilPage() {
         : 0;
 
     return (
-        <Layout sidebar={<TrainerSidebar />}>
+        <Layout >
             {/* Banner */}
             <div
                 className="flex-shrink-0 px-6 py-4 border-b border-border relative overflow-hidden"

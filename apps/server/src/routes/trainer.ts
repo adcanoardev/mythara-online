@@ -47,6 +47,65 @@ router.get("/trainer/me", requireAuth, async (req, res) => {
     } catch { res.status(500).json({ error: "Internal error" }); }
 });
 
+// ─── AVATAR / MARCO ──────────────────────────────────────────────────────────
+// Lista canonica de avatares validos (misma que onboarding)
+const VALID_AVATAR_IDS = [
+    "male_1","male_2","male_3","male_4",
+    "female_1","female_2","female_3","female_4",
+];
+
+// Lista canonica de todos los marcos que existen en el juego
+const ALL_FRAME_KEYS = [
+    "none","silver","gold","mythic","arcane","ember","tide","legendary",
+];
+
+router.post("/trainer/avatar", requireAuth, async (req, res) => {
+    try {
+        const userId = req.user!.userId;
+        const { avatar, avatarFrame } = req.body as { avatar?: string; avatarFrame?: string };
+
+        const profile = await prisma.trainerProfile.findUnique({ where: { userId } });
+        if (!profile) return res.status(404).json({ error: "Perfil no encontrado" });
+
+        const updates: Record<string, any> = {};
+
+        // Validar avatar
+        if (avatar !== undefined) {
+            if (!VALID_AVATAR_IDS.includes(avatar)) {
+                return res.status(400).json({ error: "Avatar no valido" });
+            }
+            const avatarGender = avatar.startsWith("male") ? "male" : "female";
+            if (profile.gender && profile.gender !== avatarGender) {
+                return res.status(400).json({ error: "Avatar no corresponde a tu genero" });
+            }
+            updates.avatar = avatar;
+        }
+
+        // Validar marco — servidor es la fuente de verdad
+        if (avatarFrame !== undefined) {
+            if (!ALL_FRAME_KEYS.includes(avatarFrame)) {
+                return res.status(400).json({ error: "Marco no valido" });
+            }
+            // unlockedFrames viene de BD, nunca del cliente
+            const unlocked: string[] = (profile as any).unlockedFrames ?? ["none", "silver"];
+            if (!unlocked.includes(avatarFrame)) {
+                return res.status(403).json({ error: "Marco no desbloqueado. Visitala Tienda." });
+            }
+            updates.avatarFrame = avatarFrame;
+        }
+
+        if (Object.keys(updates).length === 0) {
+            return res.status(400).json({ error: "Nada que actualizar" });
+        }
+
+        const updated = await prisma.trainerProfile.update({ where: { userId }, data: updates });
+        res.json({ success: true, avatar: updated.avatar, avatarFrame: (updated as any).avatarFrame });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: "Internal error" });
+    }
+});
+
 router.get("/tokens/me", requireAuth, async (req, res) => {
     try {
         res.json(await getTokens(req.user!.userId));

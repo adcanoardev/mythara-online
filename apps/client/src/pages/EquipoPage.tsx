@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Layout from "../components/Layout";
-import TrainerSidebar from "../components/TrainerSidebar";
+
 import { api } from "../lib/api";
 
 interface MythInstance {
@@ -222,7 +222,7 @@ export default function EquipoPage() {
         saveParty(newParty);
     }
     return (
-        <Layout sidebar={<TrainerSidebar />}>
+        <Layout >
             <div className="flex-shrink-0 px-6 py-4 border-b border-border flex items-center justify-between">
                 <h1 className="font-display font-bold text-2xl tracking-widest">
                     🐾 <span className="text-blue">Equipo</span>

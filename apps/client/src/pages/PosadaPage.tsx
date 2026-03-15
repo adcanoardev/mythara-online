@@ -1,7 +1,7 @@
 // apps/client/src/pages/PosadaPage.tsx
 import { useState, useEffect, useCallback, useRef } from "react";
 import Layout from "../components/Layout";
-import TrainerSidebar from "../components/TrainerSidebar";
+
 import { api } from "../lib/api";
 import { useNavigate } from "react-router-dom";
 
@@ -795,7 +795,7 @@ export default function PosadaPage() {
     }, []);
 
     return (
-        <Layout sidebar={<TrainerSidebar />}>
+        <Layout >
             <style>{`
                 .scrollbar-hide::-webkit-scrollbar { display: none; }
             `}</style>

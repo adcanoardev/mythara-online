@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
-import TrainerSidebar from "../components/TrainerSidebar";
 import { api } from "../lib/api";
 import { useTrainer } from "../context/TrainerContext";
 import { useToast } from "../components/Layout";
@@ -2601,7 +2600,7 @@ export default function BattlePage() {
         return (
             <>
                 {screenWarningOverlay}
-                <Layout sidebar={<TrainerSidebar />}>
+                <Layout >
                 <div className="flex-1 flex flex-col overflow-hidden" style={{ minHeight: 0 }}>
                     <TabBar mode={mode} onSwitch={setMode} battleActive={false} />
                     <div className="flex-1 flex items-center justify-center">
@@ -2681,21 +2680,7 @@ export default function BattlePage() {
                 </div>
             )}
 
-            <Layout sidebar={
-                <div className="relative h-full">
-                    <TrainerSidebar />
-                    {/* Overlay que bloquea clics en el sidebar durante combate activo.
-                        El click interceptor y popstate capturan cualquier navigate() (incluido logout). */}
-                    {battleLocked && (
-                        <div
-                            className="absolute inset-0 z-[200]"
-                            style={{ cursor: "not-allowed", background: "rgba(4,8,16,0.50)" }}
-                            onClick={(e) => { e.stopPropagation(); setShowExitConfirm(true); }}
-                            title="Tienes un combate en curso"
-                        />
-                    )}
-                </div>
-            }>
+            <Layout battleLocked={battleLocked} onBattleLockedClick={() => setShowExitConfirm(true)}>
                 <div className="flex-1 flex flex-col overflow-hidden" style={{ minHeight: 0 }}>
                     <TabBar mode={mode} onSwitch={setMode} battleActive={phase === "battle"} />
 
@@ -3886,7 +3871,7 @@ export default function BattlePage() {
                                                                     {[
                                                                         { emoji: "🛡️", name: "Escudo",        color: "#60a5fa", desc: "Absorbe daño antes de bajar HP. Dura 2 turnos del portador." },
                                                                         { emoji: "♻️", name: "Regeneración",  color: "#4ade80", desc: "Recupera % de HP al inicio de cada turno. Acumula durante varios turnos." },
-                                                                        { emoji: "↩️", name: "Contraataque",  color: "#f59e0b", desc: "Devuelve un % del daño recibido al atacante." },
+                                                                        { emoji: "↩️", name: "Reflejar Daño",   color: "#f59e0b", desc: "Devuelve automáticamente un % del daño recibido al atacante." },
                                                                         { emoji: "✨", name: "Revivir",        color: "#a78bfa", desc: "Resucita a un aliado derrotado con HP parcial." },
                                                                         { emoji: "🌿", name: "Purificación",  color: "#86efac", desc: "Elimina estados negativos y debuffs activos." },
                                                                         { emoji: "⬆ATK", name: "Boost ATK",  color: "#f97316", desc: "Aumenta el ataque base. Máx +50%. Se reemplaza (no apila)." },
@@ -4588,7 +4573,7 @@ function TabBar({ mode, onSwitch, battleActive }: { mode: BattleMode; onSwitch: 
                                   ? "text-slate-700 cursor-not-allowed"
                                   : "text-slate-500 hover:text-slate-300"}`}
                     >
-                        {m === "npc" ? "⚔️ NPC" : "👥 PvP"}
+                        {m === "npc" ? "⚔️ PvE" : "👥 PvP"}
                     </button>
                 );
             })}

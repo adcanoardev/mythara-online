@@ -2,7 +2,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { api } from "../lib/api";
 import Layout from "../components/Layout";
-import TrainerSidebar from "../components/TrainerSidebar";
+
 
 // ─── types ────────────────────────────────────────────────────────────────────
 
@@ -476,7 +476,7 @@ export default function MythsPage() {
     );
 
     return (
-        <Layout sidebar={<TrainerSidebar />}>
+        <Layout >
             {/* ── Header ── */}
             <div className="shrink-0 px-6 pt-5 pb-3 border-b border-[#1e2d45]">
                 <div className="flex items-center justify-between mb-3">

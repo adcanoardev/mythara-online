@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
-import TrainerSidebar from "../components/TrainerSidebar";
+
 import { api } from "../lib/api";
 import { useTrainer } from "../context/TrainerContext";
 
@@ -128,7 +128,7 @@ export default function FragmentPage() {
     const cfg = creature ? (RARITY_CONFIG[creature.rarity ?? "COMMON"] ?? RARITY_CONFIG.COMMON) : null;
 
     return (
-        <Layout sidebar={<TrainerSidebar />}>
+        <Layout >
             <style>{`
                 @keyframes fragmentFloat {
                     0%,100% { transform: translateY(0px) rotate(-2deg); }

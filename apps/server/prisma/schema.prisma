@@ -54,6 +54,14 @@ model TrainerProfile {
   gender             String?
   onboardingComplete Boolean @default(false)
 
+  // Monedas
+  gold               Int      @default(0)
+  diamonds           Int      @default(0)
+
+  // Cosmetico - validado siempre en servidor
+  avatarFrame        String   @default("none")
+  unlockedFrames     String[] @default([])
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
