@@ -615,7 +615,7 @@ function applySingleEffect(
                 tgt.counterValue = val / 100;
                 tgt.counterTurns = dur;
             }
-            return { logMsgs: [`↩️ ${tgts.map(t => t.name).join(", ")} con contraataque ${dur} turnos`] };
+            return { logMsgs: [`↩️ ${tgts.map(t => t.name).join(", ")} con reflejo de daño ${dur} turnos`] };
         }
         // ── revive ─────────────────────────────────────────────────────────
         case "revive": {

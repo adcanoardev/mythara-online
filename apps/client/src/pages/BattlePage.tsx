@@ -61,6 +61,7 @@ interface BattleMyth {
     distortionTriggerTurn?: number | null; // turno en el que distorsiona (null si no tiene o ya distorsionó)
     distortionFormStartTurn?: number;       // turno en que empezó la forma actual
     nextFormRarity?: string | null;         // rareza de la siguiente forma (para colorear la barra)
+    height?: number;            // altura física en metros (0=etéreo, 0.35-2.0 rango)
     defeated: boolean;
 }
 
@@ -79,6 +80,20 @@ function cloneSession(s: any): BattleSession {
     return JSON.parse(JSON.stringify(s));
 }
 
+const CDN = "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@24610227fc0b43065f06902c0825f413a668f66d";
+
+// Iconos de estado — WebP 64×64, fondo transparente
+const STATUS_ICON_URLS: Record<string, string> = {
+    burn:     `${CDN}/status/fire_status_icon.webp`,
+    poison:   `${CDN}/status/poison_status_icon.webp`,
+    paralyze: `${CDN}/status/paralyze_status_icon.webp`,
+    freeze:   `${CDN}/status/freeze_status_icon.webp`,
+    fear:     `${CDN}/status/fear_status_icon.webp`,
+    stun:     `${CDN}/status/stun_status_icon.webp`,
+    curse:    `${CDN}/status/curse_status_icon.webp`,
+};
+
+// Fallback emoji para cuando el CDN falla
 const STATUS_ICONS: Record<string, string> = {
     burn: "🔥",
     poison: "☠️",
@@ -88,6 +103,68 @@ const STATUS_ICONS: Record<string, string> = {
     stun: "💫",
     curse: "💀",
 };
+
+// Colores por estado para el log
+const STATUS_LOG_COLORS: Record<string, string> = {
+    burn:     "#fb923c",
+    poison:   "#4ade80",
+    paralyze: "#fde047",
+    freeze:   "#7dd3fc",
+    fear:     "#c084fc",
+    stun:     "#facc15",
+    curse:    "#a855f7",
+};
+
+// Iconos de afinidad — WebP, fondo transparente
+const AFFINITY_ICON_URLS: Record<string, string> = {
+    STONE:  `${CDN}/affinity/stone_affinity.webp`,
+    IRON:   `${CDN}/affinity/iron_affinity.webp`,
+    FROST:  `${CDN}/affinity/frost_affinity.webp`,
+    GROVE:  `${CDN}/affinity/grove_affinity.webp`,
+    ASTRAL: `${CDN}/affinity/astral_affinity.webp`,
+    EMBER:  `${CDN}/affinity/ember_affinity.webp`,
+    VENOM:  `${CDN}/affinity/venom_affinity.webp`,
+    TIDE:   `${CDN}/affinity/tide_affinity.webp`,
+    SHADE:  `${CDN}/affinity/shade_affinity.webp`,
+    VOLT:   `${CDN}/affinity/volt_affinity.webp`,
+};
+
+// Componente de icono de estado: imagen CDN con fallback emoji
+function StatusIcon({ status, size = 16 }: { status: string; size?: number }) {
+    const url = STATUS_ICON_URLS[status];
+    const emoji = STATUS_ICONS[status] ?? "⚠️";
+    const [failed, setFailed] = React.useState(false);
+    if (!url || failed) return <span style={{ fontSize: size * 0.9 }}>{emoji}</span>;
+    return (
+        <img
+            src={url}
+            alt={status}
+            width={size}
+            height={size}
+            style={{ display: "inline-block", verticalAlign: "middle", imageRendering: "auto" }}
+            onError={() => setFailed(true)}
+        />
+    );
+}
+
+// Componente de icono de afinidad: imagen CDN con fallback emoji
+function AffinityIcon({ affinity, size = 18 }: { affinity: string; size?: number }) {
+    const url = AFFINITY_ICON_URLS[affinity];
+    const cfg = AFFINITY_CONFIG[affinity as Affinity];
+    const emoji = cfg?.emoji ?? "❓";
+    const [failed, setFailed] = React.useState(false);
+    if (!url || failed) return <span style={{ fontSize: size * 0.85 }}>{emoji}</span>;
+    return (
+        <img
+            src={url}
+            alt={affinity}
+            width={size}
+            height={size}
+            style={{ display: "inline-block", verticalAlign: "middle", imageRendering: "auto" }}
+            onError={() => setFailed(true)}
+        />
+    );
+}
 
 // ─────────────────────────────────────────
 // Affinity config
@@ -517,83 +594,236 @@ function ImpactExplosion({
 
     // Formas especiales por afinidad
     const renderAffinityDetail = () => {
+        const count = level === 1 ? 4 : level === 2 ? 7 : 12;
+        const spread = maxSize * 0.35;
+
         if (affinity === "EMBER") {
-            // Llamas verticales
-            return Array.from({ length: level === 1 ? 4 : 8 }).map((_, i) => {
-                const angle = (i / (level === 1 ? 4 : 8)) * Math.PI * 2;
-                const d = maxSize * 0.3 + Math.random() * maxSize * 0.2;
+            return Array.from({ length: count }).map((_, i) => {
+                const angle = (i / count) * Math.PI * 2;
+                const d = spread * (0.6 + (i % 3) * 0.3);
+                const h = 16 + (i % 4) * 10;
                 return (
-                    <div key={`fl${i}`} className="absolute rounded-full pointer-events-none"
+                    <div key={`fl${i}`} className="absolute pointer-events-none"
                         style={{
-                            width: 6 + Math.random() * 8, height: 18 + Math.random() * 22,
-                            left: Math.cos(angle) * d, top: Math.sin(angle) * d,
-                            background: `linear-gradient(180deg, #fff200 0%, #ff6b00 50%, #ff4500 100%)`,
-                            boxShadow: `0 0 10px #ff6b00`,
-                            borderRadius: "50% 50% 30% 30%",
-                            animation: `centralFlash 0.5s ease-out ${i * 0.04}s forwards`,
+                            width: 5 + (i % 3) * 3, height: h,
+                            left: Math.cos(angle) * d, top: Math.sin(angle) * d - h / 2,
+                            background: `linear-gradient(180deg, #fff7 0%, #ffcc00 30%, #ff6b00 70%, #ff4500 100%)`,
+                            boxShadow: `0 0 12px #ff6b00, 0 0 24px #ff450066`,
+                            borderRadius: "50% 50% 25% 25%",
+                            transformOrigin: "bottom center",
+                            transform: `rotate(${(angle * 180 / Math.PI) + 90}deg)`,
+                            animation: `centralFlash ${0.4 + (i % 3) * 0.1}s ease-out ${i * 0.03}s forwards`,
                         }}
                     />
                 );
             });
         }
+
         if (affinity === "FROST") {
-            // Cristales de hielo
-            return Array.from({ length: 6 }).map((_, i) => {
-                const angle = (i / 6) * Math.PI * 2;
-                const d = maxSize * 0.35;
+            const pts = level === 1 ? 5 : level === 2 ? 8 : 12;
+            return Array.from({ length: pts }).map((_, i) => {
+                const angle = (i / pts) * Math.PI * 2;
+                const d = spread * (0.5 + (i % 2) * 0.4);
+                const len = 12 + (i % 3) * 10;
                 return (
                     <div key={`cr${i}`} className="absolute pointer-events-none"
                         style={{
-                            width: 4, height: 14 + Math.random() * 10,
-                            left: Math.cos(angle) * d, top: Math.sin(angle) * d,
-                            background: `linear-gradient(180deg, #ffffff 0%, #67e8f9 100%)`,
-                            boxShadow: `0 0 8px #67e8f9`,
-                            transform: `rotate(${angle * (180/Math.PI)}deg)`,
-                            animation: `centralFlash 0.5s ease-out ${i * 0.06}s forwards`,
+                            width: 3 + (i % 2), height: len,
+                            left: Math.cos(angle) * d, top: Math.sin(angle) * d - len / 2,
+                            background: `linear-gradient(180deg, #ffffff 0%, #bae6fd 50%, #7dd3fc 100%)`,
+                            boxShadow: `0 0 8px #7dd3fc, 0 0 16px #38bdf888`,
+                            borderRadius: 2,
+                            transform: `rotate(${angle * 180 / Math.PI}deg)`,
+                            animation: `iceSpike ${0.35 + (i % 3) * 0.06}s ease-out ${i * 0.04}s forwards`,
                         }}
                     />
                 );
             });
         }
+
         if (affinity === "VOLT") {
-            // Arcos eléctricos
-            return Array.from({ length: 5 }).map((_, i) => {
-                const angle = impactAngle + (i - 2) * 0.35;
-                const d = maxSize * 0.4;
+            const bolts = level === 1 ? 3 : level === 2 ? 6 : 10;
+            return Array.from({ length: bolts }).map((_, i) => {
+                const angle = impactAngle + ((i / bolts) - 0.5) * Math.PI * (level === 3 ? 1.4 : 0.9);
+                const len = maxSize * (0.5 + (i % 2) * 0.25);
                 return (
-                    <div key={`bl${i}`} className="absolute pointer-events-none"
+                    <div key={`z${i}`} className="absolute pointer-events-none"
                         style={{
-                            width: 3, height: maxSize * 0.6,
-                            left: Math.cos(angle) * d, top: Math.sin(angle) * d,
-                            background: `linear-gradient(180deg, #ffffff 0%, #fde047 100%)`,
-                            boxShadow: `0 0 12px #fde047, 0 0 24px #fde047`,
-                            transform: `rotate(${angle * (180/Math.PI) + 90}deg)`,
-                            animation: `centralFlash 0.35s ease-out ${i * 0.05}s forwards`,
+                            width: 2 + (i % 3), height: len,
+                            left: 0, top: -len / 2,
+                            background: `linear-gradient(180deg, #ffffff 0%, #fef08a 40%, #fde047 100%)`,
+                            boxShadow: `0 0 10px #fde047, 0 0 22px #fde04788`,
+                            borderRadius: 1,
+                            transform: `rotate(${angle * 180 / Math.PI + 90}deg)`,
+                            transformOrigin: "center bottom",
+                            animation: `arcZap ${0.28 + (i % 3) * 0.06}s ease-out ${i * 0.04}s forwards`,
                         }}
                     />
                 );
             });
         }
+
         if (affinity === "TIDE") {
-            // Gotas en espiral
-            return Array.from({ length: 6 }).map((_, i) => {
-                const angle = (i / 6) * Math.PI * 2;
-                const d = maxSize * 0.3;
-                const size = 8 + Math.random() * 10;
+            const drops = level === 1 ? 5 : level === 2 ? 8 : 13;
+            return Array.from({ length: drops }).map((_, i) => {
+                const angle = impactAngle + ((i / drops) - 0.5) * Math.PI * 1.2;
+                const d = spread * (0.4 + (i % 3) * 0.25);
+                const sz = 7 + (i % 4) * 5;
                 return (
-                    <div key={`dr${i}`} className="absolute rounded-full pointer-events-none"
+                    <div key={`w${i}`} className="absolute rounded-full pointer-events-none"
                         style={{
-                            width: size * 0.6, height: size,
-                            left: Math.cos(angle) * d, top: Math.sin(angle) * d,
-                            background: `radial-gradient(circle at 40% 30%, #e0f2fe, #0ea5e9)`,
-                            boxShadow: `0 0 8px #38bdf8`,
-                            animation: `particleFly 0.6s ease-out ${i * 0.05}s forwards`,
-                            "--tx": `${Math.cos(angle) * 30}px`, "--ty": `${Math.sin(angle) * 30}px`,
+                            width: sz * 0.65, height: sz,
+                            left: Math.cos(angle) * d - sz * 0.3,
+                            top: Math.sin(angle) * d - sz / 2,
+                            background: `radial-gradient(circle at 35% 25%, #e0f2fe, #38bdf8)`,
+                            boxShadow: `0 0 8px #0ea5e9`,
+                            animation: `particleFly 0.55s ease-out ${i * 0.04}s forwards`,
+                            "--tx": `${Math.cos(angle) * (d + 20)}px`,
+                            "--ty": `${Math.sin(angle) * (d + 20)}px`,
                         } as React.CSSProperties}
                     />
                 );
             });
         }
+
+        if (affinity === "GROVE") {
+            const leaves = level === 1 ? 5 : level === 2 ? 9 : 14;
+            return Array.from({ length: leaves }).map((_, i) => {
+                const angle = (i / leaves) * Math.PI * 2;
+                const d = spread * (0.3 + (i % 3) * 0.35);
+                const tx = Math.cos(angle + 0.4) * (d + 35);
+                const ty = Math.sin(angle + 0.4) * (d + 35) - 30;
+                return (
+                    <div key={`lf${i}`} className="absolute pointer-events-none"
+                        style={{
+                            width: 8 + (i % 3) * 4, height: 12 + (i % 4) * 5,
+                            left: Math.cos(angle) * d, top: Math.sin(angle) * d,
+                            background: i % 3 === 0
+                                ? `radial-gradient(ellipse, #86efac, #16a34a)`
+                                : i % 3 === 1
+                                ? `radial-gradient(ellipse, #4ade80, #166534)`
+                                : `radial-gradient(ellipse, #d9f99d, #65a30d)`,
+                            borderRadius: "50% 10% 50% 10%",
+                            transform: `rotate(${angle * 120}deg)`,
+                            animation: `leafFloat 0.7s ease-out ${i * 0.045}s forwards`,
+                            "--tx": `${tx}px`, "--ty": `${ty}px`, "--tr": `${angle * 180}deg`,
+                        } as React.CSSProperties}
+                    />
+                );
+            });
+        }
+
+        if (affinity === "STONE") {
+            const frags = level === 1 ? 5 : level === 2 ? 8 : 12;
+            return Array.from({ length: frags }).map((_, i) => {
+                const angle = impactAngle + ((i / frags) - 0.5) * Math.PI * 1.1;
+                const d = spread * (0.5 + (i % 3) * 0.3);
+                const sz = 5 + (i % 4) * 5;
+                return (
+                    <div key={`st${i}`} className="absolute pointer-events-none"
+                        style={{
+                            width: sz, height: sz * 0.7,
+                            left: Math.cos(angle) * d, top: Math.sin(angle) * d,
+                            background: `linear-gradient(135deg, #d6d3d1, #78716c, #57534e)`,
+                            boxShadow: `0 2px 6px rgba(0,0,0,0.5)`,
+                            borderRadius: 2,
+                            transform: `rotate(${angle * 45}deg)`,
+                            animation: `particleFly ${0.45 + (i % 3) * 0.1}s ease-out ${i * 0.04}s forwards`,
+                            "--tx": `${Math.cos(angle) * (d + 30)}px`,
+                            "--ty": `${Math.sin(angle) * (d + 30)}px`,
+                        } as React.CSSProperties}
+                    />
+                );
+            });
+        }
+
+        if (affinity === "VENOM") {
+            const bubbles = level === 1 ? 4 : level === 2 ? 7 : 11;
+            return Array.from({ length: bubbles }).map((_, i) => {
+                const angle = (i / bubbles) * Math.PI * 2;
+                const d = spread * (0.3 + (i % 3) * 0.3);
+                const sz = 10 + (i % 4) * 8;
+                return (
+                    <div key={`vn${i}`} className="absolute rounded-full pointer-events-none"
+                        style={{
+                            width: sz, height: sz,
+                            left: Math.cos(angle) * d - sz / 2, top: Math.sin(angle) * d - sz / 2,
+                            background: `radial-gradient(circle at 35% 30%, #bbf7d0aa, #4ade8066, transparent)`,
+                            border: `1px solid #4ade8066`,
+                            boxShadow: `0 0 10px #4ade8044, inset 0 0 6px #4ade8022`,
+                            animation: `venomCloud ${0.5 + (i % 3) * 0.12}s ease-out ${i * 0.05}s forwards`,
+                        }}
+                    />
+                );
+            });
+        }
+
+        if (affinity === "ASTRAL") {
+            const stars = level === 1 ? 5 : level === 2 ? 9 : 14;
+            return Array.from({ length: stars }).map((_, i) => {
+                const angle = (i / stars) * Math.PI * 2;
+                const d = spread * (0.4 + (i % 3) * 0.35);
+                const sz = 4 + (i % 4) * 4;
+                return (
+                    <div key={`as${i}`} className="absolute rounded-full pointer-events-none"
+                        style={{
+                            width: sz, height: sz,
+                            left: Math.cos(angle) * d - sz / 2, top: Math.sin(angle) * d - sz / 2,
+                            background: i % 2 === 0
+                                ? `radial-gradient(circle, #ffffff, #a5b4fc)`
+                                : `radial-gradient(circle, #e0e7ff, #818cf8)`,
+                            boxShadow: `0 0 ${sz * 2}px #818cf8, 0 0 ${sz * 4}px #818cf844`,
+                            animation: `centralFlash ${0.4 + (i % 3) * 0.1}s ease-out ${i * 0.04}s forwards`,
+                        }}
+                    />
+                );
+            });
+        }
+
+        if (affinity === "IRON") {
+            const sparks = level === 1 ? 6 : level === 2 ? 10 : 16;
+            return Array.from({ length: sparks }).map((_, i) => {
+                const angle = impactAngle + ((i / sparks) - 0.5) * Math.PI * 1.3;
+                const d = spread * (0.3 + (i % 3) * 0.4);
+                return (
+                    <div key={`ir${i}`} className="absolute pointer-events-none"
+                        style={{
+                            width: 2, height: 8 + (i % 4) * 5,
+                            left: Math.cos(angle) * d, top: Math.sin(angle) * d,
+                            background: `linear-gradient(180deg, #f1f5f9 0%, #94a3b8 50%, #475569 100%)`,
+                            boxShadow: `0 0 6px #cbd5e1, 0 0 12px #94a3b844`,
+                            transform: `rotate(${angle * 180 / Math.PI + 90}deg)`,
+                            animation: `particleFly ${0.3 + (i % 3) * 0.08}s ease-out ${i * 0.03}s forwards`,
+                            "--tx": `${Math.cos(angle) * (d + 25)}px`,
+                            "--ty": `${Math.sin(angle) * (d + 25)}px`,
+                        } as React.CSSProperties}
+                    />
+                );
+            });
+        }
+
+        if (affinity === "SHADE") {
+            const tentacles = level === 1 ? 4 : level === 2 ? 6 : 9;
+            return Array.from({ length: tentacles }).map((_, i) => {
+                const angle = impactAngle + ((i / tentacles) - 0.5) * Math.PI * 1.5;
+                const len = spread * (0.7 + (i % 3) * 0.4);
+                return (
+                    <div key={`sh${i}`} className="absolute pointer-events-none"
+                        style={{
+                            width: len, height: 4 + (i % 3) * 2,
+                            left: -len / 2, top: -(2 + (i % 3)),
+                            background: `linear-gradient(90deg, transparent 0%, #7c3aed88 30%, #4c1d95cc 60%, transparent 100%)`,
+                            boxShadow: `0 0 10px #7c3aedaa`,
+                            borderRadius: 4,
+                            transform: `rotate(${angle * 180 / Math.PI}deg)`,
+                            transformOrigin: "center center",
+                            animation: `shadeWave ${0.45 + (i % 3) * 0.1}s ease-out ${i * 0.05}s forwards`,
+                        }}
+                    />
+                );
+            });
+        }
+
         return null;
     };
 
@@ -674,20 +904,20 @@ function DistortionBar({
 
     // DIST MAX: usa rareza de la forma ACTUAL (ya es la última)
     if (info.isFinal) {
-        const rc = rarityColors[myth.rarity ?? "COMMON"] ?? rarityColors.COMMON;
         return (
             <div style={{ width: "100%", height: 15, marginTop: 3 }}>
                 <div style={{
                     width: "100%", height: "100%", borderRadius: 5,
-                    background: `linear-gradient(90deg, ${rc.dim} 0%, ${rc.fill}33 50%, ${rc.dim} 100%)`,
-                    border: `1px solid ${rc.glow}66`,
+                    background: "linear-gradient(270deg, #7c3aed, #a855f7, #c084fc, #9333ea, #7c3aed)",
+                    backgroundSize: "300% 300%",
+                    animation: "distortMaxShimmer 3s ease infinite, distortMaxGlow 2.2s ease-in-out infinite",
+                    border: "1px solid #a855f788",
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    boxShadow: `0 0 8px ${rc.glow}44`,
                 }}>
                     <span style={{
                         fontSize: "9px", fontFamily: "monospace", fontWeight: 900,
-                        color: rc.fill, letterSpacing: "0.14em",
-                        textShadow: `0 0 6px ${rc.glow}`,
+                        letterSpacing: "0.16em",
+                        animation: "distortMaxText 2.2s ease-in-out infinite",
                     }}>✦ DIST MAX ✦</span>
                 </div>
             </div>
@@ -743,7 +973,7 @@ interface ArenaMythProps {
     isActing?: boolean;
     targeted?: boolean;
     flashAffinity?: Affinity | null;
-    floatingDmg?: { value: number; crit: boolean; mult: number; heal?: boolean } | null;
+    floatingDmg?: { value: number; crit: boolean; mult: number; heal?: boolean; shieldAbsorbed?: number } | null;
     supportOverlay?: { text: string; color: string; glow: string } | null;
     koOverlay?: boolean;
     onClick?: () => void;
@@ -766,7 +996,9 @@ function ArenaMyth({
     spriteSize = 80,
     mythRef,
     distortionInfo,
-}: ArenaMythProps & { targetColor?: string }) {
+    statusBlockedOverlays = {},
+    statusEffectOverlays = {},
+}: ArenaMythProps & { targetColor?: string; statusBlockedOverlays?: Record<string, string>; statusEffectOverlays?: Record<string, string> }) {
     const cfg = flashAffinity ? AFFINITY_CONFIG[flashAffinity] : null;
     const canClick = onClick && !myth.defeated;
     const primaryAffinity = myth.affinities?.[0];
@@ -783,46 +1015,71 @@ function ArenaMyth({
             className={`relative flex flex-col items-center gap-0.5 select-none ${canClick ? "cursor-pointer" : ""}`}
             onClick={canClick ? onClick : undefined}
         >
-            {/* Buffs | Escudo | Debuffs — absolutos encima del sprite */}
+            {/* Buffs/Debuffs — 2 filas estilo LoL, absolutos encima del sprite */}
             {!myth.defeated && (buffs.length > 0 || debuffs.length > 0 || hasShield) && (
-                <div className="absolute flex gap-0.5 flex-wrap justify-center z-20 pointer-events-none" style={{ bottom: "100%", left: "50%", transform: "translateX(-50%)", marginBottom: 2 }}>
-                    {buffs.map((b, i) => (
-                        <span
-                            key={`buff${i}`}
-                            className="text-sm drop-shadow"
-                            style={{ filter: "drop-shadow(0 0 4px #3b82f6)" }}
-                            title={`${b.label ?? b.stat?.toUpperCase() ?? ""} ×${b.multiplier.toFixed(1)} (${b.turnsLeft}t)`}
-                        >
-                            {b.emoji}
-                        </span>
-                    ))}
-                    {/* Shield badge entre buffs y debuffs */}
-                    {hasShield && (
-                        <div style={{
-                            display: "inline-flex", alignItems: "center", gap: 1,
-                            background: "#1e40af", border: "1px solid #60a5fa",
-                            borderRadius: 4, padding: "1px 4px",
-                            boxShadow: "0 0 6px rgba(96,165,250,0.6)",
-                        }}>
-                            <span style={{ fontSize: "9px", color: "#60a5fa", lineHeight: 1 }}>🛡️</span>
-                            <span style={{ fontSize: "9px", fontFamily: "monospace", fontWeight: 900, color: "#bfdbfe", lineHeight: 1 }}>{myth.shieldTurns}</span>
+                <div className="absolute z-20 pointer-events-none flex flex-col items-center gap-0.5"
+                    style={{ bottom: "100%", left: "50%", transform: "translateX(-50%)", marginBottom: 3 }}>
+                    {/* Fila 1 — Buffs (verde) + escudo */}
+                    {(buffs.length > 0 || hasShield) && (
+                        <div className="flex gap-0.5 justify-center flex-wrap">
+                            {hasShield && (
+                                <div
+                                    title={`Escudo: ${myth.shield} pts · ${myth.shieldTurns}t`}
+                                    style={{
+                                        display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 2,
+                                        width: 22, height: 22, borderRadius: 4,
+                                        background: "linear-gradient(135deg, #1e3a8a, #1e40af)",
+                                        border: "1.5px solid #60a5fa",
+                                        boxShadow: "0 0 8px rgba(96,165,250,0.5)",
+                                    }}>
+                                    <span style={{ fontSize: "11px", lineHeight: 1 }}>🛡️</span>
+                                    <span style={{ fontSize: "8px", fontFamily: "monospace", fontWeight: 900, color: "#bfdbfe", lineHeight: 1 }}>{myth.shieldTurns}</span>
+                                </div>
+                            )}
+                            {buffs.map((b, i) => (
+                                <div key={`buff${i}`}
+                                    title={`${b.label ?? b.stat?.toUpperCase() ?? ""} ×${b.multiplier.toFixed(1)} (${b.turnsLeft}t)`}
+                                    style={{
+                                        width: 22, height: 22, borderRadius: 4,
+                                        display: "flex", alignItems: "center", justifyContent: "center",
+                                        background: "linear-gradient(135deg, #14532d, #166534)",
+                                        border: "1.5px solid #4ade80",
+                                        boxShadow: "0 0 6px rgba(74,222,128,0.4)",
+                                        fontSize: "12px", lineHeight: 1,
+                                    }}>
+                                    {b.emoji}
+                                </div>
+                            ))}
                         </div>
                     )}
-                    {debuffs.map((b, i) => (
-                        <span
-                            key={`debuff${i}`}
-                            className="text-sm drop-shadow"
-                            style={{ filter: "drop-shadow(0 0 4px #facc15)" }}
-                            title={`${b.label ?? b.stat?.toUpperCase() ?? ""} ×${b.multiplier.toFixed(1)} (${b.turnsLeft}t)`}
-                        >
-                            {b.emoji}
-                        </span>
-                    ))}
+                    {/* Fila 2 — Debuffs (rojo) */}
+                    {debuffs.length > 0 && (
+                        <div className="flex gap-0.5 justify-center flex-wrap">
+                            {debuffs.map((b, i) => (
+                                <div key={`debuff${i}`}
+                                    title={`${b.label ?? b.stat?.toUpperCase() ?? ""} ×${b.multiplier.toFixed(1)} (${b.turnsLeft}t)`}
+                                    style={{
+                                        width: 22, height: 22, borderRadius: 4,
+                                        display: "flex", alignItems: "center", justifyContent: "center",
+                                        background: "linear-gradient(135deg, #7f1d1d, #991b1b)",
+                                        border: "1.5px solid #f87171",
+                                        boxShadow: "0 0 6px rgba(248,113,113,0.4)",
+                                        fontSize: "12px", lineHeight: 1,
+                                    }}>
+                                    {b.emoji}
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             )}
 
             {/* Daño / curación flotante — no renderizar si es +0 */}
-            {floatingDmg && (!floatingDmg.heal || floatingDmg.value > 0) && (
+            {floatingDmg && (!floatingDmg.heal || floatingDmg.value > 0) && (() => {
+                const absorbed = floatingDmg.shieldAbsorbed ?? 0;
+                const realDmg = floatingDmg.heal ? 0 : Math.max(0, floatingDmg.value - absorbed);
+                const onlyShield = absorbed > 0 && realDmg === 0;
+                return (
                 <>
                     {/* Texto CRÍTICO — solo texto, rojo agresivo, animación propia más grande */}
                     {floatingDmg.crit && !floatingDmg.heal && (
@@ -844,28 +1101,73 @@ function ArenaMyth({
                             CRÍTICO
                         </div>
                     )}
-                    {/* Número de daño */}
-                    <div
-                        className={`absolute z-30 pointer-events-none font-black tracking-tighter
-                            ${floatingDmg.heal ? "animate-float-dmg" : floatingDmg.crit ? "animate-crit-dmg" : "animate-float-dmg"}
-                            ${floatingDmg.heal ? "text-emerald-400" : floatingDmg.crit ? "text-red-400" : floatingDmg.mult >= 2 ? "text-orange-400" : floatingDmg.mult <= 0.5 ? "text-blue-300" : "text-white"}`}
-                        style={{
-                            top: floatingDmg.crit ? -40 : -24,
-                            left: "50%",
-                            transform: "translateX(-50%)",
-                            fontSize: floatingDmg.crit ? "3.2rem" : "1.8rem",
-                            textShadow: floatingDmg.heal
-                                ? "0 0 12px #4ade80, 0 2px 4px rgba(0,0,0,0.8)"
-                                : floatingDmg.crit
-                                  ? "0 0 24px #ff2222, 0 0 50px #ff000088, 0 2px 6px rgba(0,0,0,1)"
-                                  : "0 0 10px currentColor, 0 2px 4px rgba(0,0,0,0.8)",
-                            letterSpacing: "-0.02em",
-                        }}
-                    >
-                        {floatingDmg.heal ? `+${floatingDmg.value}` : floatingDmg.value > 0 ? `-${floatingDmg.value}` : "¡Fallo!"}
-                    </div>
+                    {/* Número azul — escudo absorbido (siempre si absorbed > 0) */}
+                    {absorbed > 0 && (
+                        <div
+                            className="absolute z-30 pointer-events-none font-black tracking-tighter animate-float-dmg"
+                            style={{
+                                top: onlyShield ? (floatingDmg.crit ? -40 : -24) : -44,
+                                left: onlyShield ? "50%" : "38%",
+                                transform: "translateX(-50%)",
+                                fontSize: onlyShield ? (floatingDmg.crit ? "3.2rem" : "1.8rem") : "1.5rem",
+                                color: "#60a5fa",
+                                textShadow: "0 0 12px #3b82f6, 0 0 24px #3b82f688, 0 2px 4px rgba(0,0,0,0.9)",
+                                letterSpacing: "-0.02em",
+                                whiteSpace: "nowrap",
+                            }}
+                        >
+                            🛡️−{absorbed}
+                        </div>
+                    )}
+                    {/* Número blanco — daño real que pasa el escudo (solo si > 0) */}
+                    {!floatingDmg.heal && realDmg > 0 && (
+                        <div
+                            className={`absolute z-30 pointer-events-none font-black tracking-tighter
+                                ${floatingDmg.crit ? "animate-crit-dmg" : "animate-float-dmg"}
+                                ${floatingDmg.crit ? "text-red-400" : floatingDmg.mult >= 2 ? "text-orange-400" : floatingDmg.mult <= 0.5 ? "text-blue-300" : "text-white"}`}
+                            style={{
+                                top: absorbed > 0 ? -24 : (floatingDmg.crit ? -40 : -24),
+                                left: absorbed > 0 ? "62%" : "50%",
+                                transform: "translateX(-50%)",
+                                fontSize: absorbed > 0 ? "1.5rem" : (floatingDmg.crit ? "3.2rem" : "1.8rem"),
+                                textShadow: floatingDmg.crit
+                                    ? "0 0 24px #ff2222, 0 0 50px #ff000088, 0 2px 6px rgba(0,0,0,1)"
+                                    : "0 0 10px currentColor, 0 2px 4px rgba(0,0,0,0.8)",
+                                letterSpacing: "-0.02em",
+                                whiteSpace: "nowrap",
+                            }}
+                        >
+                            −{realDmg}
+                        </div>
+                    )}
+                    {/* Curación */}
+                    {floatingDmg.heal && floatingDmg.value > 0 && (
+                        <div
+                            className="absolute z-30 pointer-events-none font-black tracking-tighter animate-float-dmg text-emerald-400"
+                            style={{
+                                top: -24,
+                                left: "50%",
+                                transform: "translateX(-50%)",
+                                fontSize: "1.8rem",
+                                textShadow: "0 0 12px #4ade80, 0 2px 4px rgba(0,0,0,0.8)",
+                                letterSpacing: "-0.02em",
+                            }}
+                        >
+                            +{floatingDmg.value}
+                        </div>
+                    )}
+                    {/* Fallo */}
+                    {!floatingDmg.heal && floatingDmg.value === 0 && absorbed === 0 && (
+                        <div
+                            className="absolute z-30 pointer-events-none font-black tracking-tighter animate-float-dmg text-white"
+                            style={{ top: -24, left: "50%", transform: "translateX(-50%)", fontSize: "1.8rem", textShadow: "0 2px 4px rgba(0,0,0,0.8)" }}
+                        >
+                            ¡Fallo!
+                        </div>
+                    )}
                 </>
-            )}
+                );
+            })()}
 
             {/* Support overlay — BUFF / DEBUFF / STATUS */}
             {supportOverlay && (
@@ -884,6 +1186,201 @@ function ArenaMyth({
                     {supportOverlay.text}
                 </div>
             )}
+
+            {/* Status effect overlay — al aplicar o tick, CSS puro sin emojis */}
+            {statusEffectOverlays[myth.instanceId] && !myth.defeated && (() => {
+                const st = statusEffectOverlays[myth.instanceId];
+                const sz = spriteSize;
+                const cx = sz / 2;
+
+                if (st === "burn") return (
+                    <div className="absolute inset-0 pointer-events-none z-30" style={{ animation: "burnApply 1.6s ease-out forwards" }}>
+                        {[0,1,2,3,4].map(i => {
+                            const x = 15 + (i * 17);
+                            const delay = i * 0.12;
+                            const h = 30 + (i % 3) * 15;
+                            return (
+                                <div key={i} className="absolute" style={{
+                                    left: `${x}%`, bottom: "5%",
+                                    width: 8 + (i%2)*4, height: h,
+                                    background: `linear-gradient(180deg, #fff200 0%, #ff6b00 40%, #ff4500 80%, transparent 100%)`,
+                                    borderRadius: "50% 50% 20% 20%",
+                                    transformOrigin: "bottom center",
+                                    animation: `burnFlameRise ${0.5 + delay}s ease-out ${delay}s forwards, burnFlameFlicker 0.2s ease-in-out ${delay}s infinite`,
+                                    filter: "blur(1px)",
+                                    opacity: 0.9,
+                                }} />
+                            );
+                        })}
+                    </div>
+                );
+
+                if (st === "poison") return (
+                    <div className="absolute inset-0 pointer-events-none z-30">
+                        {[0,1,2,3,4,5].map(i => {
+                            const x = 10 + (i * 14);
+                            const delay = i * 0.1;
+                            const bs = 6 + (i%3)*4;
+                            return (
+                                <div key={i} className="absolute rounded-full" style={{
+                                    left: `${x}%`, bottom: `${15 + (i%2)*10}%`,
+                                    width: bs, height: bs,
+                                    background: "radial-gradient(circle at 35% 30%, #bbf7d0, #4ade80)",
+                                    border: "1px solid #4ade8088",
+                                    animation: `poisonBubbleRise ${0.6 + delay}s ease-out ${delay}s forwards, poisonBubblePop 0.2s ease-out ${0.4 + delay}s forwards`,
+                                    boxShadow: "0 0 6px #4ade8066",
+                                }} />
+                            );
+                        })}
+                    </div>
+                );
+
+                if (st === "paralyze") return (
+                    <div className="absolute inset-0 pointer-events-none z-30" style={{ animation: "paralyzeShake 0.5s ease-in-out 0.1s 2" }}>
+                        {[0,1,2].map(i => {
+                            const y = 20 + i * 25;
+                            const delay = i * 0.08;
+                            return (
+                                <div key={i} className="absolute" style={{
+                                    left: "5%", top: `${y}%`,
+                                    width: "90%", height: 3,
+                                    background: `linear-gradient(90deg, transparent, #fde047, #ffffff, #fde047, transparent)`,
+                                    boxShadow: "0 0 8px #fde047, 0 0 16px #fde04766",
+                                    animation: `paralyzeZigzag ${0.4 + delay}s ease-out ${delay}s forwards`,
+                                    clipPath: "polygon(0% 50%, 8% 0%, 16% 50%, 24% 0%, 32% 50%, 40% 0%, 48% 50%, 56% 0%, 64% 50%, 72% 0%, 80% 50%, 88% 0%, 100% 50%, 88% 100%, 80% 50%, 72% 100%, 64% 50%, 56% 100%, 48% 50%, 40% 100%, 32% 50%, 24% 100%, 16% 50%, 8% 100%, 0% 50%)",
+                                }} />
+                            );
+                        })}
+                    </div>
+                );
+
+                if (st === "freeze") return (
+                    <div className="absolute inset-0 pointer-events-none z-30">
+                        {/* Overlay helado */}
+                        <div className="absolute inset-0 rounded" style={{
+                            background: "radial-gradient(circle, rgba(125,211,252,0.25) 0%, rgba(56,189,248,0.15) 60%, transparent 100%)",
+                            animation: "freezeOverlay 1.2s ease-out forwards",
+                        }} />
+                        {/* Cristales desde los bordes */}
+                        {[0,1,2,3,4,5].map(i => {
+                            const angle = (i / 6) * 360;
+                            const fromEdge = i % 2 === 0;
+                            return (
+                                <div key={i} className="absolute" style={{
+                                    left: "50%", top: fromEdge ? "0%" : "90%",
+                                    marginLeft: -2,
+                                    width: 4, height: 20 + (i%3)*12,
+                                    background: `linear-gradient(${fromEdge ? 180 : 0}deg, #ffffff 0%, #bae6fd 50%, #7dd3fc 100%)`,
+                                    boxShadow: "0 0 6px #7dd3fc",
+                                    transformOrigin: fromEdge ? "top center" : "bottom center",
+                                    transform: `rotate(${angle * 0.25}deg)`,
+                                    animation: `freezeCrystalGrow ${0.35 + i*0.05}s ease-out ${i*0.06}s forwards`,
+                                    borderRadius: "2px 2px 0 0",
+                                }} />
+                            );
+                        })}
+                    </div>
+                );
+
+                if (st === "fear") return (
+                    <div className="absolute inset-0 pointer-events-none z-30" style={{ animation: "fearShrink 0.8s ease-in-out 2" }}>
+                        {/* Espiral giratoria */}
+                        <div className="absolute" style={{
+                            left: "50%", top: "50%",
+                            marginLeft: -cx * 0.8, marginTop: -cx * 0.8,
+                            width: cx * 1.6, height: cx * 1.6,
+                            border: "2px solid #c084fc",
+                            borderRadius: "50%",
+                            borderStyle: "dashed",
+                            boxShadow: "0 0 12px #a855f766",
+                            animation: "fearSpiral 1.0s ease-out forwards",
+                        }} />
+                        <div className="absolute" style={{
+                            left: "50%", top: "50%",
+                            marginLeft: -cx * 0.55, marginTop: -cx * 0.55,
+                            width: cx * 1.1, height: cx * 1.1,
+                            border: "1.5px solid #a855f7",
+                            borderRadius: "50%",
+                            borderStyle: "dotted",
+                            animation: "fearSpiral 0.8s ease-out 0.15s forwards",
+                        }} />
+                    </div>
+                );
+
+                if (st === "stun") return (
+                    <div className="absolute pointer-events-none z-30" style={{
+                        left: "50%", top: -16,
+                        width: 0, height: 0,
+                        animation: "stunFadeInOut 1.8s ease-out forwards",
+                    }}>
+                        {[0,1,2].map(i => (
+                            <div key={i} className="absolute" style={{
+                                width: 8, height: 8,
+                                marginLeft: -4, marginTop: -4,
+                                background: i === 0 ? "#fde047" : i === 1 ? "#facc15" : "#fbbf24",
+                                borderRadius: "50% 50% 40% 40%",
+                                boxShadow: `0 0 8px ${i === 0 ? "#fde047" : "#facc15"}`,
+                                transformOrigin: "0 0",
+                                animation: i === 0 ? "stunOrbit1 0.7s linear infinite" : i === 1 ? "stunOrbit2 0.7s linear infinite" : "stunOrbit3 0.7s linear infinite",
+                            }} />
+                        ))}
+                    </div>
+                );
+
+                if (st === "curse") return (
+                    <div className="absolute inset-0 pointer-events-none z-30">
+                        {/* Aura oscura */}
+                        <div className="absolute inset-0 rounded" style={{
+                            background: "radial-gradient(circle, rgba(124,58,237,0.35) 0%, rgba(76,29,149,0.2) 60%, transparent 100%)",
+                            animation: "curseAura 1.4s ease-out forwards",
+                        }} />
+                        {/* Tentáculos */}
+                        {[0,1,2,3].map(i => {
+                            const angles = ["0deg","90deg","180deg","270deg"];
+                            return (
+                                <div key={i} className="absolute" style={{
+                                    left: "50%", top: "50%",
+                                    marginLeft: -cx * 0.6, marginTop: -1.5,
+                                    width: cx * 1.2, height: 3,
+                                    background: `linear-gradient(90deg, transparent, #7c3aed, #a855f7, transparent)`,
+                                    borderRadius: 2,
+                                    transformOrigin: `${cx * 0.6}px center`,
+                                    ["--angle" as any]: angles[i],
+                                    transform: `rotate(${angles[i]})`,
+                                    animation: `curseTentacle ${0.6 + i*0.1}s ease-in-out ${i*0.1}s forwards`,
+                                    boxShadow: "0 0 8px #a855f7",
+                                } as React.CSSProperties} />
+                            );
+                        })}
+                    </div>
+                );
+
+                return null;
+            })()}
+
+            {/* Status blocked overlay — pierde turno por estado */}
+            {statusBlockedOverlays[myth.instanceId] && (() => {
+                const st = statusBlockedOverlays[myth.instanceId];
+                const sc = STATUS_LOG_COLORS[st] ?? "#94a3b8";
+                const blockText: Record<string, string> = { burn:"¡QUEMADO!", poison:"¡ENVENENADO!", paralyze:"¡PARALIZADO!", freeze:"¡CONGELADO!", fear:"¡ASUSTADO!", stun:"¡ATURDIDO!", curse:"¡MALDITO!" };
+                return (
+                    <div className="absolute z-50 pointer-events-none"
+                        style={{ top: "50%", left: "50%", transform: "translateX(-50%) translateY(-50%)", animation: "statusBlockedOverlay 2s ease-out forwards" }}>
+                        <div style={{
+                            display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
+                            background: `rgba(7,11,20,0.88)`, borderRadius: 10,
+                            border: `2px solid ${sc}`,
+                            padding: "8px 12px",
+                            boxShadow: `0 0 20px ${sc}66, 0 0 40px ${sc}33`,
+                        }}>
+                            <StatusIcon status={st} size={36} />
+                            <span style={{ fontSize: "11px", fontFamily: "monospace", fontWeight: 900, color: sc, letterSpacing: "0.1em", whiteSpace: "nowrap", textShadow: `0 0 8px ${sc}` }}>
+                                {blockText[st] ?? st.toUpperCase()}
+                            </span>
+                        </div>
+                    </div>
+                );
+            })()}
 
             {/* KO overlay — lanzado desde lejos, aplasta al myth */}
             {koOverlay && (
@@ -979,23 +1476,20 @@ function ArenaMyth({
                 {myth.defeated ? (
                     <span className="text-4xl opacity-30">💀</span>
                 ) : (
-                    <MythArt
-                        art={myth.art}
-                        px={spriteSize}
-                        className={[
-                            cfg ? "animate-myth-shake" : isActing ? "animate-myth-idle" : "",
-                            myth.status ? `aura-${myth.status}` : "",
-                            isActing && !myth.defeated ? "active-aura-glow" : "",
-                        ].filter(Boolean).join(" ")}
-                    />
+                    <>
+                        <MythArt
+                            art={myth.art}
+                            px={spriteSize}
+                            className={[
+                                cfg ? "animate-myth-shake" : isActing ? "animate-myth-idle" : "",
+                                isActing && !myth.defeated ? "active-aura-glow" : "",
+                            ].filter(Boolean).join(" ")}
+                        />
+
+                    </>
                 )}
 
-                {/* Estado alterado */}
-                {myth.status && !myth.defeated && (
-                    <span className="absolute -top-1 -right-1 text-sm z-20 drop-shadow">
-                        {STATUS_ICONS[myth.status] ?? "⚠️"}
-                    </span>
-                )}
+
                 {/* Escudo */}
                 {(myth.shield ?? 0) > 0 && !myth.defeated && (
                     <span className="absolute -top-1 -left-1 text-sm z-20">🛡️</span>
@@ -1012,20 +1506,26 @@ function ArenaMyth({
                 {/* Nombre con icono de afinidad */}
                 <div className="flex items-center gap-1 justify-center" style={{ maxWidth: Math.max(spriteSize, 96) }}>
                     {isActing && !myth.defeated && <span className="text-yellow-400 animate-pulse" style={{ fontSize: "13px" }}>▶</span>}
-                    {primaryAffinity && afCfg && (
-                        <div
-                            className="flex-shrink-0 flex items-center justify-center rounded-full font-black"
-                            title={primaryAffinity}
-                            style={{
-                                width: 18, height: 18,
-                                background: afCfg.color,
-                                boxShadow: `0 0 6px ${afCfg.glow}bb`,
-                                fontSize: "8px", color: "#fff",
-                                textShadow: "0 1px 2px rgba(0,0,0,0.9)",
-                                flexShrink: 0,
-                            }}
-                        >
-                            {primaryAffinity.slice(0, 2).toUpperCase()}
+                    {myth.affinities?.length > 0 && (
+                        <div className="flex-shrink-0 flex items-center gap-0.5">
+                            {myth.affinities.slice(0, 2).map((aff, ai) => {
+                                const ac = AFFINITY_CONFIG[aff as Affinity];
+                                if (!ac) return null;
+                                return (
+                                    <div key={ai}
+                                        title={aff}
+                                        style={{
+                                            width: 20, height: 20, borderRadius: "50%",
+                                            background: `${ac.glow}33`,
+                                            border: `1.5px solid ${ac.glow}88`,
+                                            boxShadow: `0 0 6px ${ac.glow}66`,
+                                            display: "flex", alignItems: "center", justifyContent: "center",
+                                            flexShrink: 0,
+                                        }}>
+                                        <AffinityIcon affinity={aff} size={14} />
+                                    </div>
+                                );
+                            })}
                         </div>
                     )}
                     <p
@@ -1080,86 +1580,108 @@ function ArenaMyth({
                             const isPlayerSide = side === "player";
                             return (
                             <div style={{ width: "100%", display: "flex", alignItems: "center", gap: 0, position: "relative" }}>
-                            {/* Botón ⓘ */}
+                            {/* Botón stats — icono 3 líneas */}
                             <button
                                 ref={btnRef}
                                 onClick={(e) => { e.stopPropagation(); setShowPop(v => !v); }}
                                 style={{
                                     flexShrink: 0,
-                                    height: 24, width: 22,
+                                    height: 30, width: 20,
                                     display: "flex", alignItems: "center", justifyContent: "center",
-                                    background: showPop ? "#e2e8f0" : "#cbd5e1",
-                                    border: "1px solid #334155",
+                                    background: showPop ? "#334155" : "#1e293b",
+                                    border: "1px solid #475569",
                                     borderRight: "none",
-                                    borderRadius: "12px 0 0 12px",
+                                    borderRadius: "14px 0 0 14px",
                                     cursor: "pointer",
-                                    color: "#0f172a",
-                                    fontSize: "11px", lineHeight: 1,
                                     transition: "background 0.15s",
+                                    padding: 0,
                                 }}
                             >
-                                ⓘ
+                                <svg width="11" height="10" viewBox="0 0 11 10" fill="none">
+                                    <line x1="2" y1="2" x2="9" y2="2" stroke={showPop ? "#e2e8f0" : "#94a3b8"} strokeWidth="1.3" strokeLinecap="round"/>
+                                    <line x1="2" y1="5" x2="9" y2="5" stroke={showPop ? "#e2e8f0" : "#94a3b8"} strokeWidth="1.3" strokeLinecap="round"/>
+                                    <line x1="2" y1="8" x2="6.5" y2="8" stroke={showPop ? "#e2e8f0" : "#94a3b8"} strokeWidth="1.3" strokeLinecap="round"/>
+                                </svg>
                             </button>
                             {/* Popover bocadillo */}
                             {showPop && (
+                                <>
+                                {/* Backdrop oscuro */}
+                                <div
+                                    onClick={(e) => { e.stopPropagation(); setShowPop(false); }}
+                                    style={{
+                                        position: "fixed", inset: 0,
+                                        background: "rgba(0,0,0,0.6)",
+                                        zIndex: 9998,
+                                        backdropFilter: "blur(2px)",
+                                    }}
+                                />
                                 <div
                                     ref={popRef}
                                     onClick={e => e.stopPropagation()}
                                     style={{
-                                        position: "absolute",
-                                        bottom: "calc(100% + 8px)",
-                                        left: isPlayerSide ? 0 : "auto",
-                                        right: isPlayerSide ? "auto" : 0,
-                                        width: 220,
+                                        position: "fixed",
+                                        top: "50%", left: "50%",
+                                        transform: "translate(-50%, -50%)",
+                                        width: 340,
+                                        maxHeight: "80vh",
+                                        overflowY: "auto",
                                         zIndex: 9999,
                                         background: "rgba(7,11,20,0.98)",
-                                        border: `1px solid ${rc2.border}66`,
-                                        borderTop: `2px solid ${rc2.border}`,
-                                        borderRadius: 8,
-                                        boxShadow: `0 0 24px ${rc2.border}22, 0 8px 32px rgba(0,0,0,0.85)`,
+                                        border: `1px solid ${rc2.border}88`,
+                                        borderTop: `3px solid ${rc2.border}`,
+                                        borderRadius: 12,
+                                        boxShadow: `0 0 0 1px ${rc2.border}22, 0 0 60px ${rc2.border}33, 0 24px 80px rgba(0,0,0,0.95)`,
                                         overflow: "hidden",
-                                        // Triángulo CSS apuntando hacia abajo
+                                        animation: "modalPopIn 0.22s cubic-bezier(0.34,1.56,0.64,1) forwards",
+                                        backdropFilter: "blur(12px)",
                                     }}
                                 >
-                                    {/* Triángulo */}
-                                    <div style={{
-                                        position: "absolute",
-                                        bottom: -7,
-                                        left: isPlayerSide ? 10 : "auto",
-                                        right: isPlayerSide ? "auto" : 10,
-                                        width: 12, height: 7,
-                                        overflow: "hidden",
-                                    }}>
-                                        <div style={{
-                                            width: 10, height: 10,
-                                            background: "rgba(7,11,20,0.98)",
-                                            border: `1px solid ${rc2.border}66`,
-                                            transform: "rotate(45deg)",
-                                            marginTop: -5,
-                                            marginLeft: 1,
-                                        }} />
-                                    </div>
 
-                                    {/* Header */}
+
+                                    {/* Header con portrait */}
                                     <div style={{
-                                        padding: "8px 10px 6px",
-                                        background: rc2.bg,
-                                        borderBottom: `1px solid ${rc2.border}33`,
-                                        display: "flex", alignItems: "center", justifyContent: "space-between",
+                                        padding: "12px 14px 10px",
+                                        background: `linear-gradient(135deg, ${rc2.bg} 0%, rgba(7,11,20,0.6) 100%)`,
+                                        borderBottom: `1px solid ${rc2.border}44`,
+                                        display: "flex", alignItems: "center", gap: 10,
                                     }}>
-                                        <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0, flex: 1 }}>
+                                        {/* Portrait */}
+                                        {myth.art?.portrait && (
+                                            <div style={{
+                                                width: 60, height: 60, flexShrink: 0,
+                                                borderRadius: 8,
+                                                border: `2px solid ${rc2.border}88`,
+                                                overflow: "hidden",
+                                                background: "rgba(0,0,0,0.3)",
+                                                boxShadow: `0 0 12px ${rc2.border}44`,
+                                            }}>
+                                                <img src={myth.art.portrait} alt={myth.name}
+                                                    style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                            </div>
+                                        )}
+                                        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 4 }}>
                                             <span style={{
                                                 fontFamily: "'Rajdhani', sans-serif", fontWeight: 900,
-                                                fontSize: "13px", color: rc2.color, letterSpacing: "0.03em",
+                                                fontSize: "16px", color: rc2.color, letterSpacing: "0.04em",
                                                 overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                                                textShadow: `0 0 12px ${rc2.border}66`,
                                             }}>{myth.name}</span>
-                                            <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
-                                                <span style={{ fontSize: "9px", color: "#93c5fd", fontFamily: "monospace", fontWeight: 900, background: "rgba(29,78,216,0.3)", border: "1px solid rgba(59,130,246,0.4)", borderRadius: 3, padding: "1px 5px" }}>Lv{myth.level}</span>
-                                                {afCfg2 && <span style={{ fontSize: "9px", color: afCfg2.glow, fontFamily: "monospace", fontWeight: 900, background: `${afCfg2.glow}22`, border: `1px solid ${afCfg2.glow}44`, borderRadius: 3, padding: "1px 5px" }}>{afCfg2.emoji} {afCfg2.label.toUpperCase()}</span>}
-                                                <span style={{ fontSize: "9px", color: rc2.color, fontFamily: "monospace", fontWeight: 900, background: rc2.bg, border: `1px solid ${rc2.border}44`, borderRadius: 3, padding: "1px 5px" }}>{rar}</span>
+                                            <div style={{ display: "flex", gap: 5, alignItems: "center", flexWrap: "wrap" }}>
+                                                <span style={{ fontSize: "10px", color: "#93c5fd", fontFamily: "monospace", fontWeight: 900, background: "rgba(29,78,216,0.35)", border: "1px solid rgba(59,130,246,0.5)", borderRadius: 4, padding: "2px 6px" }}>Lv{myth.level}</span>
+                                                {myth.affinities?.map((aff, ai) => {
+                                                    const ac = AFFINITY_CONFIG[aff as Affinity];
+                                                    if (!ac) return null;
+                                                    return (
+                                                        <span key={ai} style={{ fontSize: "10px", color: ac.glow, fontFamily: "monospace", fontWeight: 900, background: `${ac.glow}22`, border: `1px solid ${ac.glow}55`, borderRadius: 4, padding: "2px 6px", display: "inline-flex", alignItems: "center", gap: 3 }}>
+                                                            <AffinityIcon affinity={aff} size={12} /> {ac.label.toUpperCase()}
+                                                        </span>
+                                                    );
+                                                })}
+                                                <span style={{ fontSize: "10px", color: rc2.color, fontFamily: "monospace", fontWeight: 900, background: rc2.bg, border: `1px solid ${rc2.border}55`, borderRadius: 4, padding: "2px 6px" }}>{rar}</span>
                                             </div>
                                         </div>
-                                        <button onClick={() => setShowPop(false)} style={{ background: "none", border: "none", color: "#475569", cursor: "pointer", fontSize: "12px", padding: "0 2px", lineHeight: 1, flexShrink: 0 }}>✕</button>
+                                        <button onClick={() => setShowPop(false)} style={{ background: "none", border: "none", color: "#475569", cursor: "pointer", fontSize: "16px", padding: "4px", lineHeight: 1, flexShrink: 0, borderRadius: 4 }}>✕</button>
                                     </div>
 
                                     {/* HP */}
@@ -1177,7 +1699,7 @@ function ArenaMyth({
                                     </div>
 
                                     {/* Stats */}
-                                    <div style={{ padding: "6px 10px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2px 8px" }}>
+                                    <div style={{ padding: "10px 16px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 20px" }}>
                                         {[
                                             { icon: "⚔️", label: "ATK",  val: myth.attack },
                                             { icon: "🛡️", label: "DEF",  val: myth.defense },
@@ -1186,24 +1708,24 @@ function ArenaMyth({
                                             { icon: "💥", label: "CRIT", val: `${myth.critChance ?? 15}%` },
                                             { icon: "🔥", label: "C.DMG",val: `×${myth.critDamage ? (myth.critDamage <= 150 ? 1.5 : Math.round((1.5 + Math.min(0.75,(myth.critDamage-150)*0.005))*100)/100) : 1.5}` },
                                         ].map(({ icon, label, val }) => (
-                                            <div key={label} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                                                <span style={{ fontSize: "9px" }}>{icon}</span>
-                                                <span style={{ fontSize: "8px", fontFamily: "monospace", color: "#475569", width: 30, flexShrink: 0 }}>{label}</span>
-                                                <span style={{ fontSize: "10px", fontFamily: "monospace", fontWeight: 900, color: "#cbd5e1" }}>{val}</span>
+                                            <div key={label} style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
+                                                <span style={{ fontSize: "11px", flexShrink: 0 }}>{icon}</span>
+                                                <span style={{ fontSize: "8px", fontFamily: "monospace", color: "#475569", width: 34, flexShrink: 0 }}>{label}</span>
+                                                <span style={{ fontSize: "11px", fontFamily: "monospace", fontWeight: 900, color: "#cbd5e1" }}>{val}</span>
                                             </div>
                                         ))}
                                     </div>
 
                                     {/* Status */}
                                     {myth.status && (
-                                        <div style={{ margin: "0 10px 6px", padding: "3px 6px", borderRadius: 4, background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", display: "flex", alignItems: "center", gap: 4 }}>
-                                            <span style={{ fontSize: "10px" }}>{myth.status === "burn" ? "🔥" : myth.status === "poison" ? "☠️" : myth.status === "paralyze" ? "⚡" : myth.status === "freeze" ? "❄️" : myth.status === "fear" ? "😨" : myth.status === "stun" ? "💫" : "💀"}</span>
-                                            <span style={{ fontSize: "8px", fontFamily: "monospace", color: "#f87171", fontWeight: 700, textTransform: "uppercase" }}>{myth.status} · {myth.statusTurnsLeft}t</span>
+                                        <div style={{ margin: "0 12px 8px", padding: "4px 8px", borderRadius: 4, background: `${STATUS_LOG_COLORS[myth.status] ?? "#ef4444"}18`, border: `1px solid ${STATUS_LOG_COLORS[myth.status] ?? "#ef4444"}33`, display: "flex", alignItems: "center", gap: 6 }}>
+                                            <StatusIcon status={myth.status} size={16} />
+                                            <span style={{ fontSize: "8px", fontFamily: "monospace", color: STATUS_LOG_COLORS[myth.status] ?? "#f87171", fontWeight: 700, textTransform: "uppercase" }}>{myth.status} · {myth.statusTurnsLeft}t</span>
                                         </div>
                                     )}
 
                                     {/* Moves */}
-                                    <div style={{ padding: "0 10px 8px", display: "flex", flexDirection: "column", gap: 3 }}>
+                                    <div style={{ padding: "4px 14px 12px", display: "flex", flexDirection: "column", gap: 5 }}>
                                         <p style={{ fontSize: "8px", fontFamily: "monospace", color: "#334155", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 2 }}>Movimientos</p>
                                         {myth.moves.map((move) => {
                                             const mCfg = AFFINITY_CONFIG[move.affinity];
@@ -1218,7 +1740,7 @@ function ArenaMyth({
                                                     border: `1px solid ${onCd ? "rgba(255,255,255,0.04)" : mCfg.glow + "2a"}`,
                                                     opacity: onCd ? 0.45 : 1,
                                                 }}>
-                                                    <span style={{ fontSize: "11px", flexShrink: 0 }}>{mCfg.emoji}</span>
+                                                    <AffinityIcon affinity={move.affinity} size={16} />
                                                     <span style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: "11px", fontWeight: 900, color: onCd ? "#334155" : "#e2e8f0", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{move.name}</span>
                                                     <span style={{ fontSize: "7px", fontFamily: "monospace", color: lvlColor, fontWeight: 900, background: `${lvlColor}18`, borderRadius: 2, padding: "1px 3px", flexShrink: 0 }}>{lvl}</span>
                                                     {onCd && <span style={{ fontSize: "8px", fontFamily: "monospace", color: "#ef4444", fontWeight: 900, flexShrink: 0 }}>CD{myth.cooldownsLeft[move.id]}</span>}
@@ -1227,11 +1749,12 @@ function ArenaMyth({
                                         })}
                                     </div>
                                 </div>
+                                </>
                             )}
                             {/* Lv badge */}
                             <div
                                 style={{
-                                    flexShrink: 0, height: 24, minWidth: 32,
+                                    flexShrink: 0, height: 30, minWidth: 34,
                                     display: "flex", alignItems: "center", justifyContent: "center",
                                     background: "#1d4ed8",
                                     border: "1px solid #3b82f6",
@@ -1245,8 +1768,8 @@ function ArenaMyth({
                                 {`Lv${myth.level}`}
                             </div>
                             {/* Barra HP */}
-                            <div style={{ flex: 1, position: "relative", height: 24, borderRadius: "0 12px 12px 0", overflow: "visible" }}>
-                                <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)", borderRadius: "0 12px 12px 0", border: "1px solid rgba(255,255,255,0.08)", borderLeft: "none", overflow: "hidden" }}>
+                            <div style={{ flex: 1, position: "relative", height: 30, borderRadius: "0 14px 14px 0", overflow: "visible" }}>
+                                <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)", borderRadius: "0 14px 14px 0", border: "1px solid rgba(255,255,255,0.08)", borderLeft: "none", overflow: "hidden" }}>
                                 {(() => {
                                     const pct = myth.maxHp > 0 ? Math.max(0, (myth.hp / myth.maxHp) * 100) : 0;
                                     const shield = myth.shield ?? 0;
@@ -1263,7 +1786,7 @@ function ArenaMyth({
                                             )}
                                             <div className="absolute inset-0 flex items-center justify-center" style={{ zIndex: 2 }}>
                                                 <span className="font-mono font-black tabular-nums leading-none select-none"
-                                                    style={{ fontSize: "12px", color: "#ffffff", textShadow: "0 1px 4px rgba(0,0,0,1)", whiteSpace: "nowrap" }}>
+                                                    style={{ fontSize: "13px", color: "#ffffff", textShadow: "0 1px 4px rgba(0,0,0,1)", whiteSpace: "nowrap" }}>
                                                     {myth.hp}<span style={{ opacity: 0.75, fontWeight: 700 }}>/{myth.maxHp}</span>
                                                 </span>
                                             </div>
@@ -1283,6 +1806,32 @@ function ArenaMyth({
                                 info={distortionInfo}
                             />
                         )}
+
+                        {/* Estado alterado — fila propia debajo de la barra de distorsión */}
+                        {myth.status && (() => {
+                            const sc = STATUS_LOG_COLORS[myth.status] ?? "#94a3b8";
+                            const shortLabel: Record<string, string> = { burn:"BURN", poison:"VENENO", paralyze:"PARÁL.", freeze:"CONG.", fear:"MIEDO", stun:"STUN", curse:"MALDIC." };
+                            return (
+                                <div style={{ width: "100%", marginTop: 3 }}>
+                                    <div style={{
+                                        display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
+                                        background: `${sc}18`, border: `1px solid ${sc}44`,
+                                        borderRadius: 5, padding: "2px 6px",
+                                        boxShadow: `0 0 6px ${sc}33`,
+                                    }}>
+                                        <StatusIcon status={myth.status} size={14} />
+                                        <span style={{ fontSize: "9px", fontFamily: "monospace", fontWeight: 900, color: sc, letterSpacing: "0.06em", lineHeight: 1 }}>
+                                            {shortLabel[myth.status] ?? myth.status.toUpperCase()}
+                                        </span>
+                                        {myth.statusTurnsLeft > 0 && (
+                                            <span style={{ fontSize: "8px", fontFamily: "monospace", color: sc, opacity: 0.7, lineHeight: 1 }}>
+                                                {myth.statusTurnsLeft}t
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })()}
                     </>
                 )}
             </div>
@@ -1610,32 +2159,7 @@ export default function BattlePage() {
         return () => window.removeEventListener("resize", setAppHeight);
     }, []);
 
-    // ── Inyectar keyframes de los círculos mágicos (no dependen de Tailwind) ──
-    useEffect(() => {
-        const id = "mythara-circle-keyframes";
-        if (document.getElementById(id)) return;
-        const style = document.createElement("style");
-        style.id = id;
-        style.textContent = `
-            @keyframes circPulse { 0%,100%{opacity:0.55} 50%{opacity:1} }
-            @keyframes circSpin  { from{transform:translate(-50%,-50%) scaleY(0.38) rotate(0deg)} to{transform:translate(-50%,-50%) scaleY(0.38) rotate(360deg)} }
-            @keyframes distortFlash { 0%{opacity:0} 8%{opacity:1} 30%{opacity:0.85} 70%{opacity:0.7} 100%{opacity:0} }
-            @keyframes distortSpriteShake { 0%{transform:translateX(0) scale(1)} 15%{transform:translateX(-6px) scale(1.05)} 30%{transform:translateX(6px) scale(1.08)} 45%{transform:translateX(-4px) scale(1.06)} 60%{transform:translateX(4px) scale(1.04)} 75%{transform:translateX(-2px) scale(1.02)} 100%{transform:translateX(0) scale(1)} }
-            @keyframes distortSpriteOut { 0%{opacity:1;transform:scale(1) rotate(0deg)} 50%{opacity:0;transform:scale(1.4) rotate(-8deg)} 100%{opacity:0;transform:scale(1.6)} }
-            @keyframes distortSpriteIn  { 0%{opacity:0;transform:scale(0.5) rotate(4deg)} 60%{opacity:1;transform:scale(1.15) rotate(-1deg)} 80%{transform:scale(0.97)} 100%{opacity:1;transform:scale(1) rotate(0deg)} }
-            @keyframes distortNameIn    { 0%{opacity:0;transform:translateX(-50%) translateY(16px) scale(0.75)} 60%{opacity:1;transform:translateX(-50%) translateY(-5px) scale(1.08)} 100%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)} }
-            @keyframes distortRingOut   { 0%{opacity:0.95;transform:scale(0.4)} 100%{opacity:0;transform:scale(3)} }
-            @keyframes distortParticle  { 0%{opacity:1;transform:translate(0,0) scale(1)} 100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(0)} }
-            @keyframes distortGlitch    { 0%{clip-path:inset(0 0 100% 0)} 10%{clip-path:inset(20% 0 60% 0);transform:translateX(-4px)} 20%{clip-path:inset(60% 0 20% 0);transform:translateX(4px)} 30%{clip-path:inset(40% 0 40% 0);transform:translateX(-2px)} 50%{clip-path:inset(0 0 0 0);transform:translateX(0)} 100%{clip-path:inset(0 0 0 0)} }
-            @keyframes distortionBadgePulse { 0%,100%{opacity:0.6;transform:scale(1)} 50%{opacity:1;transform:scale(1.18)} }
-            @keyframes distortLegendaryBurst { 0%{opacity:0;transform:scale(0.3)} 40%{opacity:1;transform:scale(1.2)} 70%{transform:scale(0.95)} 100%{opacity:0;transform:scale(1.5)} }
-            @keyframes statusProjectile { 0%{opacity:1;transform:translate(0,0) scale(1)} 100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(0.3)} }
-            @keyframes statusBurn  { 0%,100%{box-shadow:0 0 8px #f97316, 0 0 16px #f9731688} 50%{box-shadow:0 0 20px #f97316, 0 0 40px #f97316aa} }
-            @keyframes statusFreeze{ 0%,100%{box-shadow:0 0 8px #67e8f9, 0 0 16px #67e8f988} 50%{box-shadow:0 0 20px #67e8f9, 0 0 40px #67e8f9aa} }
-        `;
-        document.head.appendChild(style);
-        return () => { document.getElementById(id)?.remove(); };
-    }, []);
+    // Keyframes de combate → apps/client/src/style.css
 
     // ── Aviso pantalla pequeña / móvil ──
     const [showScreenWarning, setShowScreenWarning] = useState(false);
@@ -1709,12 +2233,14 @@ export default function BattlePage() {
     const [projectile, setProjectile] = useState<ProjectileState | null>(null);
     const [flashMap, setFlashMap] = useState<Record<string, Affinity>>({});
     const [floatMap, setFloatMap] = useState<
-        Record<string, { value: number; crit: boolean; mult: number; heal?: boolean }>
+        Record<string, { value: number; crit: boolean; mult: number; heal?: boolean; shieldAbsorbed?: number }>
     >({});
 
     // Overlays flotantes sobre sprites
     const [supportOverlays, setSupportOverlays] = useState<Record<string, { text: string; color: string; glow: string }>>({});
     const [koOverlays, setKoOverlays] = useState<Record<string, boolean>>({});
+    const [statusBlockedOverlays, setStatusBlockedOverlays] = useState<Record<string, string>>({});
+    const [statusEffectOverlays, setStatusEffectOverlays] = useState<Record<string, string>>({});
     // Distorsión: overlay centrado en el sprite con efecto por rareza
     const [distortionOverlay, setDistortionOverlay] = useState<{
         instanceId: string;
@@ -1748,8 +2274,22 @@ export default function BattlePage() {
             el.style.animation = "";
         }
         setDistortionOverlay({ instanceId, newName, newAffinities, newRarity, spriteRect });
-        await sleep(3200);
+        await sleep(4500);
         setDistortionOverlay(null);
+    }
+
+    function showStatusEffect(instanceId: string, status: string, duration = 1400) {
+        setStatusEffectOverlays(prev => ({ ...prev, [instanceId]: status }));
+        setTimeout(() => {
+            setStatusEffectOverlays(prev => { const n = { ...prev }; delete n[instanceId]; return n; });
+        }, duration);
+    }
+
+    function showStatusBlockedOverlay(instanceId: string, status: string, duration = 2200) {
+        setStatusBlockedOverlays(prev => ({ ...prev, [instanceId]: status }));
+        setTimeout(() => {
+            setStatusBlockedOverlays(prev => { const n = { ...prev }; delete n[instanceId]; return n; });
+        }, duration);
     }
 
     function showSupportOverlay(instanceId: string, text: string, color: string, glow: string, duration = 1800) {
@@ -2059,9 +2599,10 @@ export default function BattlePage() {
         crit: boolean,
         mult: number,
         heal = false,
+        shieldAbsorbed = 0,
     ) {
         setFlashMap((m) => ({ ...m, [instanceId]: affinity }));
-        setFloatMap((m) => ({ ...m, [instanceId]: { value: dmg, crit, mult, heal } }));
+        setFloatMap((m) => ({ ...m, [instanceId]: { value: dmg, crit, mult, heal, shieldAbsorbed } }));
         await sleep(600);
         setFlashMap((m) => {
             const n = { ...m };
@@ -2107,33 +2648,49 @@ export default function BattlePage() {
         }
 
         const BUFF_OVERLAYS: Record<string, { text: string; color: string; glow: string }> = {
-            boost_atk:  { text: "⚔️ ATK UP!",   color: "#4ade80", glow: "#22c55e" },
-            boost_def:  { text: "🛡️ DEF UP!",   color: "#4ade80", glow: "#22c55e" },
-            boost_spd:  { text: "💨 SPD UP!",   color: "#4ade80", glow: "#22c55e" },
-            boost_acc:  { text: "🎯 ACC UP!",   color: "#4ade80", glow: "#22c55e" },
-            shield:     { text: "🛡️ BARRIER!",  color: "#60a5fa", glow: "#3b82f6" },
-            regen:      { text: "✨ REGEN!",     color: "#34d399", glow: "#10b981" },
-            heal:       { text: "💚 HEALING",   color: "#4ade80", glow: "#22c55e" },
+            boost_atk:  { text: "⚔️ ATK ▲",    color: "#4ade80", glow: "#22c55e" },
+            boost_def:  { text: "🛡️ DEF ▲",    color: "#34d399", glow: "#10b981" },
+            boost_spd:  { text: "💨 SPD ▲",    color: "#67e8f9", glow: "#06b6d4" },
+            boost_acc:  { text: "🎯 ACC ▲",    color: "#a3e635", glow: "#84cc16" },
+            shield:     { text: "🛡️ BARRERA",  color: "#93c5fd", glow: "#3b82f6" },
+            regen:      { text: "💚 REGEN",    color: "#34d399", glow: "#10b981" },
+            heal:       { text: "💚 CURACIÓN", color: "#4ade80", glow: "#22c55e" },
+            counter:    { text: "🔄 REFLEJO",  color: "#fde68a", glow: "#f59e0b" },
+            cleanse:    { text: "✨ PUREZA",   color: "#e0e7ff", glow: "#a5b4fc" },
         };
         const DEBUFF_OVERLAYS: Record<string, { text: string; color: string; glow: string }> = {
-            debuff_atk: { text: "⚔️ ATK DOWN!", color: "#f87171", glow: "#ef4444" },
-            debuff_def: { text: "🛡️ DEF DOWN!", color: "#f87171", glow: "#ef4444" },
-            debuff_spd: { text: "💨 SPD DOWN!", color: "#f87171", glow: "#ef4444" },
-            debuff_acc: { text: "🎯 ACC DOWN!", color: "#f87171", glow: "#ef4444" },
-            silence:    { text: "🔇 SILENCED",  color: "#94a3b8", glow: "#64748b" },
+            debuff_atk: { text: "⚔️ ATK ▼",   color: "#f87171", glow: "#ef4444" },
+            debuff_def: { text: "🛡️ DEF ▼",   color: "#fb923c", glow: "#f97316" },
+            debuff_spd: { text: "💨 SPD ▼",   color: "#fbbf24", glow: "#f59e0b" },
+            debuff_acc: { text: "🎯 ACC ▼",   color: "#f472b6", glow: "#ec4899" },
+            silence:    { text: "🔇 SILENCIO", color: "#94a3b8", glow: "#64748b" },
+            dispel:     { text: "💨 DISPEL",   color: "#a78bfa", glow: "#7c3aed" },
         };
         const STATUS_OVERLAYS: Record<string, { text: string; color: string; glow: string }> = {
-            burn:     { text: "🔥 BURN",      color: "#f97316", glow: "#f97316" },
-            poison:   { text: "☠️ POISON",    color: "#a855f7", glow: "#a855f7" },
-            freeze:   { text: "❄️ FROZEN",    color: "#67e8f9", glow: "#67e8f9" },
-            fear:     { text: "😨 FEARED",    color: "#c084fc", glow: "#a855f7" },
-            paralyze: { text: "⚡ PARALYZED", color: "#fde047", glow: "#fde047" },
-            stun:     { text: "💫 STUNNED",   color: "#fbbf24", glow: "#fbbf24" },
-            curse:    { text: "💀 CURSED",    color: "#818cf8", glow: "#818cf8" },
+            burn:     { text: "🔥 QUEMADO",   color: "#fb923c", glow: "#f97316" },
+            poison:   { text: "☠️ ENVENENADO",color: "#4ade80", glow: "#22c55e" },
+            freeze:   { text: "❄️ CONGELADO", color: "#7dd3fc", glow: "#38bdf8" },
+            fear:     { text: "😨 ASUSTADO",  color: "#c084fc", glow: "#a855f7" },
+            paralyze: { text: "⚡ PARALIZADO",color: "#fde047", glow: "#eab308" },
+            stun:     { text: "💫 ATURDIDO",  color: "#facc15", glow: "#ca8a04" },
+            curse:    { text: "💀 MALDITO",   color: "#a855f7", glow: "#7c3aed" },
         };
 
         if (action.blockedByStatus) {
             addLog(action.blockedByStatus, "status");
+            // Detectar qué estado bloquea para mostrar overlay prominente
+            const blockedStatus = action.actorStatus ?? (
+                action.blockedByStatus?.includes("quemad") || action.blockedByStatus?.includes("burn") ? "burn" :
+                action.blockedByStatus?.includes("paraliz") || action.blockedByStatus?.includes("paralyze") ? "paralyze" :
+                action.blockedByStatus?.includes("congel") || action.blockedByStatus?.includes("freeze") ? "freeze" :
+                action.blockedByStatus?.includes("miedo") || action.blockedByStatus?.includes("fear") ? "fear" :
+                action.blockedByStatus?.includes("aturdi") || action.blockedByStatus?.includes("stun") ? "stun" :
+                action.blockedByStatus?.includes("maldici") || action.blockedByStatus?.includes("curse") ? "curse" :
+                action.blockedByStatus?.includes("veneno") || action.blockedByStatus?.includes("poison") ? "poison" : null
+            );
+            if (blockedStatus) {
+                showStatusBlockedOverlay(action.actorInstanceId, blockedStatus, 2000);
+            }
         } else {
             const logPrefix = action.isPlayerMyth ? "" : "👾 ";
             // Buscar afinidades de actor y target para badges en el log
@@ -2200,29 +2757,33 @@ export default function BattlePage() {
                     || action.buffApplied?.type === "silence";
 
                 if (isBeneficial) {
-                    if (action.healAmount > 0) {
-                        await flashAndFloat(action.actorInstanceId, action.moveAffinity, action.healAmount, false, 1, true);
-                    }
                     const buffType = (action as any).shieldApplied ? "shield"
                         : action.buffApplied?.type ?? (action.healAmount > 0 ? "heal" : null);
                     const bo = buffType ? BUFF_OVERLAYS[buffType] : null;
-                    // Targets del buff: allTargetInstanceIds si es área, si no el actor mismo
+
+                    // Targets del buff: allTargetInstanceIds si llega del servidor (aliados), si no el actor mismo
+                    // IMPORTANTE: allTargetInstanceIds para moves all_allies contiene IDs de aliados — NO enemigos
                     const buffTargets: string[] = (action as any).allTargetInstanceIds?.length
                         ? (action as any).allTargetInstanceIds
                         : [action.actorInstanceId];
 
-                    // ── Proyectil beneficioso a cada aliado (escudo/buff de área) ──
-                    // Color: azul para escudo, color de afinidad para buffs, verde para curas
+                    // ── Proyectil beneficioso: vuela desde el actor hacia cada aliado ──
+                    // Color: azul para escudo (TIDE), verde para curas (GROVE), afinidad para buffs
                     const beneficialAffinity: Affinity = (action as any).shieldApplied
                         ? "TIDE"
                         : action.healAmount > 0 ? "GROVE" : action.moveAffinity as Affinity;
+
+                    // targetsToShoot: todos los aliados excepto el actor mismo
                     const targetsToShoot = buffTargets.filter(tid => tid !== action.actorInstanceId);
+
                     if (targetsToShoot.length > 0) {
-                        // Disparar en paralelo a todos los aliados simultáneamente (split visual)
-                        // Primero un destello en el actor
+                        // Destello inicial en el actor
                         showSupportOverlay(action.actorInstanceId, bo?.text ?? "✨", bo?.color ?? "#60a5fa", bo?.glow ?? "#3b82f6");
+                        if (action.healAmount > 0) {
+                            flashAndFloat(action.actorInstanceId, beneficialAffinity, action.healAmount, false, 1, true);
+                        }
                         await sleep(120);
-                        // Luego proyectiles a cada aliado
+                        // Proyectil hacia cada aliado
                         for (const tid of targetsToShoot) {
                             const pos = getProjectilePositions(action.actorInstanceId, tid);
                             if (pos) {
@@ -2231,10 +2792,17 @@ export default function BattlePage() {
                                 setProjectile({ affinity: beneficialAffinity, direction, level: 1, ...pos });
                                 await sleep(dur);
                                 setProjectile(null);
-                                // Pequeño impact en el aliado
                                 setExplosion({ x: pos.toX, y: pos.toY, fromX: pos.fromX, fromY: pos.fromY, affinity: beneficialAffinity, level: 1 });
+                                if (action.healAmount > 0) {
+                                    flashAndFloat(tid, beneficialAffinity, action.healAmount, false, 1, true);
+                                }
                                 await sleep(80);
                             }
+                        }
+                    } else {
+                        // Solo el actor (self-buff/self-heal)
+                        if (action.healAmount > 0) {
+                            await flashAndFloat(action.actorInstanceId, beneficialAffinity, action.healAmount, false, 1, true);
                         }
                     }
 
@@ -2263,7 +2831,11 @@ export default function BattlePage() {
                     }
                     if (action.statusApplied) {
                         const so = STATUS_OVERLAYS[action.statusApplied];
-                        if (so) await showSupportOverlay(action.targetInstanceId, so.text, so.color, so.glow);
+                        if (so) {
+                            await showSupportOverlay(action.targetInstanceId, so.text, so.color, so.glow);
+                            // Efecto visual CSS del estado al aplicarse
+                            showStatusEffect(action.targetInstanceId, action.statusApplied, 1600);
+                        }
                     } else if (action.buffApplied) {
                         const debuffType = action.buffApplied.type ?? `debuff_${action.buffApplied.stat ?? "atk"}`;
                         const so = DEBUFF_OVERLAYS[debuffType] ?? DEBUFF_OVERLAYS[`debuff_${action.buffApplied.stat ?? "atk"}`];
@@ -2289,30 +2861,38 @@ export default function BattlePage() {
                 }
 
                 if (areaIds.length > 1) {
-                    // ── ÁREA: 3 proyectiles simultáneos ──
-                    // Animamos el viaje hacia el primer target como representante visual
-                    const firstPos = getProjectilePositions(action.actorInstanceId, areaIds[0]);
-                    const travelDur = firstPos
-                        ? Math.max(280, Math.min(480, (Math.sqrt(Math.pow(firstPos.toX - firstPos.fromX, 2) + Math.pow(firstPos.toY - firstPos.fromY, 2)) / 800) * 900))
-                        : 350;
-                    // Lanzar proyectil representativo
-                    if (firstPos) {
-                        setProjectile({ affinity: action.moveAffinity as Affinity, direction, level: projLevel, ...firstPos });
-                    }
-                    await sleep(travelDur);
-                    setProjectile(null);
-                    // Impactar todos los targets SIMULTÁNEAMENTE
-                    for (const tid of areaIds) {
-                        const pos = getProjectilePositions(action.actorInstanceId, tid);
-                        if (pos) {
-                            setExplosion({ x: pos.toX, y: pos.toY, fromX: pos.fromX, fromY: pos.fromY, affinity: action.moveAffinity as Affinity, level: projLevel });
+                    // ── ÁREA: proyectiles TRUE simultáneos — uno por target ──
+                    // Calcular posiciones para todos los targets
+                    const areaPositions = areaIds.map(tid => ({
+                        tid,
+                        pos: getProjectilePositions(action.actorInstanceId, tid),
+                    })).filter(p => p.pos !== null) as { tid: string; pos: NonNullable<ReturnType<typeof getProjectilePositions>> }[];
+
+                    if (areaPositions.length > 0) {
+                        const travelDur = Math.max(300, Math.min(500,
+                            (Math.sqrt(Math.pow(areaPositions[0].pos.toX - areaPositions[0].pos.fromX, 2) +
+                                       Math.pow(areaPositions[0].pos.toY - areaPositions[0].pos.fromY, 2)) / 800) * 900));
+
+                        // Lanzar todos los proyectiles simultáneamente (usamos el primero como visual principal)
+                        setProjectile({ affinity: action.moveAffinity as Affinity, direction, level: projLevel, ...areaPositions[0].pos });
+                        // Proyectiles adicionales como explosiones diferidas en el origen (efecto bifurcación)
+                        for (let i = 1; i < areaPositions.length; i++) {
+                            const { pos } = areaPositions[i];
+                            setExplosion({ x: pos.fromX + (pos.toX - pos.fromX) * 0.1, y: pos.fromY + (pos.toY - pos.fromY) * 0.1, fromX: pos.fromX, fromY: pos.fromY, affinity: action.moveAffinity as Affinity, level: 1 });
                         }
-                        if (action.damage > 0) {
-                            flashAndFloat(tid, action.moveAffinity, action.damage, action.crit, action.mult);
+                        await sleep(travelDur);
+                        setProjectile(null);
+
+                        // Impactar TODOS simultáneamente
+                        for (const { tid, pos } of areaPositions) {
+                            setExplosion({ x: pos.toX, y: pos.toY, fromX: pos.fromX, fromY: pos.fromY, affinity: action.moveAffinity as Affinity, level: projLevel });
+                            if (action.damage > 0) {
+                                flashAndFloat(tid, action.moveAffinity, action.damage, action.crit, action.mult, false, action.shieldAbsorbed ?? 0);
+                            }
                         }
                     }
                     if (action.missed) addLog("¡Falló!", "miss");
-                    await sleep(projLevel === 1 ? 200 : projLevel === 2 ? 320 : 550);
+                    await sleep(projLevel === 1 ? 200 : projLevel === 2 ? 380 : 600);
                 } else {
                     // ── TARGET ÚNICO ──
                     const tid = areaIds[0];
@@ -2326,7 +2906,7 @@ export default function BattlePage() {
                         setProjectile(null);
                         setExplosion({ x: positions.toX, y: positions.toY, fromX: positions.fromX, fromY: positions.fromY, affinity: action.moveAffinity as Affinity, level: projLevel });
                         if (action.damage > 0) {
-                            flashAndFloat(tid, action.moveAffinity, action.damage, action.crit, action.mult);
+                            flashAndFloat(tid, action.moveAffinity, action.damage, action.crit, action.mult, false, action.shieldAbsorbed ?? 0);
                         } else if (action.missed) {
                             addLog("¡Falló!", "miss");
                         }
@@ -2349,7 +2929,14 @@ export default function BattlePage() {
                     await flashAndFloat(action.actorInstanceId, action.moveAffinity, action.healAmount, false, 1, true);
                 }
                 if (action.effectMsgs?.length) {
-                    for (const msg of action.effectMsgs) addLog(msg, "status");
+                    for (const msg of action.effectMsgs) {
+                        // Detectar regen tick para mostrar flash verde en el sprite
+                        if (msg.includes("regen") || msg.includes("REGEN") || msg.includes("regenera")) {
+                            setFlashMap(m => ({ ...m, [action.actorInstanceId]: "GROVE" as Affinity }));
+                            setTimeout(() => setFlashMap(m => { const n = {...m}; delete n[action.actorInstanceId]; return n; }), 400);
+                        }
+                        addLog(msg, "status");
+                    }
                 }
             }
         }
@@ -2360,7 +2947,13 @@ export default function BattlePage() {
                 .find((m) => m.instanceId === action.actorInstanceId);
             if (actorMyth?.status) {
                 await sleep(300);
-                await flashAndFloat(action.actorInstanceId, action.moveAffinity, action.statusTickDamage, false, 1);
+                // Afinidad del tick según el estado (burn=EMBER, poison=VENOM)
+                const tickAff: Affinity = actorMyth.status === "burn" ? "EMBER"
+                    : actorMyth.status === "poison" ? "VENOM"
+                    : action.moveAffinity as Affinity;
+                // Efecto visual CSS del tick de estado
+                showStatusEffect(action.actorInstanceId, actorMyth.status, 900);
+                await flashAndFloat(action.actorInstanceId, tickAff, action.statusTickDamage, false, 1);
                 addLog(action.statusTickMsg ?? `🩸 ${action.actorName} sufre daño por estado`, "status");
             }
         }
@@ -2587,7 +3180,16 @@ export default function BattlePage() {
     const targetEnemy = session?.enemyTeam.find((m) => m.instanceId === targetEnemyMythId);
 
     // Sprites fijos a 110px — caben las 2 filas + panel de moves sin scroll en pantallas ~728px de alto
-    const spriteSize = 110;
+    // Escala de sprites por altura física del myth
+    function getMythSpriteSize(myth: BattleMyth): number {
+        const h = (myth as any).height;
+        if (h === undefined || h === null) return 105;
+        if (h === 0) return 90; // etéreo
+        const clamped = Math.max(0.35, Math.min(2.0, h));
+        return Math.round(75 + ((clamped - 0.35) / (2.0 - 0.35)) * 55);
+    }
+    // spriteSize base (se override por myth en el render)
+    const spriteSize = 105;
 
     // Calcula los turnos restantes hasta la próxima Distorsión — delegado a la función definida junto a buildDistortionMap
 
@@ -3017,8 +3619,10 @@ export default function BattlePage() {
                                                     floatingDmg={floatMap[myth.instanceId]}
                                                     supportOverlay={supportOverlays[myth.instanceId]}
                                                     koOverlay={!!koOverlays[myth.instanceId]}
-                                                    spriteSize={spriteSize}
+                                                    spriteSize={getMythSpriteSize(myth)}
                                                     distortionInfo={getDistortionInfo(myth)}
+                                                    statusBlockedOverlays={statusBlockedOverlays}
+                                                    statusEffectOverlays={statusEffectOverlays}
                                                     onClick={() => { if (!myth.defeated && !animating && currentActorIsPlayer) setTargetEnemyMythId(myth.instanceId); }}
                                                 />
                                             )}
@@ -3148,8 +3752,10 @@ export default function BattlePage() {
                                                     floatingDmg={floatMap[myth.instanceId]}
                                                     supportOverlay={supportOverlays[myth.instanceId]}
                                                     koOverlay={!!koOverlays[myth.instanceId]}
-                                                    spriteSize={spriteSize}
+                                                    spriteSize={getMythSpriteSize(myth)}
                                                     distortionInfo={getDistortionInfo(myth)}
+                                                    statusBlockedOverlays={statusBlockedOverlays}
+                                                    statusEffectOverlays={statusEffectOverlays}
                                                     onClick={selectedItem && !myth.defeated ? () => handleUseItem(myth.instanceId) : undefined}
                                                 />
                                             ) : null}
@@ -3346,6 +3952,7 @@ export default function BattlePage() {
                                                             const hpBg2  = hpR2 > 0.5 ? "rgba(21,128,61,0.18)" : hpR2 > 0.25 ? "rgba(146,64,14,0.22)" : "rgba(127,29,29,0.26)";
                                                             const hpBdr2 = hpR2 > 0.5 ? "rgba(74,222,128,0.35)" : hpR2 > 0.25 ? "rgba(251,191,36,0.35)" : "rgba(248,113,113,0.4)";
                                                             const af = actorForMoves.affinities?.[0];
+                                                            const af2 = actorForMoves.affinities?.[1] ?? null;
                                                             const afCfg2 = af ? AFFINITY_CONFIG[af] : null;
                                                             const rar = actorForMoves.rarity ?? "COMMON";
                                                             const rarCfg: Record<string, { color: string; bg: string; bgSoft: string; border: string; label: string }> = {
@@ -3403,20 +4010,24 @@ export default function BattlePage() {
                                                                             LVL {actorForMoves.level}
                                                                         </span>
                                                                     </div>
-                                                                    {/* Afinidad — fondo del color de la afinidad */}
-                                                                    {afCfg2 && (
-                                                                        <div style={{
-                                                                            ...cellBase,
-                                                                            background: `${afCfg2.glow}22`,
-                                                                            borderLeft: `1px solid ${afCfg2.glow}44`,
-                                                                            gap: 4, minWidth: 56,
-                                                                        }}>
-                                                                            <span style={{ fontSize: "12px", lineHeight: 1 }}>{afCfg2.emoji}</span>
-                                                                            <span style={{ fontSize: "9px", color: afCfg2.glow, fontWeight: 900, fontFamily: "monospace", letterSpacing: "0.04em" }}>
-                                                                                {afCfg2.label.toUpperCase()}
-                                                                            </span>
-                                                                        </div>
-                                                                    )}
+                                                                    {/* Afinidades — icono CDN, muestra hasta 2 */}
+                                                                    {actorForMoves.affinities?.slice(0, 2).map((aff, ai) => {
+                                                                        const ac = AFFINITY_CONFIG[aff as Affinity];
+                                                                        if (!ac) return null;
+                                                                        return (
+                                                                            <div key={ai} style={{
+                                                                                ...cellBase,
+                                                                                background: `${ac.glow}22`,
+                                                                                borderLeft: `1px solid ${ac.glow}44`,
+                                                                                gap: 3, minWidth: ai === 0 ? 52 : 28,
+                                                                            }}>
+                                                                                <AffinityIcon affinity={aff} size={14} />
+                                                                                {ai === 0 && <span style={{ fontSize: "9px", color: ac.glow, fontWeight: 900, fontFamily: "monospace", letterSpacing: "0.04em" }}>
+                                                                                    {ac.label.slice(0,4).toUpperCase()}
+                                                                                </span>}
+                                                                            </div>
+                                                                        );
+                                                                    })}
                                                                     {/* Rareza — caja con el color sólido */}
                                                                     <div style={{
                                                                         ...cellBase,
@@ -3642,7 +4253,7 @@ export default function BattlePage() {
                                                             </div>
 
                                                             {/* Lista de items */}
-                                                            <div className="flex-1 overflow-y-auto p-2 flex flex-col gap-1.5 min-h-0">
+                                                            <div className="flex-1 overflow-y-auto flex flex-col gap-2 min-h-0" style={{ padding: "6px 8px" }}>
                                                                 {COMBAT_ITEMS.map((item) => {
                                                                     const qty = getCombatItemCount(item.type);
                                                                     const isSelected = selectedItem?.type === item.type;
@@ -3775,8 +4386,8 @@ export default function BattlePage() {
                                                                                             return (
                                                                                                 <th key={af} className="p-1 text-center" style={{ minWidth: 50 }}>
                                                                                                     <div className="flex flex-col items-center gap-0.5">
-                                                                                                        <span style={{ fontSize: 20 }}>{c.emoji}</span>
-                                                                                                        <span className="font-mono font-black" style={{ fontSize: "11px", color: c.glow }}>{c.label.slice(0,4).toUpperCase()}</span>
+                                                                                                        <AffinityIcon affinity={af} size={22} />
+                                                                                                        <span className="font-mono font-black" style={{ fontSize: "10px", color: c.glow }}>{c.label.slice(0,4).toUpperCase()}</span>
                                                                                                     </div>
                                                                                                 </th>
                                                                                             );
@@ -3790,8 +4401,8 @@ export default function BattlePage() {
                                                                                             <tr key={atk} className="border-t border-slate-800/60 hover:bg-slate-800/20 transition-colors">
                                                                                                 <td className="p-1.5 pr-3">
                                                                                                     <div className="flex items-center gap-1.5">
-                                                                                                        <span style={{ fontSize: 20 }}>{atkCfg.emoji}</span>
-                                                                                                        <span className="font-mono font-bold" style={{ fontSize: "13px", color: atkCfg.glow }}>{atkCfg.label}</span>
+                                                                                                        <AffinityIcon affinity={atk} size={20} />
+                                                                                                        <span className="font-mono font-bold" style={{ fontSize: "12px", color: atkCfg.glow }}>{atkCfg.label}</span>
                                                                                                     </div>
                                                                                                 </td>
                                                                                                 {affinities.map((def) => {
@@ -3977,10 +4588,13 @@ export default function BattlePage() {
                                                                             : "bg-slate-900/40 border-slate-800 text-slate-600 cursor-not-allowed opacity-50"
                                                                         }`}
                                                                 >
-                                                                    <span className="text-lg mt-0.5">{cfg.emoji}</span>
+                                                                    {/* Icono afinidad CDN */}
+                                                                    <div className="flex-shrink-0 mt-0.5">
+                                                                        <AffinityIcon affinity={move.affinity} size={22} />
+                                                                    </div>
                                                                     <div className="min-w-0 flex-1">
                                                                         {/* Fila nombre + CD activo */}
-                                                                        <div className="flex items-center justify-between gap-1 mb-0.5">
+                                                                        <div className="flex items-center justify-between gap-1 mb-1">
                                                                             <p className="font-mono text-xs font-bold truncate">{move.name}</p>
                                                                             {onCooldown ? (
                                                                                 <span className="flex-shrink-0 flex items-center gap-0.5 font-mono font-black rounded px-1.5"
@@ -3994,11 +4608,32 @@ export default function BattlePage() {
                                                                                 </span>
                                                                             ) : null}
                                                                         </div>
-                                                                        <p className="text-[10px] opacity-70 font-mono mb-0.5">
-                                                                            {move.power > 0 ? `💥 ${move.power}` : "estado"} · 🎯{" "}
-                                                                            {move.accuracy}%
-                                                                        </p>
-                                                                        <p className="text-[11px] leading-snug line-clamp-2" style={{ color: "rgba(255,255,255,0.82)" }}>
+                                                                        {/* Potencia + Precisión — más visibles */}
+                                                                        <div className="flex items-center gap-2 mb-1">
+                                                                            {move.power > 0 ? (
+                                                                                <span style={{ fontSize: "12px", fontFamily: "monospace", fontWeight: 900, color: cfg.glow ?? "#f97316" }}>
+                                                                                    ⚡{move.power}
+                                                                                </span>
+                                                                            ) : (
+                                                                                <span style={{ fontSize: "11px", fontFamily: "monospace", color: "#94a3b8" }}>estado</span>
+                                                                            )}
+                                                                            <span style={{ fontSize: "11px", fontFamily: "monospace", fontWeight: 700, color: "#7dd3fc" }}>
+                                                                                🎯{move.accuracy}%
+                                                                            </span>
+                                                                            {/* Target indicator */}
+                                                                            {(() => {
+                                                                                const tgt = (move.effect as any)?.target ?? (move as any).target;
+                                                                                const label = tgt === "all_enemies" ? "ÁREA" : tgt === "all_allies" ? "ALIADOS" : tgt === "self" ? "SELF" : null;
+                                                                                const color = tgt === "all_enemies" ? "#f87171" : tgt === "all_allies" ? "#4ade80" : "#a78bfa";
+                                                                                if (!label) return null;
+                                                                                return (
+                                                                                    <span style={{ fontSize: "9px", fontFamily: "monospace", fontWeight: 900, color, background: `${color}18`, border: `1px solid ${color}44`, borderRadius: 3, padding: "1px 4px", letterSpacing: "0.06em" }}>
+                                                                                        {label}
+                                                                                    </span>
+                                                                                );
+                                                                            })()}
+                                                                        </div>
+                                                                        <p className="text-[11px] leading-snug line-clamp-2" style={{ color: "rgba(255,255,255,0.78)" }}>
                                                                             {move.description}
                                                                         </p>
                                                                     </div>
@@ -4275,9 +4910,20 @@ export default function BattlePage() {
                                     }
 
                                     // Líneas secundarias: system, status, good, bad, heal, miss
+                                    // Para líneas de status, detectar el estado en el texto para colorear apropiadamente
+                                    const statusColorFromText = isStatus ? (
+                                        entry.text?.includes("burn") || entry.text?.includes("quemadura") || entry.text?.includes("Quemadura") ? "#fb923c" :
+                                        entry.text?.includes("poison") || entry.text?.includes("veneno") || entry.text?.includes("Veneno") ? "#4ade80" :
+                                        entry.text?.includes("paralyze") || entry.text?.includes("parálisis") || entry.text?.includes("paraliz") ? "#fde047" :
+                                        entry.text?.includes("freeze") || entry.text?.includes("congel") || entry.text?.includes("hielo") ? "#7dd3fc" :
+                                        entry.text?.includes("fear") || entry.text?.includes("miedo") || entry.text?.includes("FEARED") ? "#c084fc" :
+                                        entry.text?.includes("stun") || entry.text?.includes("aturdi") || entry.text?.includes("STUNNED") ? "#facc15" :
+                                        entry.text?.includes("curse") || entry.text?.includes("maldici") || entry.text?.includes("CURSED") ? "#a855f7" :
+                                        "#fb923c"
+                                    ) : null;
                                     const secondaryColor =
                                         isSystem ? "#818cf8" :
-                                        isStatus ? "#fb923c" :
+                                        isStatus ? (statusColorFromText ?? "#fb923c") :
                                         isGood   ? "#4ade80" :
                                         isBad    ? "#f87171" :
                                         isHeal   ? "#34d399" :
@@ -4339,99 +4985,99 @@ function DistortionOverlay({
 }) {
     const cx = spriteRect.x + spriteRect.w / 2;
     const cy = spriteRect.y + spriteRect.h / 2;
-    const r = spriteRect.w / 2;
-    const primaryAff = newAffinities[0] as Affinity | undefined;
-    const cfg = primaryAff ? AFFINITY_CONFIG[primaryAff] : AFFINITY_CONFIG["ASTRAL"];
+    const r = Math.max(spriteRect.w, 80) / 2;
 
-    type RarityFx = {
-        particleCount: number; rings: number; ringColor: string;
-        particleColor: string; nameColor: string; glowLayers: string;
-        nameBorder: string; particleSize: number; duration: string;
-        lightBeam: boolean; glitch: boolean; legendaryBurst: boolean; screenTint: string | null;
-    };
-    const rarityFx: Record<string, RarityFx> = {
-        RARE:      { particleCount: 10, rings: 2, ringColor: "#818cf8", particleColor: "#c4b5fd", nameColor: "#e0e7ff", glowLayers: "0 0 20px #818cf8, 0 0 45px #818cf855",      nameBorder: "1px #818cf8",  particleSize: 4, duration: "2s",   lightBeam: false, glitch: false, legendaryBurst: false, screenTint: null },
-        EPIC:      { particleCount: 16, rings: 3, ringColor: "#a855f7", particleColor: "#c084fc", nameColor: "#f3e8ff", glowLayers: "0 0 30px #a855f7, 0 0 65px #a855f788, 0 0 100px #a855f744", nameBorder: "1.5px #c084fc", particleSize: 5, duration: "2.2s", lightBeam: true,  glitch: false, legendaryBurst: false, screenTint: "#a855f711" },
-        ELITE:     { particleCount: 18, rings: 3, ringColor: "#e2e8f0", particleColor: "#f1f5f9", nameColor: "#ffffff", glowLayers: "0 0 35px #e2e8f0, 0 0 70px #94a3b8aa, 0 0 120px #e2e8f033", nameBorder: "1.5px #e2e8f0", particleSize: 5, duration: "2.4s", lightBeam: true,  glitch: false, legendaryBurst: false, screenTint: "#e2e8f00a" },
-        LEGENDARY: { particleCount: 22, rings: 5, ringColor: "#fbbf24", particleColor: "#fde68a", nameColor: "#fef3c7", glowLayers: "0 0 40px #fbbf24, 0 0 90px #f59e0baa, 0 0 140px #fbbf2444", nameBorder: "2px #fbbf24",  particleSize: 7, duration: "2.6s", lightBeam: true,  glitch: false, legendaryBurst: true,  screenTint: "#fbbf2418" },
-        MYTHIC:    { particleCount: 28, rings: 6, ringColor: "#ef4444", particleColor: "#fca5a5", nameColor: "#fee2e2", glowLayers: "0 0 50px #ef4444, 0 0 110px #dc2626aa, 0 0 180px #ef444433", nameBorder: "2px #ef4444",  particleSize: 8, duration: "2.8s", lightBeam: true,  glitch: true,  legendaryBurst: true,  screenTint: "#ef444422" },
-    };
-    const fx = rarityFx[newRarity] ?? rarityFx["RARE"];
+    // Paleta principal: blanco + lila — siempre, independiente de rareza
+    const LILA = "#c084fc";
+    const LILA2 = "#a855f7";
+    const LILA3 = "#7c3aed";
+    const WHITE = "#ffffff";
 
-    const particles = Array.from({ length: fx.particleCount }, (_, i) => {
-        const angle = (i / fx.particleCount) * Math.PI * 2;
-        const dist = r * 1.4 + (i % 4) * 14;
-        return { tx: Math.cos(angle) * dist, ty: Math.sin(angle) * dist, delay: 0.08 + i * 0.035 };
+    // Rareza determina intensidad y efectos extra, NO el color
+    const intensity = { RARE: 1, EPIC: 1.2, ELITE: 1.4, LEGENDARY: 1.7, MYTHIC: 2.0 }[newRarity] ?? 1;
+    const ringCount = Math.round(3 * intensity);
+    const particleCount = Math.round(14 * intensity);
+    const hasLightBeam = intensity >= 1.2;
+    const hasGlitch = newRarity === "MYTHIC";
+    const hasGoldAccent = newRarity === "LEGENDARY" || newRarity === "MYTHIC";
+
+    const particles = Array.from({ length: particleCount }, (_, i) => {
+        const angle = (i / particleCount) * Math.PI * 2;
+        const dist = r * (1.2 + (i % 4) * 0.35);
+        return {
+            tx: Math.cos(angle) * dist,
+            ty: Math.sin(angle) * dist,
+            delay: 0.06 + i * 0.04,
+            white: i % 3 === 0,
+        };
     });
 
-    // Estrellas tipo "shard" adicionales para LEGENDARY/MYTHIC
-    const shards = (fx.legendaryBurst ? Array.from({ length: 8 }, (_, i) => {
-        const angle = (i / 8) * Math.PI * 2 + 0.2;
-        const dist = r * 2.2;
-        return { tx: Math.cos(angle) * dist, ty: Math.sin(angle) * dist, delay: 0.15 + i * 0.06 };
-    }) : []);
+    const shards = intensity >= 1.7 ? Array.from({ length: 10 }, (_, i) => {
+        const angle = (i / 10) * Math.PI * 2 + 0.15;
+        const dist = r * 2.0;
+        return { tx: Math.cos(angle) * dist, ty: Math.sin(angle) * dist, delay: 0.12 + i * 0.055 };
+    }) : [];
 
     return (
         <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 310 }}>
 
-            {/* Tinte de pantalla suave por rareza */}
-            {fx.screenTint && (
-                <div className="absolute inset-0"
-                    style={{ background: fx.screenTint, animation: "distortFlash 2.4s ease-out forwards" }} />
-            )}
+            {/* Tinte de pantalla blanco-lila */}
+            <div className="absolute inset-0"
+                style={{ background: `radial-gradient(ellipse at ${cx}px ${cy}px, ${LILA}22 0%, ${LILA3}11 40%, transparent 70%)`, animation: "distortWhitePulse 4.5s ease-out forwards" }} />
 
-            {/* Columna de luz vertical desde el sprite (EPIC+) */}
-            {fx.lightBeam && (
+            {/* Flash blanco central al inicio */}
+            <div className="absolute inset-0"
+                style={{ background: "#ffffff08", animation: "distortWhitePulse 0.6s ease-out forwards" }} />
+
+            {/* Columna de luz vertical (EPIC+) */}
+            {hasLightBeam && (
                 <div className="absolute pointer-events-none"
                     style={{
-                        left: cx - 18,
-                        top: 0,
-                        width: 36,
-                        height: "100%",
-                        background: `linear-gradient(180deg, transparent 0%, ${fx.ringColor}00 30%, ${fx.ringColor}55 48%, ${fx.ringColor}88 52%, ${fx.ringColor}55 56%, ${fx.ringColor}00 75%, transparent 100%)`,
-                        animation: "distortFlash 1.8s ease-out 0.1s forwards",
-                        opacity: 0,
-                        filter: `blur(6px)`,
+                        left: cx - 24, top: 0,
+                        width: 48, height: "100%",
+                        background: `linear-gradient(180deg, transparent 0%, ${LILA3}00 25%, ${LILA}55 46%, ${WHITE}99 50%, ${LILA}55 54%, ${LILA3}00 75%, transparent 100%)`,
+                        animation: "distortFlash 2.2s ease-out 0.15s forwards",
+                        opacity: 0, filter: "blur(5px)",
                     }}
                 />
             )}
 
-            {/* Glow radial centrado en el sprite */}
+            {/* Glow radial blanco-lila centrado */}
             <div className="absolute rounded-full pointer-events-none"
                 style={{
                     left: cx, top: cy,
-                    width: r * 6, height: r * 6,
-                    marginLeft: -(r * 3), marginTop: -(r * 3),
-                    background: `radial-gradient(circle, ${fx.ringColor}44 0%, ${fx.ringColor}22 40%, transparent 70%)`,
-                    animation: "distortFlash 2s ease-out forwards",
+                    width: r * 7, height: r * 7,
+                    marginLeft: -(r * 3.5), marginTop: -(r * 3.5),
+                    background: `radial-gradient(circle, ${WHITE}33 0%, ${LILA}33 25%, ${LILA2}22 50%, transparent 70%)`,
+                    animation: "distortLilaPulse 3s ease-out forwards",
                 }}
             />
 
-            {/* Anillos expansivos */}
-            {Array.from({ length: fx.rings }).map((_, i) => (
+            {/* Anillos expansivos lila/blanco alternos */}
+            {Array.from({ length: ringCount }).map((_, i) => (
                 <div key={i} className="absolute rounded-full"
                     style={{
                         left: cx, top: cy,
-                        width: r * 1.2, height: r * 1.2,
-                        marginLeft: -(r * 0.6), marginTop: -(r * 0.6),
-                        border: `${Math.max(1, Math.ceil((fx.rings - i) * 0.7))}px solid ${fx.ringColor}`,
-                        boxShadow: `0 0 ${12 + i * 8}px ${fx.ringColor}88, 0 0 ${24 + i * 12}px ${fx.ringColor}44`,
-                        animation: `distortRingOut ${0.55 + i * 0.13}s ease-out ${0.04 + i * 0.1}s forwards`,
+                        width: r * 1.4, height: r * 1.4,
+                        marginLeft: -(r * 0.7), marginTop: -(r * 0.7),
+                        border: `${Math.max(1, Math.ceil((ringCount - i) * 0.8))}px solid ${i % 2 === 0 ? WHITE : LILA}`,
+                        boxShadow: `0 0 ${14 + i * 10}px ${i % 2 === 0 ? WHITE : LILA}99, 0 0 ${28 + i * 14}px ${LILA}44`,
+                        animation: `distortRingOut ${0.5 + i * 0.16}s ease-out ${0.05 + i * 0.12}s forwards`,
                         opacity: 0,
                     }}
                 />
             ))}
 
-            {/* Partículas radiales */}
+            {/* Partículas radiales blanco/lila */}
             {particles.map((p, i) => (
                 <div key={i} className="absolute rounded-full"
                     style={{
                         left: cx, top: cy,
-                        width: fx.particleSize, height: fx.particleSize,
-                        marginLeft: -fx.particleSize / 2, marginTop: -fx.particleSize / 2,
-                        background: i % 3 === 0 ? "#ffffff" : i % 3 === 1 ? fx.particleColor : fx.ringColor,
-                        boxShadow: `0 0 ${fx.particleSize * 2}px ${fx.ringColor}`,
-                        animation: `distortParticle 1.1s ease-out ${p.delay}s forwards`,
+                        width: 4 + (i % 3) * 2, height: 4 + (i % 3) * 2,
+                        marginLeft: -(2 + (i % 3)), marginTop: -(2 + (i % 3)),
+                        background: p.white ? WHITE : (i % 2 === 0 ? LILA : LILA2),
+                        boxShadow: `0 0 ${8 + (i % 3) * 4}px ${p.white ? WHITE : LILA}`,
+                        animation: `distortParticle 1.3s ease-out ${p.delay}s forwards`,
                         opacity: 0,
                         ["--tx" as any]: `${p.tx}px`,
                         ["--ty" as any]: `${p.ty}px`,
@@ -4439,19 +5085,19 @@ function DistortionOverlay({
                 />
             ))}
 
-            {/* Shards largos para LEGENDARY/MYTHIC */}
+            {/* Shards largos (LEGENDARY+) */}
             {shards.map((s, i) => (
                 <div key={`sh${i}`} className="absolute"
                     style={{
                         left: cx, top: cy,
-                        width: 3, height: 18 + (i % 3) * 8,
-                        marginLeft: -1.5, marginTop: -9,
-                        background: `linear-gradient(180deg, #ffffff 0%, ${fx.ringColor} 100%)`,
-                        boxShadow: `0 0 10px ${fx.ringColor}`,
+                        width: 2.5, height: 20 + (i % 4) * 9,
+                        marginLeft: -1.25, marginTop: -10,
+                        background: `linear-gradient(180deg, ${WHITE} 0%, ${LILA} 100%)`,
+                        boxShadow: `0 0 10px ${LILA}, 0 0 20px ${LILA2}66`,
                         borderRadius: 2,
-                        transform: `rotate(${(i / 8) * 360}deg)`,
+                        transform: `rotate(${(i / 10) * 360}deg)`,
                         transformOrigin: "center",
-                        animation: `distortParticle 1.3s ease-out ${s.delay}s forwards`,
+                        animation: `distortParticle 1.5s ease-out ${s.delay}s forwards`,
                         opacity: 0,
                         ["--tx" as any]: `${s.tx}px`,
                         ["--ty" as any]: `${s.ty}px`,
@@ -4459,71 +5105,106 @@ function DistortionOverlay({
                 />
             ))}
 
-            {/* Efecto glitch solo MYTHIC — duplicado desplazado del glow */}
-            {fx.glitch && (
+            {/* Acento dorado para LEGENDARY/MYTHIC */}
+            {hasGoldAccent && (
+                <div className="absolute rounded-full pointer-events-none"
+                    style={{
+                        left: cx, top: cy,
+                        width: r * 3, height: r * 3,
+                        marginLeft: -(r * 1.5), marginTop: -(r * 1.5),
+                        border: `2px solid #fbbf2466`,
+                        boxShadow: `0 0 30px #fbbf2444`,
+                        animation: "distortRingOut 0.9s ease-out 0.3s forwards",
+                        opacity: 0,
+                    }}
+                />
+            )}
+
+            {/* Glitch MYTHIC */}
+            {hasGlitch && (
                 <>
                     <div className="absolute rounded-full pointer-events-none"
                         style={{
-                            left: cx + 8, top: cy,
+                            left: cx + 10, top: cy,
                             width: r * 4, height: r * 4,
                             marginLeft: -(r * 2), marginTop: -(r * 2),
-                            background: `radial-gradient(circle, #ef444433 0%, transparent 60%)`,
-                            animation: "distortGlitch 0.6s ease-out 0.2s forwards",
-                            opacity: 0,
+                            background: `radial-gradient(circle, #ef444422 0%, transparent 60%)`,
+                            animation: "distortGlitch 0.7s ease-out 0.25s forwards", opacity: 0,
                         }}
                     />
                     <div className="absolute rounded-full pointer-events-none"
                         style={{
-                            left: cx - 8, top: cy,
+                            left: cx - 10, top: cy,
                             width: r * 3, height: r * 3,
                             marginLeft: -(r * 1.5), marginTop: -(r * 1.5),
-                            background: `radial-gradient(circle, #00ffff22 0%, transparent 60%)`,
-                            animation: "distortGlitch 0.6s ease-out 0.3s forwards",
-                            opacity: 0,
+                            background: `radial-gradient(circle, #00ffff18 0%, transparent 60%)`,
+                            animation: "distortGlitch 0.7s ease-out 0.4s forwards", opacity: 0,
                         }}
                     />
                 </>
             )}
 
-            {/* Nombre encima del sprite */}
+            {/* Nombre — blanco puro con glow lila */}
             <div className="absolute font-black uppercase pointer-events-none"
                 style={{
-                    left: cx, top: spriteRect.y - 8,
+                    left: cx, top: spriteRect.y - 10,
                     transform: "translateX(-50%) translateY(-100%)",
                     fontFamily: "'Rajdhani', sans-serif",
-                    fontSize: newRarity === "MYTHIC" || newRarity === "LEGENDARY" ? "1.6rem" : "1.35rem",
-                    color: fx.nameColor,
-                    textShadow: fx.glowLayers + ", 0 3px 10px rgba(0,0,0,1)",
-                    WebkitTextStroke: fx.nameBorder,
+                    fontSize: newRarity === "MYTHIC" || newRarity === "LEGENDARY" ? "1.75rem" : "1.45rem",
+                    color: WHITE,
+                    textShadow: `0 0 24px ${LILA}, 0 0 50px ${LILA2}aa, 0 0 90px ${LILA3}55, 0 3px 10px rgba(0,0,0,1)`,
+                    WebkitTextStroke: `1.5px ${LILA}`,
                     letterSpacing: "0.12em", whiteSpace: "nowrap",
-                    animation: "distortNameIn 0.4s cubic-bezier(0.2,0,0,1.4) 0.35s forwards",
+                    animation: "distortNameIn 0.45s cubic-bezier(0.2,0,0,1.4) 0.4s forwards",
                     opacity: 0,
                 }}
             >
                 {mythName}
             </div>
 
-            {/* Subtítulo "distorsión" bajo el sprite */}
+            {/* Subtítulo distorsión */}
             <div className="absolute font-mono font-black uppercase pointer-events-none"
                 style={{
-                    left: cx, top: spriteRect.y + spriteRect.h + 6,
+                    left: cx, top: spriteRect.y + spriteRect.h + 8,
                     transform: "translateX(-50%)",
-                    fontSize: "0.62rem", color: cfg.glow,
-                    textShadow: `0 0 10px ${cfg.glow}, 0 2px 4px rgba(0,0,0,0.9)`,
-                    letterSpacing: "0.3em", whiteSpace: "nowrap",
-                    animation: "distortNameIn 0.4s cubic-bezier(0.2,0,0,1.4) 0.5s forwards",
+                    fontSize: "0.65rem", color: LILA,
+                    textShadow: `0 0 12px ${LILA}, 0 0 24px ${LILA2}, 0 2px 4px rgba(0,0,0,0.9)`,
+                    letterSpacing: "0.35em", whiteSpace: "nowrap",
+                    animation: "distortNameIn 0.45s cubic-bezier(0.2,0,0,1.4) 0.55s forwards",
                     opacity: 0,
                 }}
             >
                 🌀 distorsión
             </div>
 
-            {/* Badges de afinidad */}
-            <div className="absolute flex gap-1 justify-center pointer-events-none"
+            {/* Imagen nueva forma: drop-in dramático desde arriba */}
+            <div className="absolute pointer-events-none"
                 style={{
-                    left: cx, top: spriteRect.y + spriteRect.h + 28,
+                    left: cx, top: cy,
+                    transform: "translateX(-50%) translateY(-50%)",
+                    zIndex: 5,
+                    animation: "distortDropIn 0.85s cubic-bezier(0.22,1,0.36,1) 0.45s forwards",
+                    opacity: 0,
+                    filter: `drop-shadow(0 0 18px ${LILA}) drop-shadow(0 0 36px ${LILA2}88)`,
+                }}>
+                {/* Aura lila bajo la imagen */}
+                <div style={{
+                    width: r * 2.2, height: r * 2.2,
+                    marginLeft: -r * 1.1 + r, marginTop: -r * 1.1 + r,
+                    borderRadius: "50%",
+                    background: `radial-gradient(circle, ${LILA}44 0%, ${LILA2}22 50%, transparent 70%)`,
+                    position: "absolute",
+                    top: "50%", left: "50%",
+                    transform: "translate(-50%,-50%)",
+                }} />
+            </div>
+
+            {/* Badges de afinidad */}
+            <div className="absolute flex gap-1.5 justify-center pointer-events-none"
+                style={{
+                    left: cx, top: spriteRect.y + spriteRect.h + 30,
                     transform: "translateX(-50%)",
-                    animation: "distortNameIn 0.4s cubic-bezier(0.2,0,0,1.4) 0.65s forwards",
+                    animation: "distortNameIn 0.45s cubic-bezier(0.2,0,0,1.4) 0.72s forwards",
                     opacity: 0,
                 }}
             >
@@ -4534,10 +5215,10 @@ function DistortionOverlay({
                         <div key={aff}
                             className="flex items-center justify-center rounded-full font-black font-mono"
                             style={{
-                                width: 22, height: 22,
-                                background: c.glow + "33", border: `1.5px solid ${c.glow}`,
-                                boxShadow: `0 0 8px ${c.glow}88`,
-                                fontSize: "8px", color: "#fff",
+                                width: 24, height: 24,
+                                background: `${LILA}33`, border: `1.5px solid ${LILA}`,
+                                boxShadow: `0 0 10px ${LILA}88`,
+                                fontSize: "8px", color: WHITE,
                                 textShadow: "0 1px 2px rgba(0,0,0,0.9)",
                             }}
                         >
@@ -4549,6 +5230,7 @@ function DistortionOverlay({
         </div>
     );
 }
+
 
 // ─────────────────────────────────────────
 // TabBar

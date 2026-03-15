@@ -2073,7 +2073,7 @@
                 ]
             },
             {
-                "triggerTurn": 6,
+                "triggerTurn": 7,
                 "rarity": "ELITE",
                 "slug": "ignaroth",
                 "name": "Ignaroth",
@@ -2643,7 +2643,7 @@
                 ]
             },
             {
-                "triggerTurn": 6,
+                "triggerTurn": 7,
                 "rarity": "ELITE",
                 "slug": "cosmoryn",
                 "name": "Cosmoryn",
@@ -5916,7 +5916,7 @@
         "rarity": "COMMON",
         "height": 0.35,
         "weight": 3.5,
-        "description": "Pequeño elemental eléctrico que brinca entre objetos metálicos. Su descarga estática puede desactivar mecanismos al instante.",
+        "description": "Pequeña criatura eléctrica que brinca entre objetos metálicos. Su descarga estática puede desactivar mecanismos al instante.",
         "baseStats": {
             "hp": 68,
             "atk": 55,
@@ -6000,7 +6000,7 @@
                 "affinities": ["VOLT"],
                 "height": 1.1,
                 "weight": 22.0,
-                "description": "Elemental de tormenta que condensa rayos en su cuerpo. Su simple presencia hace que el cabello se erize y los metales vibren.",
+                "description": "Sombra de tormenta que condensa rayos en su cuerpo. Su simple presencia hace que el cabello se erize y los metales vibren.",
                 "baseStats": {
                     "hp": 92,
                     "atk": 78,
@@ -6101,7 +6101,7 @@
                 "affinities": ["VOLT", "ASTRAL"],
                 "height": 1.7,
                 "weight": 0.0,
-                "description": "Tormenta consciente. Tempestrix ha trascendido la materia y existe como un campo electromagnético astral capaz de reformarse en cualquier punto del campo.",
+                "description": "Tormenta consciente. A tempestrix le rodea un campo electromagnético astral capaz de reformarse en cualquier punto del campo.",
                 "baseStats": {
                     "hp": 122,
                     "atk": 108,
@@ -6384,8 +6384,8 @@
                 ]
             },
             {
-                "triggerTurn": 6,
-                "rarity": "EPIC",
+                "triggerTurn": 7,
+                "rarity": "ELITE",
                 "slug": "oblivrath",
                 "name": "Oblivrath",
                 "affinities": ["SHADE", "VENOM"],
@@ -6892,7 +6892,7 @@
                 "affinities": ["ASTRAL"],
                 "height": 1.4,
                 "weight": 28.0,
-                "description": "Ángel de luz cósmica. Solantis irradia una energía que fortalece a sus aliados mientras destruye las ilusiones de sus enemigos.",
+                "description": "Ser cósmico que manipula las leyes de la gravedad y el tiempo. Su mera presencia distorsiona el espacio circundante.",
                 "baseStats": {
                     "hp": 118,
                     "atk": 95,
