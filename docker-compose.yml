@@ -21,7 +21,9 @@ services:
       - "6379:6379"
 
   server:
+    profiles: ["docker"]
     container_name: mythara-server
+    image: mythara-server
     build:
       context: .                  # raíz del monorepo
       dockerfile: apps/server/Dockerfile
@@ -43,7 +45,9 @@ services:
       - /app/node_modules           # evita que el volumen pise los node_modules del contenedor
 
   client:
+    profiles: ["docker"]
     container_name: mythara-client
+    image: mythara-client   
     build:
       context: apps/client
       dockerfile: Dockerfile
