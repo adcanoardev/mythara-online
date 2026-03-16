@@ -64,8 +64,14 @@ export const api = {
         request<any>("/battle/pvp", { method: "POST", body: JSON.stringify({ defenderUserId }) }),
     battleStats: () => request<any>("/battle/stats"),
 
-    sanctums: () => request<any[]>("/sanctums"),
-    challengeSanctum: (id: number) => request<any>(`/sanctums/${id}/challenge`, { method: "POST" }),
+    // Sanctums
+    sanctumList: () => request<any[]>("/sanctum/list"),
+    challengeSanctum: (sanctumId: number, mythIds: string[]) =>
+        request<any>("/sanctum/challenge", {
+            method: "POST",
+            body: JSON.stringify({ sanctumId, mythIds }),
+        }),
+    getParty: () => request<any[]>("/creatures/party"),
     ranking: () => request<any>("/ranking"),
     onboardingData: () => request<any>("/onboarding/data"),
     onboardingComplete: (avatarId: string, gender: string, starterId: string) =>

@@ -1,4 +1,0 @@
--- AlterTable
-ALTER TABLE "CreatureInstance" ADD COLUMN     "accuracy" INTEGER NOT NULL DEFAULT 100,
-ADD COLUMN     "critChance" INTEGER NOT NULL DEFAULT 15,
-ADD COLUMN     "critDamage" INTEGER NOT NULL DEFAULT 150;

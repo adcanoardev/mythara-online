@@ -1,24 +1,27 @@
 services:
 
   postgres:
+    container_name: mythara-postgres
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: pokemmo
-      POSTGRES_PASSWORD: pokemmo_secret
-      POSTGRES_DB: pokemmo
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data  # los datos persisten aunque pares el contenedor
 
   redis:
+    container_name: mythara-redis
     image: redis:7-alpine
     restart: unless-stopped
     ports:
       - "6379:6379"
 
   server:
+    container_name: mythara-server
     build:
       context: .                  # raíz del monorepo
       dockerfile: apps/server/Dockerfile
@@ -27,7 +30,7 @@ services:
       - "8080:8080"
     environment:
       PORT: 8080
-      DATABASE_URL: postgresql://pokemmo:pokemmo_secret@postgres:5432/pokemmo
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
       REDIS_URL: redis://redis:6379
       CORS_ORIGIN: http://localhost:5173
       JWT_SECRET: cambiame_en_produccion
@@ -40,6 +43,7 @@ services:
       - /app/node_modules           # evita que el volumen pise los node_modules del contenedor
 
   client:
+    container_name: mythara-client
     build:
       context: apps/client
       dockerfile: Dockerfile
