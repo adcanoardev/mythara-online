@@ -32,7 +32,8 @@ import LoginPage        from "./pages/LoginPage";
 import OnboardingPage   from "./pages/OnboardingPage";
 import HomePage         from "./pages/HomePage";
 import BattlePage       from "./pages/BattlePage";
-import InnPage          from "./pages/InnPage";
+import OutpostPage      from "./pages/OutpostPage";
+import TavernPage       from "./pages/TavernPage";
 import SanctuariesPage  from "./pages/SanctuariesPage";
 import ProfilePage      from "./pages/ProfilePage";
 import TeamPage         from "./pages/TeamPage";
@@ -41,6 +42,7 @@ import MythsPage        from "./pages/MythsPage";
 import RankingPage      from "./pages/RankingPage";
 import RuinsPage        from "./pages/RuinsPage";
 import ArenaPage        from "./pages/ArenaPage";
+import GuildPage        from "./pages/GuildPage";
 
 // Placeholder for pages not yet implemented
 function ComingSoon({ name }: { name: string }) {
@@ -90,14 +92,16 @@ export default function App() {
       {/* ── City districts — fullscreen, no Layout ───────────── */}
       <Route path="/arena"   element={guard(<ArenaPage />)} />
       <Route path="/ruins"   element={guard(<RuinsPage />)} />
-      <Route path="/tavern"  element={guard(<ComingSoon name="TAVERN" />)} />
+      <Route path="/tavern"  element={guard(<TavernPage />)} />
       <Route path="/nexus"   element={guard(<ComingSoon name="NEXUS" />)} />
       <Route path="/market"  element={guard(<ComingSoon name="MARKET" />)} />
-      <Route path="/guild"   element={guard(<ComingSoon name="GUILD" />)} />
+      <Route path="/guild"   element={guard(<GuildPage />)} />
+      <Route path="/arcanum" element={guard(<ComingSoon name="ARCANUM" />)} />
 
       {/* ── Game pages — with Layout ──────────────────────────── */}
       <Route path="/battle"      element={user ? <BattlePage /> : <Navigate to="/login" />} />
-      <Route path="/inn"         element={guard(<InnPage />)} />
+      <Route path="/outpost"     element={guard(<OutpostPage />)} />
+      <Route path="/inn"         element={<Navigate to="/outpost" />} />
       <Route path="/sanctuaries" element={guard(<SanctuariesPage />)} />
       <Route path="/profile"     element={guard(<ProfilePage />)} />
       <Route path="/team"        element={guard(<TeamPage />)} />

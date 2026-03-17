@@ -286,10 +286,23 @@ router.get("/creatures/me", requireAuth, async (req, res) => {
         });
         const enriched = creatures.map((c) => {
             try {
-                const species = getCreature(c.speciesId);
-                return { ...c, name: species.name, affinities: species.affinities, art: species.art, rarity: species.rarity };
+                const species = getCreature(c.speciesId) as any;
+                return {
+                    ...c,
+                    // Species identity
+                    name:        species.name,
+                    affinities:  species.affinities  ?? [],
+                    art:         species.art          ?? {},
+                    rarity:      species.rarity       ?? "COMMON",
+                    description: species.description  ?? "",
+                    height:      species.height       ?? 1.0,
+                    weight:      species.weight       ?? 0,
+                    // Species gameplay data — needed by TavernPage (Skills, Distortion tabs)
+                    moves:       species.moves        ?? [],
+                    distortion:  species.distortion   ?? [],
+                };
             } catch {
-                return { ...c, name: c.speciesId, affinities: [], art: {}, rarity: "COMMON" };
+                return { ...c, name: c.speciesId, affinities: [], art: {}, rarity: "COMMON", moves: [], distortion: [] };
             }
         });
         res.json(enriched);

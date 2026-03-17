@@ -8,18 +8,19 @@ type District = {
     id: string; name: string; color: string;
     description: string; route: string;
     px: number; py: number;
-    hitW: string; hitH: string;
+    hitW: number; hitH: number; // fraction of map width/height (0..1)
 };
 
+// ── DISTRICTS — coords calibrated on landscape mobile calibrator ──
 const DISTRICTS: District[] = [
-    { id:"nexus",   name:"Nexus",     color:"#a78bfa", description:"Arcane summoning portal",        route:"/nexus",   px:0.516, py:0.442, hitW:"15%", hitH:"16%" },
-    { id:"arena",   name:"Arena",     color:"#ef4444", description:"PvP · Duels · Ranked",           route:"/arena",   px:0.675, py:0.278, hitW:"14%", hitH:"16%" },
-    { id:"tavern",  name:"Tavern",    color:"#f59e0b", description:"Binders · Ranking · Social",     route:"/tavern",  px:0.371, py:0.309, hitW:"13%", hitH:"19%" },
-    { id:"inn",     name:"Outpost",   color:"#84cc16", description:"Mine · Forge · Inventory",       route:"/inn",     px:0.362, py:0.643, hitW:"12%", hitH:"18%" },
-    { id:"market",  name:"Market",    color:"#38bdf8", description:"Shop · Gold · Diamonds",         route:"/market",  px:0.709, py:0.556, hitW:"14%", hitH:"18%" },
-    { id:"arcanum", name:"Arcanum",   color:"#60a5fa", description:"Mythsdex · Encyclopedia",        route:"/arcanum", px:0.507, py:0.229, hitW:"14%", hitH:"24%" },
-    { id:"guild",   name:"Guild",     color:"#fbbf24", description:"Missions · Achievements · Pass", route:"/guild",   px:0.53,  py:0.707, hitW:"14%", hitH:"28%" },
-    { id:"ruins",   name:"The Ruins", color:"#34d399", description:"PvE · Sanctums · Boss · Tower",  route:"/ruins",   px:0.29,  py:0.473, hitW:"15%", hitH:"20%" },
+    { id:"nexus",   name:"Nexus",     color:"#a78bfa", description:"Arcane summoning portal",        route:"/nexus",   px:0.517, py:0.402, hitW:0.154, hitH:0.179 },
+    { id:"arena",   name:"Arena",     color:"#ef4444", description:"PvP · Duels · Ranked",           route:"/arena",   px:0.681, py:0.230, hitW:0.166, hitH:0.264 },
+    { id:"tavern",  name:"Tavern",    color:"#f59e0b", description:"Binders · Ranking · Social",     route:"/tavern",  px:0.360, py:0.230, hitW:0.136, hitH:0.232 },
+    { id:"inn",     name:"Outpost",   color:"#84cc16", description:"Mine · Forge · Inventory",       route:"/inn",     px:0.367, py:0.643, hitW:0.163, hitH:0.138 },
+    { id:"market",  name:"Market",    color:"#38bdf8", description:"Shop · Gold · Diamonds",         route:"/market",  px:0.726, py:0.543, hitW:0.166, hitH:0.207 },
+    { id:"arcanum", name:"Arcanum",   color:"#60a5fa", description:"Mythsdex · Encyclopedia",        route:"/arcanum", px:0.507, py:0.162, hitW:0.142, hitH:0.275 },
+    { id:"guild",   name:"Guild",     color:"#fbbf24", description:"Missions · Achievements · Pass", route:"/guild",   px:0.530, py:0.642, hitW:0.128, hitH:0.249 },
+    { id:"ruins",   name:"The Ruins", color:"#34d399", description:"PvE · Sanctums · Boss · Tower",  route:"/ruins",   px:0.289, py:0.463, hitW:0.217, hitH:0.154 },
 ];
 
 const FOG_DRIFT = [
@@ -96,10 +97,10 @@ export default function HomePage() {
     const [chatOpen,    setChatOpen]    = useState(false);
     const [avatarModal, setAvatarModal] = useState(false);
     const [selFrame,    setSelFrame]    = useState("gold");
-    const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
-
     const { offset: rawOffset, onMouseDown, onTouchStart, didDrag } = useMapDrag(containerRef, mapRef, { initialYRatio: 0.44 });
     const offset = rawOffset ?? { x: 0, y: 0 };
+    // Mobile: draggable 140% map. Desktop: same map but browser shows more of it naturally.
+
 
     const t           = trainer as any;
     const binderLevel = t?.binderLevel ?? 1;
@@ -146,6 +147,7 @@ export default function HomePage() {
                 .bar-btn:active .bar-icon-ring{transform:scale(.88)}
                 .bar-icon-ring-battle{width:48px!important;height:48px!important;background:linear-gradient(160deg,rgba(239,68,68,.65),rgba(153,27,27,.85))!important;border:2px solid rgba(239,68,68,.75)!important;box-shadow:0 0 16px rgba(239,68,68,.45),0 3px 12px rgba(0,0,0,.6)!important}
                 .avatar-btn:active{transform:scale(.94)}
+
             `}</style>
 
             {/* ── TOP HUD ── */}
@@ -215,7 +217,8 @@ export default function HomePage() {
                 style={{ touchAction:"none" }}
                 onMouseDown={onMouseDown}
                 onTouchStart={onTouchStart}>
-                <div ref={mapRef} className="absolute top-0 left-0" style={{ width:"max(140%,560px)",height:"160%",transform:`translate(${offset.x}px,${offset.y}px)`,willChange:"transform",touchAction:"none" }}>
+                <div ref={mapRef} className="absolute top-0 left-0"
+                    style={{ width:"max(140%,560px)", height:"160%", transform:`translate(${offset.x}px,${offset.y}px)`, willChange:"transform", touchAction:"none" }}>
                     <img src={CITY_URL} alt="City of Mythara" draggable={false} className="absolute inset-0 w-full h-full pointer-events-none" style={{ objectFit:"cover", objectPosition:"center center", userSelect:"none" }} />
                     <div className="absolute inset-0 pointer-events-none" style={{ background:"rgba(4,7,16,.06)" }} />
                     <div className="absolute inset-0 pointer-events-none" style={{ background:"radial-gradient(ellipse 92% 90% at 50% 50%,transparent 36%,rgba(4,7,16,.86) 100%)" }} />
@@ -240,9 +243,10 @@ export default function HomePage() {
                     {DISTRICTS.map(d => {
                         const hovered = hoveredId === d.id;
                         return (
-                            <div key={d.id} className="absolute" style={{ left:`${d.px*100}%`,top:`${d.py*100}%`,transform:"translate(-50%,-50%)",width:d.hitW,height:d.hitH,zIndex:5,pointerEvents:"all",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"flex-end" }}
+                            <div key={d.id} className="absolute" style={{ left:`${d.px*100}%`,top:`${d.py*100}%`,transform:"translate(-50%,-50%)",width:`${d.hitW*100}%`,height:`${d.hitH*100}%`,zIndex:5,pointerEvents:"all",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"flex-end" }}
                                 onMouseEnter={() => setHoveredId(d.id)} onMouseLeave={() => setHoveredId(null)} onClick={() => { if (!didDrag.current) navigate(d.route); }}>
                                 <div style={{ position:"absolute",inset:0,borderRadius:"40%",background:`radial-gradient(ellipse,${d.color}38 0%,${d.color}12 55%,transparent 78%)`,opacity:hovered?1:0,transition:"opacity .3s ease",animation:hovered?"districtGlowPulse 1.8s ease-in-out infinite":"none",pointerEvents:"none" }} />
+
                                 <div style={{ position:"relative",background:hovered?"rgba(4,7,16,.88)":"rgba(4,7,16,.68)",border:`1.5px solid ${hovered?d.color+"cc":d.color+"55"}`,borderRadius:8,padding:"5px 16px",marginBottom:5,backdropFilter:"blur(6px)",boxShadow:hovered?`0 0 20px ${d.color}55,0 2px 14px rgba(0,0,0,.9)`:"0 2px 10px rgba(0,0,0,.7)",transition:"all .2s ease",pointerEvents:"none" }}>
                                     <div style={{ color:"#fff",fontSize:hovered?"28px":"22px",fontFamily:"Rajdhani,sans-serif",fontWeight:700,textTransform:"uppercase",letterSpacing:".08em",lineHeight:1,whiteSpace:"nowrap",textShadow:hovered?`0 0 22px ${d.color},0 0 10px ${d.color}99,0 2px 8px rgba(0,0,0,1)`:"0 1px 4px rgba(0,0,0,1),0 2px 12px rgba(0,0,0,1)",transition:"font-size .18s ease,text-shadow .2s ease" }}>{d.name}</div>
                                 </div>
@@ -250,7 +254,9 @@ export default function HomePage() {
                             </div>
                         );
                     })}
+
                 </div>
+
 
                 <div className="absolute pointer-events-none md:hidden" style={{ right:14,top:"50%",zIndex:8,color:"rgba(232,240,254,.28)",fontSize:28,animation:"arrowBobX 1.5s ease-in-out infinite" }}>›</div>
                 <div className="absolute pointer-events-none md:hidden" style={{ left:14,top:"50%",zIndex:8,color:"rgba(232,240,254,.28)",fontSize:28,animation:"arrowBobX 1.5s ease-in-out infinite reverse" }}>‹</div>

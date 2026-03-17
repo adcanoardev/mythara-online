@@ -23,6 +23,12 @@ export function useMapDrag(
     const didDrag   = useRef(false);
     const centered  = useRef(false);
 
+    // Momentum
+    const lastPos   = useRef({ x: 0, y: 0 });
+    const lastTime  = useRef(0);
+    const velocity  = useRef({ x: 0, y: 0 });
+    const rafRef    = useRef<number | null>(null);
+
     const clamp = useCallback((ox: number, oy: number) => {
         const c = containerRef.current;
         const m = mapRef.current;
@@ -33,10 +39,6 @@ export function useMapDrag(
         };
     }, [containerRef, mapRef]);
 
-    // Set initial position based on initialYRatio
-    // 0 = top (x centered, y at top) — shows top of map (Arcanum)
-    // 0.5 = center — default for SanctuariesPage
-    // 1 = bottom — shows bottom of map
     useEffect(() => {
         const timer = setTimeout(() => {
             if (centered.current) return;
@@ -45,22 +47,48 @@ export function useMapDrag(
             if (!c || !m) return;
             centered.current = true;
 
-            const maxOffsetY = Math.min(0, c.offsetHeight - m.offsetHeight); // negative
-            const targetY = maxOffsetY * initialYRatio; // 0 = top, negative = pushed up
+            const maxOffsetY = Math.min(0, c.offsetHeight - m.offsetHeight);
+            const targetY = maxOffsetY * initialYRatio;
 
             setOffset(clamp(
-                (c.offsetWidth - m.offsetWidth) / 2,  // always center horizontally
+                (c.offsetWidth - m.offsetWidth) / 2,
                 targetY,
             ));
         }, 80);
         return () => clearTimeout(timer);
     }, [clamp, containerRef, mapRef, initialYRatio]);
 
+    // Momentum animation loop
+    const startMomentum = useCallback((vx: number, vy: number) => {
+        if (rafRef.current) cancelAnimationFrame(rafRef.current);
+        const FRICTION = 0.92;
+        const MIN_VEL  = 0.3;
+
+        const tick = () => {
+            vx *= FRICTION;
+            vy *= FRICTION;
+            if (Math.abs(vx) < MIN_VEL && Math.abs(vy) < MIN_VEL) return;
+            setOffset(prev => {
+                const next = clamp(prev.x + vx, prev.y + vy);
+                // stop if we hit the boundary
+                if (next.x === prev.x) vx = 0;
+                if (next.y === prev.y) vy = 0;
+                return next;
+            });
+            rafRef.current = requestAnimationFrame(tick);
+        };
+        rafRef.current = requestAnimationFrame(tick);
+    }, [clamp]);
+
     const onMouseDown = useCallback((e: React.MouseEvent) => {
+        if (rafRef.current) cancelAnimationFrame(rafRef.current);
         dragging.current = true;
         didDrag.current  = false;
         startPos.current = { x: e.clientX, y: e.clientY };
         startOff.current = { ...offset };
+        lastPos.current  = { x: e.clientX, y: e.clientY };
+        lastTime.current = performance.now();
+        velocity.current = { x: 0, y: 0 };
     }, [offset]);
 
     useEffect(() => {
@@ -70,22 +98,42 @@ export function useMapDrag(
             const dy = e.clientY - startPos.current.y;
             if (Math.abs(dx) > 3 || Math.abs(dy) > 3) didDrag.current = true;
             setOffset(clamp(startOff.current.x + dx, startOff.current.y + dy));
+
+            // Track velocity
+            const now = performance.now();
+            const dt  = now - lastTime.current;
+            if (dt > 0) {
+                velocity.current = {
+                    x: (e.clientX - lastPos.current.x) / dt * 16,
+                    y: (e.clientY - lastPos.current.y) / dt * 16,
+                };
+            }
+            lastPos.current  = { x: e.clientX, y: e.clientY };
+            lastTime.current = now;
         };
-        const onUp = () => { dragging.current = false; };
+        const onUp = () => {
+            if (!dragging.current) return;
+            dragging.current = false;
+            startMomentum(velocity.current.x, velocity.current.y);
+        };
         window.addEventListener("mousemove", onMove);
         window.addEventListener("mouseup",   onUp);
         return () => {
             window.removeEventListener("mousemove", onMove);
             window.removeEventListener("mouseup",   onUp);
         };
-    }, [clamp]);
+    }, [clamp, startMomentum]);
 
     const onTouchStart = useCallback((e: React.TouchEvent) => {
         if (e.touches.length !== 1) return;
+        if (rafRef.current) cancelAnimationFrame(rafRef.current);
         dragging.current = true;
         didDrag.current  = false;
         startPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
         startOff.current = { ...offset };
+        lastPos.current  = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        lastTime.current = performance.now();
+        velocity.current = { x: 0, y: 0 };
     }, [offset]);
 
     useEffect(() => {
@@ -95,21 +143,40 @@ export function useMapDrag(
             const dy = e.touches[0].clientY - startPos.current.y;
             if (Math.abs(dx) > 3 || Math.abs(dy) > 3) didDrag.current = true;
             setOffset(clamp(startOff.current.x + dx, startOff.current.y + dy));
+
+            // Track velocity
+            const now = performance.now();
+            const dt  = now - lastTime.current;
+            if (dt > 0) {
+                velocity.current = {
+                    x: (e.touches[0].clientX - lastPos.current.x) / dt * 16,
+                    y: (e.touches[0].clientY - lastPos.current.y) / dt * 16,
+                };
+            }
+            lastPos.current  = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            lastTime.current = now;
         };
-        const onEnd = () => { dragging.current = false; };
+        const onEnd = () => {
+            if (!dragging.current) return;
+            dragging.current = false;
+            startMomentum(velocity.current.x, velocity.current.y);
+        };
         window.addEventListener("touchmove", onMove, { passive: true });
         window.addEventListener("touchend",  onEnd);
         return () => {
             window.removeEventListener("touchmove", onMove);
             window.removeEventListener("touchend",  onEnd);
         };
-    }, [clamp]);
+    }, [clamp, startMomentum]);
 
     useEffect(() => {
         const ro = new ResizeObserver(() => setOffset(p => clamp(p.x, p.y)));
         if (containerRef.current) ro.observe(containerRef.current);
         return () => ro.disconnect();
     }, [clamp, containerRef]);
+
+    // Cleanup RAF on unmount
+    useEffect(() => () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); }, []);
 
     return { offset, onMouseDown, onTouchStart, didDrag };
 }
