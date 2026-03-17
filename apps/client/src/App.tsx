@@ -40,6 +40,7 @@ import InventoryPage    from "./pages/InventoryPage";
 import MythsPage        from "./pages/MythsPage";
 import RankingPage      from "./pages/RankingPage";
 import FragmentPage     from "./pages/FragmentPage";
+import RuinsPage        from "./pages/RuinsPage";
 
 // Placeholder for pages not yet implemented
 function ComingSoon({ name }: { name: string }) {
@@ -88,6 +89,7 @@ export default function App() {
 
       {/* ── City districts — fullscreen, no Layout ───────────── */}
       <Route path="/arena"   element={guard(<ComingSoon name="ARENA" />)} />
+      <Route path="/ruins"   element={guard(<RuinsPage />)} />
       <Route path="/tavern"  element={guard(<ComingSoon name="TAVERN" />)} />
       <Route path="/nexus"   element={guard(<ComingSoon name="NEXUS" />)} />
       <Route path="/market"  element={guard(<ComingSoon name="MARKET" />)} />

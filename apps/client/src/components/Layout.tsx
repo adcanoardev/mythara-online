@@ -21,18 +21,18 @@ const AVATARS = [
 // ─────────────────────────────────────────
 
 const NAV = [
-    { icon: "🏡", label: "Posada",      path: "/" },
-    { icon: "👤", label: "Perfil",      path: "/profile" },
-    { icon: "⚔️",  label: "Equipo",     path: "/team" },
-    { icon: "🗡️",  label: "Combatir",   path: "/battle" },
-    { icon: "🏛️",  label: "Santuarios", path: "/sanctums" },
-    { icon: "📖",  label: "Arcanum",    path: "/myths" },
-    { icon: "◈",   label: "Fragmentos", path: "/fragment" },
-    { icon: "🎒",  label: "Inventario", path: "/inventory" },
-    { icon: "💎",  label: "Tienda",     path: "/shop" },
-    { icon: "⚡",   label: "Potenciar",  path: "/ascend" },
-    { icon: "🏆",  label: "Ranking",    path: "/ranking" },
-    { icon: "⚙️",  label: "Config",     path: "/settings" },
+    { icon: "🏡", label: "Inn",           path: "/inn" },
+    { icon: "👤", label: "Profile",       path: "/profile" },
+    { icon: "⚔️",  label: "Team",         path: "/team" },
+    { icon: "🗡️",  label: "Fight",        path: "/ruins" },
+    { icon: "🏛️",  label: "Sanctuaries",  path: "/sanctuaries" },
+    { icon: "📖",  label: "Arcanum",      path: "/myths" },
+    { icon: "◈",   label: "Fragments",    path: "/fragment" },
+    { icon: "🎒",  label: "Inventory",    path: "/inventory" },
+    { icon: "💎",  label: "Shop",         path: "/shop" },
+    { icon: "⚡",   label: "Ascend",       path: "/ascend" },
+    { icon: "🏆",  label: "Ranking",      path: "/ranking" },
+    { icon: "⚙️",  label: "Settings",     path: "/settings" },
 ];
 
 // ─────────────────────────────────────────
@@ -79,8 +79,8 @@ export const AFFINITY_EMOJI: Record<Affinity,string> = {
     EMBER:"🔥",TIDE:"🌊",GROVE:"🌿",VOLT:"⚡",STONE:"🪨",FROST:"❄️",VENOM:"🧪",ASTRAL:"✨",IRON:"⚙️",SHADE:"🌑",
 };
 export const AFFINITY_LABEL: Record<Affinity,string> = {
-    EMBER:"Brasa",TIDE:"Marea",GROVE:"Bosque",VOLT:"Voltio",STONE:"Piedra",
-    FROST:"Escarcha",VENOM:"Veneno",ASTRAL:"Astral",IRON:"Hierro",SHADE:"Sombra",
+    EMBER:"Ember",TIDE:"Tide",GROVE:"Grove",VOLT:"Volt",STONE:"Stone",
+    FROST:"Frost",VENOM:"Venom",ASTRAL:"Astral",IRON:"Iron",SHADE:"Shade",
 };
 const AFFINITY_CHART: Record<Affinity, Partial<Record<Affinity,number>>> = {
     EMBER:  {GROVE:2,FROST:2,TIDE:0.5,STONE:0.5,EMBER:0.5},
@@ -105,11 +105,11 @@ export function getCell(atk: Affinity, def: Affinity): number {
 function formatGold(n: number): string {
     if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
     if (n >= 10_000)    return (n / 1_000).toFixed(0) + "K";
-    return n.toLocaleString("es-ES");
+    return n.toLocaleString("en-US");
 }
 
 function formatTime(ms: number): string {
-    if (ms <= 0) return "listo";
+    if (ms <= 0) return "ready";
     const s = Math.floor(ms / 1000);
     const m = Math.floor(s / 60);
     const h = Math.floor(m / 60);
@@ -136,32 +136,32 @@ export interface AvatarFrame {
 export const AVATAR_FRAMES: AvatarFrame[] = [
     {
         key: "none",
-        label: "Sin marco",
-        unlockHint: "Por defecto",
+        label: "No frame",
+        unlockHint: "Default",
         style: { border: "2px solid rgba(255,255,255,0.12)" },
     },
     {
         key: "silver",
-        label: "Marco Plateado",
-        unlockHint: "Por defecto",
+        label: "Silver Frame",
+        unlockHint: "Default",
         style: { border: "2px solid #94a3b8", boxShadow: "0 0 8px #94a3b844" },
     },
     {
         key: "gold",
-        label: "Marco Dorado",
-        unlockHint: "Rango PVP: Oro",
+        label: "Gold Frame",
+        unlockHint: "PVP Rank: Gold",
         style: { border: "2px solid #fbbf24", boxShadow: "0 0 14px #fbbf2466, inset 0 0 8px #fbbf2420" },
     },
     {
         key: "mythic",
-        label: "Marco Mítico",
-        unlockHint: "Rango PVP: Mítico",
+        label: "Mythic Frame",
+        unlockHint: "PVP Rank: Mythic",
         style: { border: "2px solid #f87171", boxShadow: "0 0 18px #f8717155, 0 0 36px #b91c1c33" },
     },
     {
         key: "arcane",
-        label: "Marco Arcano",
-        unlockHint: "Tienda — 500 💎",
+        label: "Arcane Frame",
+        unlockHint: "Shop — 500 💎",
         style: {
             border: "2px solid transparent",
             backgroundImage: "linear-gradient(#070b14,#070b14), linear-gradient(135deg,#7b2fff,#4cc9f0,#7b2fff)",
@@ -172,20 +172,20 @@ export const AVATAR_FRAMES: AvatarFrame[] = [
     },
     {
         key: "ember",
-        label: "Marco Brasa",
-        unlockHint: "Tienda — 200.000 🪙",
+        label: "Ember Frame",
+        unlockHint: "Shop — 200,000 🪙",
         style: { border: "2px solid #f97316", boxShadow: "0 0 14px #f9731655, 0 0 28px #ea580c33" },
     },
     {
         key: "tide",
-        label: "Marco Marea",
-        unlockHint: "Tienda — 200.000 🪙",
+        label: "Tide Frame",
+        unlockHint: "Shop — 200,000 🪙",
         style: { border: "2px solid #38bdf8", boxShadow: "0 0 14px #38bdf855" },
     },
     {
         key: "legendary",
-        label: "Marco Legendario",
-        unlockHint: "Tienda — 1.000 💎",
+        label: "Legendary Frame",
+        unlockHint: "Shop — 1,000 💎",
         style: {
             border: "2px solid #fbbf24",
             boxShadow: "0 0 20px #fbbf24aa, 0 0 40px #b4530966",
@@ -235,8 +235,8 @@ function StatChip({
                     <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rotate-45 bg-[#0d1220] border-l border-t border-white/10"/>
                     {label && <p className="text-xs text-white/50 mb-0.5">{label}</p>}
                     {isReloading && reloadAt
-                        ? <p className="text-xs text-yellow-400 font-mono">⏱ Próxima ficha en {timeLeft}</p>
-                        : max !== undefined && <p className="text-xs text-emerald-400">✓ Fichas al máximo</p>
+                        ? <p className="text-xs text-yellow-400 font-mono">⏱ Next token in {timeLeft}</p>
+                        : max !== undefined && <p className="text-xs text-emerald-400">✓ Tokens full</p>
                     }
                 </div>
             )}
@@ -269,7 +269,7 @@ function AvatarModal({
 
                 {/* Header */}
                 <div className="flex-shrink-0 flex items-center justify-between px-5 pt-5 pb-3 border-b border-white/[0.08]">
-                    <h2 className="font-display font-bold text-sm tracking-widest uppercase text-white/80">Personalizar perfil</h2>
+                    <h2 className="font-display font-bold text-sm tracking-widest uppercase text-white/80">Customize profile</h2>
                     <button onClick={onClose} className="text-white/30 hover:text-white/70 transition-colors text-lg leading-none">✕</button>
                 </div>
 
@@ -291,7 +291,7 @@ function AvatarModal({
                         <button key={t} onClick={() => setTab(t)}
                             className={`flex-1 py-2.5 text-xs font-display tracking-widest uppercase transition-all
                                 ${tab===t ? "text-white border-b-2 border-indigo-400" : "text-white/30 hover:text-white/60"}`}>
-                            {t==="avatar" ? "🧑 Avatar" : "🖼️ Marco"}
+                            {t==="avatar" ? "🧑 Avatar" : "🖼️ Frame"}
                         </button>
                     ))}
                 </div>
@@ -347,7 +347,7 @@ function AvatarModal({
                                         <div className="min-w-0">
                                             <p className="font-display text-xs font-bold tracking-wider text-white/80 truncate">{fr.label}</p>
                                             <p className={`text-[10px] mt-0.5 ${isUnlocked ? "text-emerald-400/70" : "text-white/25"}`}>
-                                                {isUnlocked ? "✓ Desbloqueado" : fr.unlockHint}
+                                                {isUnlocked ? "✓ Unlocked" : fr.unlockHint}
                                             </p>
                                         </div>
                                     </div>
@@ -361,12 +361,12 @@ function AvatarModal({
                 <div className="flex-shrink-0 flex gap-2 p-4 border-t border-white/[0.08]">
                     <button onClick={onClose}
                         className="flex-1 py-2 rounded-xl border border-white/10 text-white/40 text-xs font-display tracking-widest uppercase hover:bg-white/5 transition-all">
-                        Cancelar
+                        Cancel
                     </button>
                     <button onClick={() => onSave(selAvatar, selFrame)}
                         className="flex-1 py-2 rounded-xl text-xs font-display tracking-widest uppercase font-bold text-white transition-all"
                         style={{background:"linear-gradient(135deg,#7b2fff,#4cc9f0)",boxShadow:"0 0 14px rgba(123,47,255,0.4)"}}>
-                        ✓ Guardar
+                        ✓ Save
                     </button>
                 </div>
             </div>
@@ -428,7 +428,7 @@ export default function Layout({ children, sidebar, battleLocked, onBattleLocked
     const pveMax     = tok?.npcMax    ?? 10;
     const pvpCount   = tok?.pvpTokens ?? 0;
     const pvpMax     = tok?.pvpMax    ?? 5;
-    // nextXxxRechargeMs es ms hasta la próxima ficha (null si está al máximo)
+    // nextXxxRechargeMs: ms until next token (null if at max)
     const pveReloadAt = tok?.nextNpcRechargeMs != null
         ? new Date(Date.now() + tok.nextNpcRechargeMs) : null;
     const pvpReloadAt = tok?.nextPvpRechargeMs != null
@@ -439,7 +439,7 @@ export default function Layout({ children, sidebar, battleLocked, onBattleLocked
             await api.updateAvatar({ avatar: newAvatarId, avatarFrame: newFrameKey });
             reload(); // recarga trainer desde servidor
         } catch (e: any) {
-            addToast(e.message ?? "Error al guardar", "error");
+            addToast(e.message ?? "Error saving", "error");
         }
         setShowAvatarModal(false);
     };
@@ -502,22 +502,7 @@ export default function Layout({ children, sidebar, battleLocked, onBattleLocked
     return (
         <ToastContext.Provider value={{ toast: addToast }}>
             <div className="w-screen overflow-hidden flex flex-col bg-bg" style={{ height: "100dvh" }}>
-                <style>{`
-                    @keyframes toastIn {
-                        from{opacity:0;transform:translateX(100%) scale(0.95);}
-                        to{opacity:1;transform:translateX(0) scale(1);}
-                    }
-                    .animate-toast-in{animation:toastIn 0.25s cubic-bezier(0.34,1.56,0.64,1) both;}
-                    @keyframes nexusDrop {
-                        from{opacity:0;transform:translateY(-6px) scaleY(0.97);}
-                        to{opacity:1;transform:translateY(0) scaleY(1);}
-                    }
-                    .nexus-drop{animation:nexusDrop 0.18s ease both;transform-origin:top center;}
-                    @keyframes legendaryPulse {
-                        0%,100%{box-shadow:0 0 20px #fbbf24aa,0 0 40px #b4530966;}
-                        50%{box-shadow:0 0 30px #fbbf24cc,0 0 60px #b45309aa;}
-                    }
-                `}</style>
+
 
                 {/* ═══ TOPBAR ═══ */}
                 <header className="flex-shrink-0 bg-bg/95 backdrop-blur border-b border-border h-14 flex items-center px-4 gap-3">
@@ -544,12 +529,12 @@ export default function Layout({ children, sidebar, battleLocked, onBattleLocked
                     {/* Centro stats */}
                     <div className="flex-1 flex items-center justify-center">
                         <div className="hidden md:flex items-center gap-2">
-                            <StatChip icon="🗡️" value={pveCount} max={pveMax} label="Fichas PVE" reloadAt={pveReloadAt} color="text-sky-300"/>
-                            <StatChip icon="⚔️" value={pvpCount} max={pvpMax} label="Fichas PVP" reloadAt={pvpReloadAt} color="text-orange-300"/>
-                            <StatChip icon="💎" value={diamonds.toLocaleString("es-ES")} label="Diamantes" color="text-cyan-300"/>
-                            <StatChip icon="🪙" value={formatGold(gold)} label="Oro" color="text-yellow-300"/>
+                            <StatChip icon="🗡️" value={pveCount} max={pveMax} label="PvE tokens" reloadAt={pveReloadAt} color="text-sky-300"/>
+                            <StatChip icon="⚔️" value={pvpCount} max={pvpMax} label="PvP tokens" reloadAt={pvpReloadAt} color="text-orange-300"/>
+                            <StatChip icon="💎" value={diamonds.toLocaleString("en-US")} label="Diamonds" color="text-cyan-300"/>
+                            <StatChip icon="🪙" value={formatGold(gold)} label="Gold" color="text-yellow-300"/>
                         </div>
-                        {/* NEXUS móvil */}
+                        {/* NEXUS mobile */}
                         <div className="md:hidden relative" ref={nexusRef}>
                             <button onClick={() => setNexusOpen(v => !v)}
                                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.06] border border-white/10
@@ -560,19 +545,31 @@ export default function Layout({ children, sidebar, battleLocked, onBattleLocked
                             {nexusOpen && (
                                 <div className="nexus-drop absolute top-full left-1/2 -translate-x-1/2 mt-2 z-50
                                     bg-[#0d1220] border border-white/10 rounded-xl shadow-2xl p-3 min-w-[180px] flex flex-col gap-1.5">
-                                    <NexusRow label="Fichas PVE"  value={`${pveCount}/${pveMax}`}           icon="🗡️" color="text-sky-300"/>
-                                    <NexusRow label="Fichas PVP"  value={`${pvpCount}/${pvpMax}`}           icon="⚔️" color="text-orange-300"/>
-                                    <NexusRow label="Diamantes"   value={diamonds.toLocaleString("es-ES")} icon="💎" color="text-cyan-300"/>
-                                    <NexusRow label="Oro"         value={formatGold(gold)}                  icon="🪙" color="text-yellow-300"/>
+                                    <NexusRow label="PvE tokens"  value={`${pveCount}/${pveMax}`}            icon="🗡️" color="text-sky-300"/>
+                                    <NexusRow label="PvP tokens"  value={`${pvpCount}/${pvpMax}`}            icon="⚔️" color="text-orange-300"/>
+                                    <NexusRow label="Diamonds"    value={diamonds.toLocaleString("en-US")}   icon="💎" color="text-cyan-300"/>
+                                    <NexusRow label="Gold"        value={formatGold(gold)}                   icon="🪙" color="text-yellow-300"/>
                                 </div>
                             )}
                         </div>
                     </div>
 
-                    {/* Derecha: mini avatar + nombre → /profile + Salir */}
+                    {/* Right: mini avatar + username → /profile · chat · logout */}
                     <div className="flex items-center gap-2 flex-shrink-0">
+                        {/* Chat button */}
+                        <button
+                            className="flex items-center justify-center opacity-40 hover:opacity-70 transition-opacity"
+                            style={{
+                                width: 28, height: 28, borderRadius: "50%",
+                                background: "rgba(123,47,255,0.12)",
+                                border: "1px solid rgba(123,47,255,0.25)",
+                                fontSize: 13,
+                            }}
+                            title="Chat (coming soon)"
+                        >💬</button>
+
                         <div className="flex items-center gap-2 cursor-pointer group rounded-lg px-2 py-1 hover:bg-white/5 transition-all"
-                            onClick={() => navigate("/profile")} title="Ver perfil">
+                            onClick={() => navigate("/profile")} title="View profile">
                             <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0" style={frameStyle}>
                                 <img src={avatarUrl(currentAvatar)} alt="avatar" className="w-full h-full object-cover"
                                     onError={e => {
@@ -587,7 +584,7 @@ export default function Layout({ children, sidebar, battleLocked, onBattleLocked
                         </div>
                         <button onClick={handleLogoutClick}
                             className="px-3 py-1 border border-border rounded-lg text-muted text-xs font-display tracking-widest uppercase hover:border-red hover:text-red transition-all">
-                            Salir
+                            Logout
                         </button>
                     </div>
                 </header>
@@ -601,7 +598,7 @@ export default function Layout({ children, sidebar, battleLocked, onBattleLocked
                         {/* Avatar grande */}
                         <div className="flex-shrink-0 flex flex-col items-center gap-2 pt-5 pb-3 px-3">
                             <button onClick={() => setShowAvatarModal(true)}
-                                className="relative group focus:outline-none" title="Cambiar avatar o marco">
+                                className="relative group focus:outline-none" title="Change avatar or frame">
                                 <div className="w-16 h-16 rounded-full overflow-hidden" style={frameStyle}>
                                     <img src={avatarUrl(currentAvatar)} alt="avatar" className="w-full h-full object-cover"
                                         onError={e => {
@@ -652,7 +649,7 @@ export default function Layout({ children, sidebar, battleLocked, onBattleLocked
                                 <div
                                     className="absolute inset-0 z-10 cursor-not-allowed"
                                     onClick={() => onBattleLockedClick?.()}
-                                    title="Tienes un combate en curso"
+                                    title="You have an active battle"
                                 />
                             )}
                         </div>
@@ -668,19 +665,19 @@ export default function Layout({ children, sidebar, battleLocked, onBattleLocked
                         onClick={() => { if (!logoutLoading) setShowLogoutConfirm(false); }}>
                         <div className="bg-card border border-border rounded-xl p-6 w-80 flex flex-col gap-4 shadow-2xl"
                             onClick={e => e.stopPropagation()}>
-                            <h2 className="font-display text-base tracking-widest text-yellow uppercase text-center">⚠️ Combate activo</h2>
+                            <h2 className="font-display text-base tracking-widest text-yellow uppercase text-center">⚠️ Active battle</h2>
                             <p className="text-sm text-muted text-center leading-relaxed">
-                                Si cierras sesión ahora, el combate actual se registrará como{" "}
-                                <span className="text-red font-semibold">derrota</span>. ¿Seguro que quieres salir?
+                                If you log out now, the current battle will be recorded as a{" "}
+                                <span className="text-red font-semibold">defeat</span>. Are you sure you want to leave?
                             </p>
                             <div className="flex gap-3 mt-1">
                                 <button onClick={() => setShowLogoutConfirm(false)} disabled={logoutLoading}
                                     className="flex-1 py-2 rounded-lg border border-border text-muted text-xs font-display tracking-widest uppercase hover:bg-white/5 transition-all">
-                                    Cancelar
+                                    Cancel
                                 </button>
                                 <button onClick={handleLogoutConfirm} disabled={logoutLoading}
                                     className="flex-1 py-2 rounded-lg border border-red bg-red/10 text-red text-xs font-display tracking-widest uppercase hover:bg-red/20 transition-all disabled:opacity-50">
-                                    {logoutLoading ? "Saliendo..." : "Salir y perder"}
+                                    {logoutLoading ? "Logging out..." : "Leave and forfeit"}
                                 </button>
                             </div>
                         </div>

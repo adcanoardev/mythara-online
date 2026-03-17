@@ -308,6 +308,145 @@ function MythArt({
 // HP Bar — barra gruesa con HP numérico en interior
 // ─────────────────────────────────────────
 
+// ─────────────────────────────────────────
+
+// ─────────────────────────────────────────
+// useWindowSize — reactive resize hook
+// ─────────────────────────────────────────
+function useWindowSize() {
+    const [size, setSize] = useState({ w: window.innerWidth, h: window.innerHeight });
+    useEffect(() => {
+        const h = () => setSize({ w: window.innerWidth, h: window.innerHeight });
+        window.addEventListener("resize", h);
+        return () => window.removeEventListener("resize", h);
+    }, []);
+    return size;
+}
+
+// ─────────────────────────────────────────
+// MoveCircle — floating circle button for 3-move overlay
+// slot: "basic" | "skill" | "ulti"
+// Hold (long press) shows description tooltip
+// ─────────────────────────────────────────
+function MoveCircle({
+    move, cfg, ok, onCooldown, cdLeft, slot, onSelect, desktop = false,
+}: {
+    move: Move;
+    cfg: any;
+    ok: boolean;
+    onCooldown: boolean;
+    cdLeft: number;
+    slot: "basic" | "skill" | "ulti";
+    onSelect: () => void;
+    desktop?: boolean;
+}) {
+    const [showDesc, setShowDesc] = useState(false);
+    const holdTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+    const isUlti = slot === "ulti";
+    // Desktop: bigger circles (72/56), mobile: standard (58/44)
+    const sz = isUlti ? (desktop ? 90 : 58) : (desktop ? 70 : 44);
+    const borderColor = onCooldown
+        ? "rgba(100,116,139,0.3)"
+        : isUlti
+            ? (cfg.glow ?? "rgba(249,115,22,0.7)")
+            : `${cfg.glow ?? "rgba(249,115,22,0.5)"}99`;
+    const bg = onCooldown
+        ? "rgba(10,15,25,0.75)"
+        : isUlti
+            ? `rgba(${cfg.glow ? "30,12,3" : "20,10,5"},0.88)`
+            : "rgba(10,14,22,0.82)";
+    const glowShadow = (!onCooldown && isUlti)
+        ? `0 0 16px ${cfg.glow ?? "rgba(249,115,22,0.3)"}55, 0 0 6px ${cfg.glow ?? "rgba(249,115,22,0.2)"}33`
+        : undefined;
+
+    function startHold(e: React.MouseEvent | React.TouchEvent) {
+        e.preventDefault();
+        holdTimer.current = setTimeout(() => setShowDesc(true), 400);
+    }
+    function endHold() {
+        if (holdTimer.current) { clearTimeout(holdTimer.current); holdTimer.current = null; }
+    }
+
+    return (
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, position: "relative" }}>
+            {/* Tooltip — shown on hold */}
+            {showDesc && (
+                <div
+                    onClick={(e) => { e.stopPropagation(); setShowDesc(false); }}
+                    style={{
+                        position: "absolute", bottom: sz + 10, left: "50%", transform: "translateX(-50%)",
+                        width: 210, background: "rgba(7,11,20,0.97)",
+                        border: `1px solid ${cfg.glow ?? "#6366f1"}44`,
+                        borderRadius: 10, padding: "8px 12px", zIndex: 60,
+                        boxShadow: `0 0 24px rgba(0,0,0,0.8), 0 0 10px ${cfg.glow ?? "#6366f1"}22`,
+                    }}
+                >
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 5 }}>
+                        <AffinityIcon affinity={move.affinity} size={14} />
+                        <span style={{ fontFamily: "monospace", fontWeight: 900, color: "#fff", fontSize: 11 }}>{move.name}</span>
+                        {move.power > 0 && <span style={{ fontSize: 10, color: cfg.glow ?? "#f97316", fontFamily: "monospace", fontWeight: 900, marginLeft: "auto" }}>⚡{move.power}</span>}
+                    </div>
+                    <p style={{ fontSize: 10, color: "rgba(255,255,255,0.65)", lineHeight: 1.5 }}>{move.description}</p>
+                    {/* Arrow */}
+                    <div style={{ position: "absolute", bottom: -5, left: "50%", transform: "translateX(-50%) rotate(45deg)", width: 8, height: 8, background: "rgba(7,11,20,0.97)", border: `1px solid ${cfg.glow ?? "#6366f1"}44`, borderTop: "none", borderLeft: "none" }} />
+                </div>
+            )}
+
+            {/* Circle button */}
+            <button
+                onClick={() => { setShowDesc(false); ok && onSelect(); }}
+                onMouseDown={startHold} onMouseUp={endHold} onMouseLeave={endHold}
+                onTouchStart={startHold} onTouchEnd={endHold}
+                disabled={!ok && !onCooldown}
+                style={{
+                    width: sz, height: sz, borderRadius: "50%",
+                    background: bg,
+                    border: `2px solid ${borderColor}`,
+                    boxShadow: glowShadow,
+                    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 1,
+                    cursor: ok ? "pointer" : "default",
+                    opacity: onCooldown ? 0.35 : 1,
+                    transition: "opacity 0.2s, box-shadow 0.2s, transform 0.1s",
+                    position: "relative", overflow: "hidden",
+                    flexShrink: 0,
+                }}
+                className={ok ? "active:scale-95" : ""}
+            >
+                {/* CD overlay */}
+                {onCooldown && (
+                    <div style={{
+                        position: "absolute", inset: 0, borderRadius: "50%",
+                        background: "rgba(0,0,0,0.72)",
+                        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 0,
+                    }}>
+                        <span style={{ fontSize: isUlti ? (desktop ? 28 : 22) : (desktop ? 22 : 17), fontWeight: 900, color: "#ef4444", lineHeight: 1 }}>{cdLeft}</span>
+                        <span style={{ fontSize: desktop ? 8 : 7, color: "rgba(239,68,68,0.6)", letterSpacing: "0.1em" }}>CD</span>
+                    </div>
+                )}
+                <AffinityIcon affinity={move.affinity} size={isUlti ? (desktop ? 28 : 22) : (desktop ? 20 : 16)} />
+                {move.power > 0
+                    ? <span style={{ fontSize: isUlti ? (desktop ? 11 : 9) : (desktop ? 10 : 8), fontFamily: "monospace", fontWeight: 900, color: cfg.glow ?? "#f97316", lineHeight: 1 }}>⚡{move.power}</span>
+                    : <span style={{ fontSize: desktop ? 9 : 7, fontFamily: "monospace", color: "#64748b" }}>STS</span>
+                }
+                {/* ULT badge */}
+                {isUlti && !onCooldown && (
+                    <div style={{ position: "absolute", top: -1, right: -1, background: cfg.glow ?? "#f97316", borderRadius: 4, padding: "0 3px", fontSize: 7, fontFamily: "monospace", fontWeight: 900, color: "#000", lineHeight: "13px" }}>ULT</div>
+                )}
+            </button>
+
+            {/* Name label */}
+            <span style={{
+                fontSize: desktop ? 9 : 8, fontFamily: "monospace", fontWeight: 700,
+                color: onCooldown ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.7)",
+                textAlign: "center", maxWidth: sz + 12, lineHeight: 1.2,
+                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+            }}>
+                {move.name}
+            </span>
+        </div>
+    );
+}
+
 function HpBar({ hp, maxHp, shield = 0, shieldTurns = 0 }: { hp: number; maxHp: number; shield?: number; shieldTurns?: number }) {
     const pct = maxHp > 0 ? Math.max(0, (hp / maxHp) * 100) : 0;
     const shieldPct = maxHp > 0 ? Math.min(100 - pct, (shield / maxHp) * 100) : 0;
@@ -1627,21 +1766,22 @@ function ArenaMyth({
                                 onClick={(e) => { e.stopPropagation(); setShowPop(v => !v); }}
                                 style={{
                                     flexShrink: 0,
-                                    height: 30, width: 14,
+                                    height: 22, width: 22,
                                     display: "flex", alignItems: "center", justifyContent: "center",
-                                    background: showPop ? "#334155" : "#1e293b",
-                                    border: "1px solid #475569",
+                                    background: showPop ? "#4338ca" : "rgba(99,102,241,0.2)",
+                                    border: showPop ? "1px solid #818cf8" : "1px solid rgba(99,102,241,0.5)",
                                     borderRight: "none",
-                                    borderRadius: "14px 0 0 14px",
+                                    borderRadius: "6px 0 0 6px",
                                     cursor: "pointer",
-                                    transition: "background 0.15s",
+                                    transition: "all 0.15s",
+                                    boxShadow: showPop ? "0 0 8px rgba(99,102,241,0.5)" : "none",
                                     padding: 0,
                                 }}
                             >
-                                <svg width="11" height="10" viewBox="0 0 11 10" fill="none">
-                                    <line x1="2" y1="2" x2="9" y2="2" stroke={showPop ? "#e2e8f0" : "#94a3b8"} strokeWidth="1.3" strokeLinecap="round"/>
-                                    <line x1="2" y1="5" x2="9" y2="5" stroke={showPop ? "#e2e8f0" : "#94a3b8"} strokeWidth="1.3" strokeLinecap="round"/>
-                                    <line x1="2" y1="8" x2="6.5" y2="8" stroke={showPop ? "#e2e8f0" : "#94a3b8"} strokeWidth="1.3" strokeLinecap="round"/>
+                                <svg width="12" height="11" viewBox="0 0 11 10" fill="none">
+                                    <line x1="2" y1="2" x2="9" y2="2" stroke={showPop ? "#e2e8f0" : "#a5b4fc"} strokeWidth="1.5" strokeLinecap="round"/>
+                                    <line x1="2" y1="5" x2="9" y2="5" stroke={showPop ? "#e2e8f0" : "#a5b4fc"} strokeWidth="1.5" strokeLinecap="round"/>
+                                    <line x1="2" y1="8" x2="6.5" y2="8" stroke={showPop ? "#e2e8f0" : "#a5b4fc"} strokeWidth="1.5" strokeLinecap="round"/>
                                 </svg>
                             </button>
                             {/* Popover bocadillo */}
@@ -1795,7 +1935,7 @@ function ArenaMyth({
                             {/* Lv badge */}
                             <div
                                 style={{
-                                    flexShrink: 0, height: 30, minWidth: 20,
+                                    flexShrink: 0, height: 22, minWidth: 24,
                                     display: "flex", alignItems: "center", justifyContent: "center",
                                     background: "#1d4ed8",
                                     border: "1px solid #3b82f6",
@@ -1809,8 +1949,8 @@ function ArenaMyth({
                                 {`Lv${myth.level}`}
                             </div>
                             {/* Barra HP */}
-                            <div style={{ flex: 1, position: "relative", height: 30, borderRadius: "0 14px 14px 0", overflow: "visible" }}>
-                                <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)", borderRadius: "0 14px 14px 0", border: "1px solid rgba(255,255,255,0.08)", borderLeft: "none", overflow: "hidden" }}>
+                            <div style={{ flex: 1, position: "relative", height: 14, borderRadius: "0 7px 7px 0", overflow: "visible" }}>
+                                <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)", borderRadius: "0 7px 7px 0", border: "1px solid rgba(255,255,255,0.08)", borderLeft: "none", overflow: "hidden" }}>
                                 {(() => {
                                     const pct = myth.maxHp > 0 ? Math.max(0, (myth.hp / myth.maxHp) * 100) : 0;
                                     const shield = myth.shield ?? 0;
@@ -1820,17 +1960,11 @@ function ArenaMyth({
                                     return (
                                         <>
                                             <div className="absolute left-0 top-0 h-full transition-all duration-700"
-                                                style={{ width: `${pct}%`, background: barColor, boxShadow: `0 0 8px ${glowColor}` }} />
+                                                style={{ width: `${pct}%`, background: barColor, boxShadow: `0 0 6px ${glowColor}` }} />
                                             {shieldPct > 0 && (
                                                 <div className="absolute top-0 h-full"
                                                     style={{ left: `${pct}%`, width: `${shieldPct}%`, background: "#60a5fa", boxShadow: "0 0 6px rgba(96,165,250,0.5)" }} />
                                             )}
-                                            <div className="absolute inset-0 flex items-center justify-center" style={{ zIndex: 2 }}>
-                                                <span className="font-mono font-black tabular-nums leading-none select-none"
-                                                    style={{ fontSize: "13px", color: "#ffffff", textShadow: "0 1px 4px rgba(0,0,0,1)", whiteSpace: "nowrap" }}>
-                                                    {myth.hp}<span style={{ opacity: 0.75, fontWeight: 700 }}>/{myth.maxHp}</span>
-                                                </span>
-                                            </div>
                                         </>
                                     );
                                 })()}
@@ -1950,7 +2084,7 @@ function PrepScreen({
         <div className="flex-1 flex flex-col items-center justify-center gap-6 p-6 overflow-auto">
             <div className="text-center">
                 <h2 className="font-mono text-xl font-black tracking-widest text-yellow-400 uppercase">
-                    ⚔️ Preparación
+                    ⚔️ Preparation
                 </h2>
                 <p className="text-slate-400 text-sm mt-1">Arrastra hasta 3 Myths a los slots para combatir</p>
             </div>
@@ -2031,7 +2165,7 @@ function PrepScreen({
                 : "bg-slate-900/40 border-slate-800 text-slate-600 cursor-not-allowed opacity-50"
         }`}
             >
-                {loading ? "Iniciando..." : `⚔️ Combatir (${order.length} Myth${order.length !== 1 ? "s" : ""})`}
+                {loading ? "Starting..." : `⚔️ Fight (${order.length} Myth${order.length !== 1 ? "s" : ""})`}
             </button>
         </div>
     );
@@ -2100,83 +2234,6 @@ function BenchCard({ myth, onDragStart }: { myth: any; onDragStart: (m: any, fro
 
 
 // ─────────────────────────────────────────
-// ScreenWarning — aviso pantalla pequeña / móvil
-// ─────────────────────────────────────────
-
-function ScreenWarning({ onDismiss }: { onDismiss: () => void }) {
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-        navigator.userAgent
-    );
-
-    return (
-        <div
-            className="fixed inset-0 z-[9999] flex items-center justify-center p-6"
-            style={{ background: "rgba(7,11,20,0.88)", backdropFilter: "blur(14px)" }}
-        >
-            <div
-                className="max-w-sm w-full rounded-2xl p-8 flex flex-col items-center gap-6 text-center"
-                style={{
-                    background: "linear-gradient(135deg, #1e2d45 0%, #162035 100%)",
-                    border: "1px solid rgba(253,224,71,0.45)",
-                    boxShadow: "0 0 0 1px rgba(253,224,71,0.08), 0 0 60px rgba(253,224,71,0.18), 0 24px 64px rgba(0,0,0,0.75)",
-                }}
-            >
-                {/* Icono */}
-                <div
-                    className="w-20 h-20 rounded-full flex items-center justify-center text-4xl"
-                    style={{ background: "rgba(253,224,71,0.12)", border: "2px solid rgba(253,224,71,0.35)" }}
-                >
-                    {isMobile ? "📱" : "🖥️"}
-                </div>
-
-                {/* Título */}
-                <div className="flex flex-col gap-3">
-                    <h2 className="font-mono font-black text-xl tracking-wider uppercase" style={{ color: "#fde047" }}>
-                        {isMobile ? "Dispositivo no compatible" : "Ventana demasiado pequeña"}
-                    </h2>
-                    <p className="text-sm leading-relaxed" style={{ color: "#94a3b8" }}>
-                        {isMobile
-                            ? "Mythara Online is designed for landscape play."
-                            : "Para jugar Mythara Online necesitas una ventana más ancha."}
-                    </p>
-                    {/* Instrucción concreta — solo escritorio */}
-                    {!isMobile && (
-                        <div
-                            className="rounded-xl px-4 py-3 text-sm font-mono leading-relaxed"
-                            style={{ background: "rgba(253,224,71,0.08)", border: "1px solid rgba(253,224,71,0.2)", color: "#fde047" }}
-                        >
-                            Maximiza la ventana del navegador<br/>
-                            <span style={{ color: "#94a3b8", fontSize: "0.75rem" }}>
-                                o pulsa <strong style={{ color: "#fde047" }}>F11</strong> para pantalla completa
-                            </span>
-                        </div>
-                    )}
-                </div>
-
-                {/* Botón — solo móvil (escritorio no tiene dismiss fácil) */}
-                {isMobile && (
-                    <button
-                        onClick={onDismiss}
-                        className="w-full py-3 rounded-xl font-mono font-black text-sm tracking-widest uppercase transition-all active:scale-95"
-                        style={{
-                            background: "linear-gradient(135deg, #fde047 0%, #f59e0b 100%)",
-                            color: "#0f172a",
-                            boxShadow: "0 0 20px rgba(253,224,71,0.35), 0 4px 12px rgba(0,0,0,0.4)",
-                        }}
-                    >
-                        Continuar de todas formas
-                    </button>
-                )}
-
-                {/* Footer */}
-                <p className="text-xs font-mono" style={{ color: "#475569" }}>
-                    {isMobile ? "La experiencia será limitada en móvil" : "El aviso desaparece al ampliar la ventana"}
-                </p>
-            </div>
-        </div>
-    );
-}
-
 // ─────────────────────────────────────────
 // Main BattlePage
 // ─────────────────────────────────────────
@@ -2190,12 +2247,16 @@ export default function BattlePage() {
 
     // ── Altura real del viewport ──
     useEffect(() => {
+        document.body.dataset.page = "battle";
         function setAppHeight() {
             document.documentElement.style.setProperty("--app-height", `${window.innerHeight}px`);
         }
         setAppHeight();
         window.addEventListener("resize", setAppHeight);
-        return () => window.removeEventListener("resize", setAppHeight);
+        return () => {
+            delete document.body.dataset.page;
+            window.removeEventListener("resize", setAppHeight);
+        };
     }, []);
 
     // Keyframes de combate → apps/client/src/style.css
@@ -2334,12 +2395,15 @@ export default function BattlePage() {
         isCrit?: boolean;
     }[]>([]);
     const logRef = useRef<HTMLDivElement>(null);
-    // Scroll al fondo del log cada vez que llega un mensaje — estilo Twitch
+    const { w: winW } = useWindowSize();
+    const isDesktop = winW >= 900;
+    const [logOpen, setLogOpen] = useState(() => window.innerWidth >= 900);
+    useEffect(() => { setLogOpen(window.innerWidth >= 900); }, [winW >= 900]);
     useEffect(() => {
         const el = logRef.current;
         if (!el) return;
         el.scrollTop = el.scrollHeight;
-    }, [log]);
+    }, [log, logOpen]);
     const [result, setResult] = useState<{ status: "win" | "lose"; xp?: number; coins?: number } | null>(null);
     const { reload, trainer } = useTrainer();
     const { toast } = useToast();
@@ -2367,7 +2431,7 @@ export default function BattlePage() {
     async function handleUseItem(targetMythId: string) {
         if (!selectedItem || !session || usingItem) return;
         const qty = getCombatItemCount(selectedItem.type);
-        if (qty <= 0) { toast("No tienes ese objeto", "error"); return; }
+        if (qty <= 0) { toast("You don't have that item", "error"); return; }
         setUsingItem(true);
         try {
             // TODO servidor: POST /battle/npc/use-item { battleId, itemType, targetInstanceId }
@@ -2384,7 +2448,7 @@ export default function BattlePage() {
             });
             if (!res.ok) {
                 const err = await res.json().catch(() => ({}));
-                throw new Error(err.error ?? "Error al usar objeto");
+                throw new Error(err.error ?? "Error using item");
             }
             const data = await res.json();
             if (data.session) setSession(cloneSession(data.session));
@@ -2395,7 +2459,7 @@ export default function BattlePage() {
             toast(`${selectedItem.emoji} ${selectedItem.name} usado con éxito`, "success");
             await reload();
         } catch (e: any) {
-            toast(e.message ?? "Error al usar objeto", "error");
+            toast(e.message ?? "Error using item", "error");
         } finally {
             setUsingItem(false);
             setSelectedItem(null);
@@ -2977,7 +3041,7 @@ export default function BattlePage() {
                 // Efecto visual CSS del tick de estado
                 showStatusEffect(action.actorInstanceId, actorMyth.status, 900);
                 await flashAndFloat(action.actorInstanceId, tickAff, action.statusTickDamage, false, 1);
-                addLog(action.statusTickMsg ?? `🩸 ${action.actorName} sufre daño por estado`, "status");
+                addLog(action.statusTickMsg ?? `🩸 ${action.actorName} takes status damage`, "status");
             }
         }
     }
@@ -3206,7 +3270,7 @@ export default function BattlePage() {
     // Mobile landscape (width < 900px): smaller sprites to fit 3v3 in arena
     function getMythSpriteSize(myth: BattleMyth): number {
         const h = (myth as any).height;
-        const isMobile = window.innerWidth < 900;
+        const isMobile = winW < 900;
         const minPx = isMobile ? 40 : 75;
         const maxPx = isMobile ? 60 : 130;
         if (h === undefined || h === null) return isMobile ? 52 : 105;
@@ -3215,7 +3279,7 @@ export default function BattlePage() {
         return Math.round(minPx + ((clamped - 0.35) / (2.0 - 0.35)) * (maxPx - minPx));
     }
     // spriteSize base (overridden per myth in render)
-    const spriteSize = window.innerWidth < 900 ? 52 : 105;
+    const spriteSize = winW < 900 ? 52 : 105;
 
     // Distortion turns remaining — calculated via distortionTurnsMap (defined near buildDistortionMap)
 
@@ -3313,7 +3377,7 @@ export default function BattlePage() {
             <div className="flex-1 overflow-hidden flex flex-col relative">
                 <div className="flex-1 flex flex-col overflow-hidden" style={{ minHeight: 0 }}>
 
-                    <div className="flex-1 flex overflow-hidden" style={{ minHeight: 0 }}>
+                    <div className="flex-1 flex overflow-hidden relative" style={{ minHeight: 0 }}>
                         {/* ── Arena principal ── */}
                         <div className="flex-1 flex flex-col overflow-hidden" style={{ minHeight: 0 }}>
                         {/* ── Campo de batalla — fondo CSS puro ── */}
@@ -3651,18 +3715,24 @@ export default function BattlePage() {
                                 <div className="absolute top-8 bottom-8 pointer-events-none" style={{ left:"50%", width:1, background:"linear-gradient(180deg,transparent 0%,rgba(255,255,255,0.05) 50%,transparent 100%)" }}/>
 
                                 {/* ── Círculos mágicos + sombras de suelo ──
-                                    Posiciones: top/left en % del campo → sprite siempre centrado
-                                    Tamaño crece de atrás (pequeño) a delante (grande) = perspectiva
-                                    scaleY(0.38) en el círculo y sombra → ilusión de plano horizontal */}
-                                {[
-                                    // [left%, top%, size%, side] — calibrados con el calibrador visual
-                                    ["21.9%","37.5%","13%","player"],  // P slot 0 — fondo
-                                    ["29.9%","55%",  "19%","player"],  // P slot 1 — centro avanzado
-                                    ["16.3%","72.5%","24%","player"],  // P slot 2 — delante
-                                    ["78%",  "37.2%","13%","enemy"],   // E slot 0 — fondo
-                                    ["69.4%","55%",  "19%","enemy"],   // E slot 1 — centro avanzado
-                                    ["83.6%","73%",  "24%","enemy"],   // E slot 2 — delante
-                                ].map(([l, t, sz, side], ci) => {
+                                    Posiciones alineadas con los depth slots de los sprites
+                                    scaleY(0.38) → ilusión de plano horizontal */}
+                                {(() => {
+                                    // Dynamic ground circles matching current team sizes
+                                    const aPC = session ? session.playerTeam.filter(m => !m.defeated).length : 3;
+                                    const aEC = session ? session.enemyTeam.filter((m: any) => !m.defeated).length : 3;
+                                    const pc = Math.max(aPC, 1), ec = Math.max(aEC, 1);
+                                    const circles3v3P = [["16%","39%","13%","player"],["30%","58%","18%","player"],["16%","78%","24%","player"]] as const;
+                                    const circles2v2P = [["24%","45%","17%","player"],["24%","72%","23%","player"]] as const;
+                                    const circles1v1P = [["28%","55%","26%","player"]] as const;
+                                    const circles3v3E = [["84%","39%","13%","enemy"],["70%","58%","18%","enemy"],["84%","78%","24%","enemy"]] as const;
+                                    const circles2v2E = [["76%","45%","17%","enemy"],["76%","72%","23%","enemy"]] as const;
+                                    const circles1v1E = [["72%","55%","26%","enemy"]] as const;
+                                    const pCircles = pc === 1 ? circles1v1P : pc === 2 ? circles2v2P : circles3v3P;
+                                    const eCircles = ec === 1 ? circles1v1E : ec === 2 ? circles2v2E : circles3v3E;
+                                    const allCircles = [...pCircles, ...eCircles];
+                                    return allCircles;
+                                })().map(([l, t, sz, side], ci) => {
                                     const isPlayer = side === "player";
                                     const color = isPlayer ? "#22d3ee" : "#f87171";
                                     const shadowSize = `calc(${sz} + 2%)`;
@@ -3708,19 +3778,69 @@ export default function BattlePage() {
                                 {/* Proyectil */}
                                 {projectile && <Projectile proj={projectile} />}
 
-                                {/* ── Enemigos (derecha) — posiciones según círculos del mapa ── */}
-                                {/* idx=0: fondo-der; idx=1: centro avanzado; idx=2: delante-der */}
+                                {/* ── Enemigos (derecha) — profundidad rotativa + dinámica 1v1/2v2/3v3 ── */}
                                 {(phase === "prep" ? [null, null, null] : (session?.enemyTeam ?? [null,null,null])).map((myth: any, idx: number) => {
-                                    // left/top calibrados manualmente con el calibrador visual
-                                    const leftPcts = ["78%", "69.4%", "83.6%"];
-                                    const topPcts  = ["34%", "52%", "63%"];
+                                    // Count alive enemy myths
+                                    const aliveEnemyCount = session ? session.enemyTeam.filter((m: any) => !m.defeated).length : 3;
+                                    const totalEnemyCount = session ? session.enemyTeam.length : 3;
+                                    const effectiveEnemySize = Math.max(aliveEnemyCount, 1);
+
+                                    // Dynamic slot positions based on team size
+                                    // 3v3: staggered depth layout
+                                    // 2v2: two centered slots
+                                    // 1v1: single centered slot
+                                    const depthSlots3v3 = [
+                                        { left: "84%", top: "39%", size: 32 }, // back
+                                        { left: "70%", top: "58%", size: 40 }, // mid
+                                        { left: "84%", top: "78%", size: 54 }, // front
+                                    ];
+                                    const depthSlots2v2 = [
+                                        { left: "76%", top: "45%", size: 38 }, // back-center
+                                        { left: "76%", top: "72%", size: 52 }, // front-center
+                                        { left: "76%", top: "72%", size: 52 }, // (unused)
+                                    ];
+                                    const depthSlots1v1 = [
+                                        { left: "72%", top: "55%", size: 58 }, // single centered
+                                        { left: "72%", top: "55%", size: 58 },
+                                        { left: "72%", top: "55%", size: 58 },
+                                    ];
+                                    const depthSlots = effectiveEnemySize === 1 ? depthSlots1v1 : effectiveEnemySize === 2 ? depthSlots2v2 : depthSlots3v3;
+
+                                    // Active enemy → front, others rotate
+                                    let depthIdx = idx;
+                                    if (session) {
+                                        const team = session.enemyTeam;
+                                        const activeIdx = team.findIndex((m: any) => m?.instanceId === currentActorId);
+                                        if (activeIdx >= 0) {
+                                            const others = [0,1,2].filter(x => x !== activeIdx);
+                                            const slotMap: Record<number,number> = {
+                                                [activeIdx]: 2,
+                                                [others[0]]: 1,
+                                                [others[1]]: 0,
+                                            };
+                                            depthIdx = slotMap[idx] ?? idx;
+                                        }
+                                        // For 2v2: use only slots 1 and 2
+                                        if (effectiveEnemySize === 2) depthIdx = depthIdx === 0 ? 0 : 1;
+                                        // For 1v1: always slot 0
+                                        if (effectiveEnemySize === 1) depthIdx = 0;
+                                    }
+                                    const dp = depthSlots[depthIdx];
+                                    const zIdx = [5, 8, 12][depthIdx];
                                     const isPrepSlot = phase === "prep" || !myth;
                                     const revealed = myth && (idx < enemyRevealIndex);
                                     return (
                                         <div
                                             key={myth ? myth.instanceId : `eslot-${idx}`}
-                                            className="absolute z-10"
-                                            style={{ left: leftPcts[idx], top: topPcts[idx], transform: "translate(-50%,-50%)", opacity: isPrepSlot ? 0.2 : (revealed ? 1 : 0), animation: (!isPrepSlot && revealed) ? `enemyLand 0.6s cubic-bezier(0.34,1.56,0.64,1) forwards` : undefined }}
+                                            className="absolute"
+                                            style={{
+                                                left: dp.left, top: dp.top,
+                                                transform: "translate(-50%,-50%)",
+                                                zIndex: zIdx,
+                                                opacity: isPrepSlot ? 0.2 : (revealed ? 1 : 0),
+                                                animation: (!isPrepSlot && revealed) ? `enemyLand 0.6s cubic-bezier(0.34,1.56,0.64,1) forwards` : undefined,
+                                                transition: "left 0.45s cubic-bezier(0.4,0,0.2,1), top 0.45s cubic-bezier(0.4,0,0.2,1)",
+                                            }}
                                         >
                                             {isPrepSlot ? (
                                                 <div className="rounded-full border-2 border-dashed border-red-500/50" style={{ width: spriteSize, height: spriteSize, background: "rgba(239,68,68,0.05)" }} />
@@ -3735,7 +3855,7 @@ export default function BattlePage() {
                                                     floatingDmg={floatMap[myth.instanceId]}
                                                     supportOverlay={supportOverlays[myth.instanceId]}
                                                     koOverlay={!!koOverlays[myth.instanceId]}
-                                                    spriteSize={getMythSpriteSize(myth)}
+                                                    spriteSize={dp.size}
                                                     distortionInfo={getDistortionInfo(myth)}
                                                     statusBlockedOverlays={statusBlockedOverlays}
                                                     statusEffectOverlays={statusEffectOverlays}
@@ -3746,94 +3866,76 @@ export default function BattlePage() {
                                     );
                                 })}
 
-                                {/* ── Indicador central de turno — bonito ── */}
+                                {/* ── Turn number badge ── */}
                                 {phase === "battle" && session && (
                                     <div className="absolute left-1/2 z-20 pointer-events-none"
                                         style={{ top: "10px", transform: "translateX(-50%)" }}>
-                                        <div className="flex flex-col items-center gap-1.5">
-                                            {/* Badge número de turno */}
-                                            <div className="flex items-center gap-2.5 rounded-full px-5 py-1.5"
-                                                style={{
-                                                    background: "linear-gradient(135deg, rgba(7,11,20,0.92) 0%, rgba(20,30,50,0.95) 100%)",
-                                                    border: "1px solid rgba(255,255,255,0.15)",
-                                                    boxShadow: "0 0 20px rgba(0,0,0,0.6), 0 2px 12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)",
-                                                    backdropFilter: "blur(12px)",
-                                                }}>
-                                                <div style={{ width: 22, height: 1, background: "linear-gradient(90deg, transparent, rgba(148,163,184,0.4))" }} />
-                                                <span className="font-mono text-slate-400 tracking-[0.22em] uppercase" style={{ fontSize: "11px" }}>Turn</span>
-                                                <span className="font-mono font-black text-white tabular-nums"
-                                                    style={{ fontSize: "1.25rem", textShadow: "0 0 14px rgba(255,255,255,0.35)", letterSpacing: "-0.01em" }}>
-                                                    {session.turn}
-                                                </span>
-                                                <div style={{ width: 22, height: 1, background: "linear-gradient(90deg, rgba(148,163,184,0.4), transparent)" }} />
-                                            </div>
-                                            {/* Sub-línea — portraits atacante → objetivo */}
-                                            {!animating && currentActor && (
-                                                <div className="flex items-center gap-2"
-                                                    style={{
-                                                        background: currentActorIsPlayer ? "rgba(59,130,246,0.12)" : "rgba(239,68,68,0.10)",
-                                                        border: currentActorIsPlayer ? "1px solid rgba(59,130,246,0.35)" : "1px solid rgba(239,68,68,0.25)",
-                                                        borderRadius: 12, padding: "5px 12px",
-                                                    }}>
-                                                    {/* Atacante */}
-                                                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-                                                        <div style={{
-                                                            width: 36, height: 36, borderRadius: 6,
-                                                            background: "rgba(0,0,0,0.4)",
-                                                            border: `1.5px solid ${currentActorIsPlayer ? "rgba(59,130,246,0.7)" : "rgba(248,113,113,0.6)"}`,
-                                                            overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center",
-                                                            boxShadow: currentActorIsPlayer ? "0 0 8px rgba(59,130,246,0.35)" : "0 0 8px rgba(248,113,113,0.3)",
-                                                        }}>
-                                                            {currentActor.art?.portrait
-                                                                ? <img src={currentActor.art.portrait} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                                                                : <span style={{ fontSize: "18px" }}>🐉</span>}
-                                                        </div>
-                                                        <span style={{ fontSize: "9px", fontFamily: "monospace", fontWeight: 700, color: currentActorIsPlayer ? "rgba(96,165,250,0.95)" : "rgba(248,113,113,0.9)", maxWidth: 44, textAlign: "center", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                                            {currentActor.name}
-                                                        </span>
-                                                    </div>
-                                                    {/* Flecha */}
-                                                    <svg width="24" height="14" viewBox="0 0 24 14" fill="none" style={{ flexShrink: 0, marginBottom: 12 }}>
-                                                        <path d="M1 7H20" stroke={currentActorIsPlayer ? "#ef4444" : "#94a3b8"} strokeWidth="1.5" strokeLinecap="round"/>
-                                                        <path d="M15 2L21 7L15 12" stroke={currentActorIsPlayer ? "#ef4444" : "#94a3b8"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                    </svg>
-                                                    {/* Objetivo */}
-                                                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-                                                        <div style={{
-                                                            width: 36, height: 36, borderRadius: 6,
-                                                            background: "rgba(0,0,0,0.4)",
-                                                            border: currentActorIsPlayer
-                                                                ? (targetEnemy ? "1.5px solid rgba(239,68,68,0.7)" : "1.5px dashed rgba(100,116,139,0.4)")
-                                                                : "1.5px solid rgba(59,130,246,0.6)",
-                                                            overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center",
-                                                            boxShadow: currentActorIsPlayer && targetEnemy ? "0 0 8px rgba(239,68,68,0.35)" : undefined,
-                                                            opacity: currentActorIsPlayer && !targetEnemy ? 0.4 : 1,
-                                                        }}>
-                                                            {(() => {
-                                                                const tgt = currentActorIsPlayer ? targetEnemy : session?.playerTeam.find(m => !m.defeated);
-                                                                return tgt?.art?.portrait
-                                                                    ? <img src={tgt.art.portrait} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                                                                    : <span style={{ fontSize: "18px" }}>🐲</span>;
-                                                            })()}
-                                                        </div>
-                                                        <span style={{ fontSize: "9px", fontFamily: "monospace", fontWeight: 700, color: currentActorIsPlayer ? "rgba(239,68,68,0.9)" : "rgba(96,165,250,0.9)", maxWidth: 44, textAlign: "center", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                                            {currentActorIsPlayer ? (targetEnemy?.name ?? "???") : (session?.playerTeam.find(m => !m.defeated)?.name ?? "???")}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            )}
+                                        <div className="flex items-center gap-2.5 rounded-full px-5 py-1.5"
+                                            style={{
+                                                background: "linear-gradient(135deg, rgba(7,11,20,0.92) 0%, rgba(20,30,50,0.95) 100%)",
+                                                border: "1px solid rgba(255,255,255,0.15)",
+                                                boxShadow: "0 0 20px rgba(0,0,0,0.6), 0 2px 12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)",
+                                                backdropFilter: "blur(12px)",
+                                            }}>
+                                            <div style={{ width: 22, height: 1, background: "linear-gradient(90deg, transparent, rgba(148,163,184,0.4))" }} />
+                                            <span className="font-mono text-slate-400 tracking-[0.22em] uppercase" style={{ fontSize: "11px" }}>Turn</span>
+                                            <span className="font-mono font-black text-white tabular-nums"
+                                                style={{ fontSize: "1.25rem", textShadow: "0 0 14px rgba(255,255,255,0.35)", letterSpacing: "-0.01em" }}>
+                                                {session.turn}
+                                            </span>
+                                            <div style={{ width: 22, height: 1, background: "linear-gradient(90deg, rgba(148,163,184,0.4), transparent)" }} />
                                         </div>
                                     </div>
                                 )}
 
-                                {/* ── Jugador (izquierda) — posiciones según círculos del mapa ── */}
-                                {/* idx=0: arriba-izq; idx=1: medio más al centro; idx=2: abajo-izq */}
+                                {/* ── Jugador (izquierda) — profundidad rotativa ── */}
+                                {/* El myth activo siempre ocupa el slot frontal (más grande).
+                                    Los otros dos rotan a mid/back automáticamente. */}
                                 {[0, 1, 2].map((i) => {
-                                    // Posiciones alineadas con los círculos mágicos DOM:
-                                    // left/top calibrados manualmente con el calibrador visual
-                                    const leftPcts = ["21.9%", "29.9%", "16.3%"];
-                                    const topPcts  = ["30%", "52%", "63%"];
+                                    // Dynamic depth slots: adapt to 1v1 / 2v2 / 3v3
                                     const myth = phase === "prep" ? prepSlots[i] : session?.playerTeam[i];
+
+                                    const alivePlayerCount = session ? session.playerTeam.filter(m => !m.defeated).length : 3;
+                                    const effectivePlayerSize = Math.max(alivePlayerCount, 1);
+
+                                    const depthSlots3v3 = [
+                                        { left: "16%",  top: "39%", size: 32 }, // back
+                                        { left: "30%",  top: "58%", size: 40 }, // mid
+                                        { left: "16%",  top: "78%", size: 54 }, // front
+                                    ];
+                                    const depthSlots2v2 = [
+                                        { left: "24%",  top: "45%", size: 38 }, // back-center
+                                        { left: "24%",  top: "72%", size: 52 }, // front-center
+                                        { left: "24%",  top: "72%", size: 52 }, // (unused)
+                                    ];
+                                    const depthSlots1v1 = [
+                                        { left: "28%",  top: "55%", size: 58 }, // single centered
+                                        { left: "28%",  top: "55%", size: 58 },
+                                        { left: "28%",  top: "55%", size: 58 },
+                                    ];
+                                    const depthSlots = effectivePlayerSize === 1 ? depthSlots1v1 : effectivePlayerSize === 2 ? depthSlots2v2 : depthSlots3v3;
+
+                                    // Active myth → front slot, others rotate
+                                    let depthIdx = i;
+                                    if (phase === "battle" && session) {
+                                        const team = session.playerTeam;
+                                        const activeIdx = team.findIndex(m => m.instanceId === currentActorId);
+                                        if (activeIdx >= 0) {
+                                            const others = [0,1,2].filter(x => x !== activeIdx);
+                                            const slotMap: Record<number, number> = {
+                                                [activeIdx]: 2,
+                                                [others[0]]: 1,
+                                                [others[1]]: 0,
+                                            };
+                                            depthIdx = slotMap[i] ?? i;
+                                        }
+                                        if (effectivePlayerSize === 2) depthIdx = depthIdx === 0 ? 0 : 1;
+                                        if (effectivePlayerSize === 1) depthIdx = 0;
+                                    }
+                                    const dp = depthSlots[depthIdx];
+
+                                    // zIndex: front > mid > back
+                                    const zIdx = [5, 8, 12][depthIdx];
 
                                     // Handler de drop para prep
                                     const handleDrop = (e: React.DragEvent) => {
@@ -3856,8 +3958,14 @@ export default function BattlePage() {
                                     return (
                                         <div
                                             key={i}
-                                            className="absolute z-10"
-                                            style={{ left: leftPcts[i], top: topPcts[i], transform: "translate(-50%,-50%)" }}
+                                            className="absolute"
+                                            style={{
+                                                left: dp.left,
+                                                top: dp.top,
+                                                transform: "translate(-50%,-50%)",
+                                                zIndex: zIdx,
+                                                transition: "left 0.45s cubic-bezier(0.4,0,0.2,1), top 0.45s cubic-bezier(0.4,0,0.2,1)",
+                                            }}
                                             onDragOver={phase === "prep" ? (e) => e.preventDefault() : undefined}
                                             onDrop={phase === "prep" ? handleDrop : undefined}
                                         >
@@ -3898,7 +4006,7 @@ export default function BattlePage() {
                                                     floatingDmg={floatMap[myth.instanceId]}
                                                     supportOverlay={supportOverlays[myth.instanceId]}
                                                     koOverlay={!!koOverlays[myth.instanceId]}
-                                                    spriteSize={getMythSpriteSize(myth)}
+                                                    spriteSize={dp.size}
                                                     distortionInfo={getDistortionInfo(myth)}
                                                     statusBlockedOverlays={statusBlockedOverlays}
                                                     statusEffectOverlays={statusEffectOverlays}
@@ -3910,17 +4018,14 @@ export default function BattlePage() {
                                 })}
                             </div>
 
-                            {/* ── Panel inferior — selector (prep) o moves (batalla) ── */}
-                            <div
-                                className="flex-shrink-0 border-t border-slate-800 bg-[#070b14]"
-                                style={{ height: "200px", overflow: "hidden", flexShrink: 0 }}
-                            >
-                                {phase === "prep" ? (
-                                    // ── Selector de myths ──
+                            {/* ── Prep panel (only during prep phase) ── */}
+                            {phase === "prep" && (
+                                <div
+                                    className="flex-shrink-0 border-t border-slate-800 bg-[#070b14]"
+                                    style={{ height: winW < 900 ? "140px" : "200px", overflow: "hidden", flexShrink: 0 }}
+                                >
                                     <div className="flex h-full">
-                                        {/* Lista scrollable */}
                                         <div className="flex-1 flex flex-col min-w-0">
-                                            {/* Buscador */}
                                             <div className="flex items-center gap-2 px-3 pt-2 pb-1.5 border-b border-slate-800 flex-shrink-0">
                                                 <span className="text-slate-500 text-xs">🔍</span>
                                                 <input
@@ -3934,1024 +4039,225 @@ export default function BattlePage() {
                                                     {prepSlots.filter(Boolean).length}/3
                                                 </span>
                                             </div>
-                                            {/* Cards */}
                                             <div className="flex-1 overflow-x-auto overflow-y-hidden">
                                                 <div className="flex gap-2 px-3 py-2 h-full items-center" style={{ width: "max-content" }}>
                                                     {allMyths
                                                         .filter((m) => {
                                                             const inSlot = prepSlots.some(
-                                                                (s) => s && (s.id ?? s.instanceId) === (m.id ?? m.instanceId),
+                                                                (s) => s && (s.id ?? s.instanceId) === (m.id ?? m.instanceId)
                                                             );
-                                                            const matchSearch =
-                                                                !prepSearch ||
-                                                                m.name.toLowerCase().includes(prepSearch.toLowerCase());
-                                                            return !inSlot && matchSearch;
+                                                            const q = prepSearch.toLowerCase();
+                                                            const matchesSearch = !q || m.name.toLowerCase().includes(q) || (m.affinities ?? []).some((a: string) => a.toLowerCase().includes(q));
+                                                            return !inSlot && matchesSearch;
                                                         })
-                                                        .map((myth) => {
-                                                            const canAdd = prepSlots.some((s) => !s);
+                                                        .map((m) => {
+                                                            const px = winW < 900 ? 48 : 60;
+                                                            const canAdd = prepSlots.some((s) => s === null);
                                                             return (
                                                                 <div
-                                                                    key={myth.id ?? myth.instanceId}
-                                                                    draggable={canAdd}
-                                                                    onDragStart={(e) => {
-                                                                        e.dataTransfer.setData("mythId", myth.id ?? myth.instanceId);
-                                                                        e.dataTransfer.setData("fromSlot", "");
-                                                                    }}
+                                                                    key={m.id ?? m.instanceId}
+                                                                    draggable
+                                                                    onDragStart={(e) => { e.dataTransfer.setData("mythId", m.id ?? m.instanceId); e.dataTransfer.setData("fromSlot", ""); }}
                                                                     onClick={() => {
                                                                         if (!canAdd) return;
                                                                         const ns = [...prepSlots];
-                                                                        const idx = ns.findIndex((s) => !s);
-                                                                        if (idx !== -1) { ns[idx] = myth; setPrepSlots(ns); }
+                                                                        const idx = ns.findIndex((s) => s === null);
+                                                                        if (idx >= 0) { ns[idx] = m; setPrepSlots(ns); }
                                                                     }}
-                                                                    className={`flex flex-col items-center gap-1 p-2 rounded-xl border transition-all select-none flex-shrink-0
+                                                                    className={`flex flex-col items-center gap-1 p-1.5 rounded-xl border transition-all cursor-pointer flex-shrink-0
                                                                         ${canAdd ? "border-slate-700 bg-slate-800/60 hover:border-blue-500/60 hover:bg-blue-500/10 cursor-pointer hover:scale-105" : "border-slate-800 bg-slate-900/40 opacity-40 cursor-not-allowed"}`}
-                                                                    style={{ width: 72 }}
                                                                 >
-                                                                    <MythArt art={myth.art} px={40} />
-                                                                    <p className="font-mono text-[10px] text-white font-bold truncate w-full text-center">{myth.name}</p>
-                                                                    <p className="text-slate-500 text-[10px] font-mono">Nv.{myth.level}</p>
-                                                                    {myth.isInParty && <span className="text-[9px] text-blue-400 font-mono">party</span>}
+                                                                    <MythArt art={m.art} px={px} className="animate-myth-idle" />
+                                                                    <p className="font-mono text-[10px] text-white font-bold truncate text-center" style={{ maxWidth: px + 8 }}>{m.name}</p>
+                                                                    <div className="flex gap-0.5">
+                                                                        {(m.affinities ?? []).slice(0,2).map((aff: string) => (
+                                                                            <AffinityIcon key={aff} affinity={aff} size={12} />
+                                                                        ))}
+                                                                    </div>
                                                                 </div>
                                                             );
                                                         })}
-                                                    {allMyths.filter((m) => {
-                                                        const inSlot = prepSlots.some(
-                                                            (s) => s && (s.id ?? s.instanceId) === (m.id ?? m.instanceId),
-                                                        );
-                                                        return !inSlot && (!prepSearch || m.name.toLowerCase().includes(prepSearch.toLowerCase()));
-                                                    }).length === 0 && (
-                                                        <p className="text-slate-600 text-xs font-mono italic px-4">
-                                                            {prepSearch ? "No results" : "All in position"}
-                                                        </p>
-                                                    )}
                                                 </div>
                                             </div>
                                         </div>
-                                        {/* Botón combatir */}
-                                        <div className="flex-shrink-0 flex items-center justify-center px-4 border-l border-slate-800">
+                                        <div className="flex-shrink-0 flex flex-col gap-2 px-3 py-2 border-l border-slate-800 justify-center items-center" style={{ width: 120 }}>
                                             <button
-                                                onClick={() => {
-                                                    const order = prepSlots
-                                                        .filter(Boolean)
-                                                        .map((m) => m.id ?? m.instanceId);
-                                                    if (order.length >= 1 && !loadingStart) handleStart(order);
-                                                }}
-                                                disabled={prepSlots.every((s) => !s) || loadingStart}
-                                                className={`flex flex-col items-center gap-1.5 px-5 py-3 rounded-2xl border font-mono font-black text-sm tracking-widest uppercase transition-all
-                                                    ${prepSlots.some(Boolean) && !loadingStart
-                                                        ? "bg-red-900/30 border-red-500/60 text-red-400 hover:bg-red-900/50 hover:scale-105 shadow-lg shadow-red-900/30"
-                                                        : "bg-slate-900/40 border-slate-800 text-slate-600 cursor-not-allowed opacity-40"
-                                                    }`}
+                                                onClick={() => { const order = prepSlots.filter(Boolean).map((m: any) => m.id ?? m.instanceId); handleStart(order); }}
+                                                disabled={prepSlots.filter(Boolean).length < 1 || loadingStart}
+                                                className="w-full flex items-center justify-center gap-1.5 rounded-xl font-mono font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                                                style={{ height: 44, fontSize: "13px", background: "linear-gradient(135deg,#7c3aed,#4f46e5)", border: "1px solid rgba(139,92,246,0.5)", color: "#fff", boxShadow: "0 0 20px rgba(124,58,237,0.3)" }}
                                             >
-                                                <span className="text-2xl">{loadingStart ? "⏳" : "⚔️"}</span>
                                                 <span>{loadingStart ? "..." : "COMBAT"}</span>
                                             </button>
                                         </div>
                                     </div>
-                                ) : (
-                                    // ── Moves de batalla ──
-                                    (() => {
-                                        const actorForMoves =
-                                            currentActorIsPlayer && currentActor && !currentActor.defeated
-                                                ? currentActor
-                                                : currentActorIsPlayer
-                                                  ? (session?.playerTeam.find((m) => !m.defeated) ?? null)
-                                                  : (() => {
-                                                      // Turno NPC — mostrar el último myth del jugador que actuó (o el primero vivo)
-                                                      const last = lastPlayerActorId
-                                                          ? [...(session?.playerTeam ?? [])].find(m => m.instanceId === lastPlayerActorId && !m.defeated)
-                                                          : null;
-                                                      return last ?? (session?.playerTeam.find(m => !m.defeated) ?? null);
-                                                  })();
+                                </div>
+                            )}
 
-                                        const rarityClass = (r?: string) => {
-                                            switch(r) {
-                                                case "COMMON":    return "rarity-common";
-                                                case "RARE":      return "rarity-rare";
-                                                case "ELITE":     return "rarity-elite";
-                                                case "LEGENDARY": return "rarity-legendary";
-                                                case "MYTHIC":    return "rarity-mythic";
-                                                default:          return "rarity-common";
-                                            }
-                                        };
-
-                                        return actorForMoves ? (
-                                            <div className="flex h-full">
-                                                {/* ── Stats del myth activo (22%) — portrait de fondo ── */}
-                                                <div className={`flex-shrink-0 border-r flex flex-col justify-between overflow-hidden relative ${rarityClass(actorForMoves.rarity)}`}
-                                                    style={{ width: "22%", minWidth: 0, borderRightColor: "rgba(30,41,59,1)" }}>
-
-                                                    {/* Portrait como fondo difuminado */}
-                                                    {actorForMoves.art?.portrait && (
-                                                        <div className="absolute inset-0 pointer-events-none z-0"
-                                                            style={{
-                                                                backgroundImage: `url(${actorForMoves.art.portrait})`,
-                                                                backgroundSize: "cover",
-                                                                backgroundPosition: "center center",
-                                                                backgroundRepeat: "no-repeat",
-                                                                imageRendering: "pixelated",
-                                                                opacity: 0.30,
-                                                                filter: "saturate(0.9)",
-                                                            }} />
-                                                    )}
-                                                    {/* Gradiente oscuro sobre la imagen */}
-                                                    <div className="absolute inset-0 pointer-events-none z-[1]"
-                                                        style={{ background: "linear-gradient(180deg, rgba(7,11,20,0.55) 0%, rgba(7,11,20,0.72) 60%, rgba(7,11,20,0.88) 100%)" }} />
-
-                                                    {/* Gradient de HP — color de la caja cambia según vida actual */}
-                                                    {(() => {
-                                                        const hpR = actorForMoves.maxHp > 0
-                                                            ? Math.max(0, Math.min(1, actorForMoves.hp / actorForMoves.maxHp))
-                                                            : 0;
-                                                        const hpPctPanel = Math.round(hpR * 100);
-                                                        // El color activo varía según HP:
-                                                        // >50% → verde | 25-50% → naranja | <25% → rojo
-                                                        // El gradient siempre cubre solo el % de vida (de izquierda a derecha)
-                                                        // El color del gradient mismo cambia según HP — así al 100% todo es verde,
-                                                        // al 50% lo que queda es naranja, al 20% rojo.
-                                                        const hpGrad = hpR > 0.50
-                                                            ? `linear-gradient(90deg, rgba(16,120,55,0.18) 0%, rgba(74,222,128,0.13) 100%)`
-                                                            : hpR > 0.25
-                                                            ? `linear-gradient(90deg, rgba(146,64,14,0.20) 0%, rgba(251,191,36,0.14) 100%)`
-                                                            : `linear-gradient(90deg, rgba(127,29,29,0.24) 0%, rgba(248,113,113,0.15) 100%)`;
-                                                        return (
-                                                            <div
-                                                                className="absolute pointer-events-none z-[2]"
-                                                                style={{
-                                                                    top: 0, left: 0, bottom: 0,
-                                                                    width: `${hpPctPanel}%`,
-                                                                    background: hpGrad,
-                                                                    transition: "width 0.5s ease, background 0.5s ease",
-                                                                    borderRadius: "inherit",
-                                                                }}
-                                                            />
-                                                        );
-                                                    })()}
-
-                                                    {/* Contenido sobre el fondo */}
-                                                    <div className="relative z-[3] flex flex-col h-full gap-1">
-                                                        {/* Header toca los 3 bordes — fuera del padding */}
-                                                        {(() => {
-                                                            const hpR2 = actorForMoves.maxHp > 0 ? Math.max(0, Math.min(1, actorForMoves.hp / actorForMoves.maxHp)) : 0;
-                                                            const hpPct2 = Math.round(hpR2 * 100);
-                                                            const hpClr2 = hpR2 > 0.5 ? "#4ade80" : hpR2 > 0.25 ? "#fbbf24" : "#f87171";
-                                                            const hpBg2  = hpR2 > 0.5 ? "rgba(21,128,61,0.18)" : hpR2 > 0.25 ? "rgba(146,64,14,0.22)" : "rgba(127,29,29,0.26)";
-                                                            const hpBdr2 = hpR2 > 0.5 ? "rgba(74,222,128,0.35)" : hpR2 > 0.25 ? "rgba(251,191,36,0.35)" : "rgba(248,113,113,0.4)";
-                                                            const af = actorForMoves.affinities?.[0];
-                                                            const af2 = actorForMoves.affinities?.[1] ?? null;
-                                                            const afCfg2 = af ? AFFINITY_CONFIG[af] : null;
-                                                            const rar = actorForMoves.rarity ?? "COMMON";
-                                                            const rarCfg: Record<string, { color: string; bg: string; bgSoft: string; border: string; label: string }> = {
-                                                                COMMON:    { color: "#cbd5e1", bg: "#475569", bgSoft: "rgba(71,85,105,0.22)",   border: "rgba(100,116,139,0.5)",  label: "CMN"  },
-                                                                RARE:      { color: "#a5b4fc", bg: "#4338ca", bgSoft: "rgba(67,56,202,0.22)",   border: "rgba(99,102,241,0.5)",   label: "RARE" },
-                                                                EPIC:      { color: "#d8b4fe", bg: "#7e22ce", bgSoft: "rgba(126,34,206,0.22)",  border: "rgba(168,85,247,0.5)",   label: "EPIC" },
-                                                                ELITE:     { color: "#e2e8f0", bg: "#94a3b8", bgSoft: "rgba(148,163,184,0.22)", border: "rgba(226,232,240,0.5)",  label: "ELITE"},
-                                                                LEGENDARY: { color: "#fde68a", bg: "#b45309", bgSoft: "rgba(180,83,9,0.22)",    border: "rgba(251,191,36,0.5)",   label: "LGND" },
-                                                                MYTHIC:    { color: "#fca5a5", bg: "#b91c1c", bgSoft: "rgba(185,28,28,0.22)",   border: "rgba(248,113,113,0.5)",  label: "MYTH" },
-                                                            };
-                                                            const rc = rarCfg[rar] ?? rarCfg.COMMON;
-
-                                                            // Estilos de cada celda del header
-                                                            const cellBase: React.CSSProperties = {
-                                                                display: "flex", alignItems: "center", justifyContent: "center",
-                                                                padding: "3px 6px", borderRight: "1px solid rgba(30,41,59,0.8)",
-                                                                flexShrink: 0,
-                                                            };
-
-                                                            return (
-                                                                <div style={{
-                                                                    display: "flex", alignItems: "stretch",
-                                                                    width: "100%", minWidth: 0,
-                                                                    overflow: "hidden",
-                                                                    borderBottom: "1px solid rgba(30,41,59,0.9)",
-                                                                    flexShrink: 0,
-                                                                }}>
-                                                                    {/* Nombre — fondo suave del color de rareza */}
-                                                                    <div style={{
-                                                                        ...cellBase,
-                                                                        flex: 1, minWidth: 0,
-                                                                        justifyContent: "flex-start",
-                                                                        background: rc.bgSoft,
-                                                                        borderLeft: `2px solid ${rc.border}`,
-                                                                        padding: "3px 8px",
-                                                                    }}>
-                                                                        <span style={{
-                                                                            fontFamily: "'Rajdhani', sans-serif",
-                                                                            fontSize: "0.95rem", fontWeight: 900,
-                                                                            color: rc.color, letterSpacing: "0.02em",
-                                                                            textShadow: "0 1px 6px rgba(0,0,0,0.9)",
-                                                                            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                                                                        }}>
-                                                                            {actorForMoves.name}
-                                                                        </span>
-                                                                    </div>
-                                                                    {/* LVL — fondo azul */}
-                                                                    <div style={{
-                                                                        ...cellBase,
-                                                                        background: "rgba(29,78,216,0.30)",
-                                                                        borderLeft: "1px solid rgba(59,130,246,0.4)",
-                                                                        minWidth: 36,
-                                                                    }}>
-                                                                        <span style={{ fontSize: "10px", color: "#93c5fd", fontWeight: 900, fontFamily: "monospace", whiteSpace: "nowrap" }}>
-                                                                            LVL {actorForMoves.level}
-                                                                        </span>
-                                                                    </div>
-                                                                    {/* Afinidades — icono CDN, muestra hasta 2 */}
-                                                                    {actorForMoves.affinities?.slice(0, 2).map((aff, ai) => {
-                                                                        const ac = AFFINITY_CONFIG[aff as Affinity];
-                                                                        if (!ac) return null;
-                                                                        return (
-                                                                            <div key={ai} style={{
-                                                                                ...cellBase,
-                                                                                background: `${ac.glow}22`,
-                                                                                borderLeft: `1px solid ${ac.glow}44`,
-                                                                                gap: 3, minWidth: ai === 0 ? 52 : 28,
-                                                                            }}>
-                                                                                <AffinityIcon affinity={aff} size={14} />
-                                                                                {ai === 0 && <span style={{ fontSize: "9px", color: ac.glow, fontWeight: 900, fontFamily: "monospace", letterSpacing: "0.04em" }}>
-                                                                                    {ac.label.slice(0,4).toUpperCase()}
-                                                                                </span>}
-                                                                            </div>
-                                                                        );
-                                                                    })}
-                                                                    {/* Rareza — caja con el color sólido */}
-                                                                    <div style={{
-                                                                        ...cellBase,
-                                                                        background: `${rc.bg}33`,
-                                                                        borderLeft: `1px solid ${rc.border}`,
-                                                                        minWidth: 36,
-                                                                    }}>
-                                                                        <span style={{ fontSize: "9px", color: rc.color, fontWeight: 900, fontFamily: "monospace", letterSpacing: "0.06em" }}>
-                                                                            {rc.label}
-                                                                        </span>
-                                                                    </div>
-                                                                    {/* HP% — fondo verde/naranja/rojo según vida */}
-                                                                    <div style={{
-                                                                        ...cellBase,
-                                                                        background: hpBg2,
-                                                                        borderLeft: `1px solid ${hpBdr2}`,
-                                                                        borderRight: "none",
-                                                                        gap: 3, minWidth: 52,
-                                                                    }}>
-                                                                        <span style={{ fontSize: "13px", filter: `drop-shadow(0 0 5px ${hpClr2}bb)`, lineHeight: 1 }}>❤️</span>
-                                                                        <span style={{ fontSize: "13px", color: hpClr2, fontWeight: 900, fontFamily: "monospace", textShadow: `0 0 8px ${hpClr2}88`, lineHeight: 1 }}>
-                                                                            {hpPct2}%
-                                                                        </span>
-                                                                    </div>
-                                                                </div>
-                                                            );
-                                                        })()}
-
-                                                        {/* Separador */}
-                                                        <div className="h-px bg-slate-700/60 my-0.5" />
-
-                                                        {/* Stats: ATK/DEF/SPD/ACC + CRIT%/CRIT.DMG */}
-                                                        <div className="flex flex-col gap-[5px] flex-1" style={{ padding: "4px 8px" }}>
-                                                            {(() => {
-                                                                // Helper: calcula el valor real de un stat aplicando buffs con cap ±50%
-                                                                function calcStat(baseVal: number, buffKey: string) {
-                                                                    const safe = (typeof baseVal === "number" && isFinite(baseVal)) ? baseVal : 0;
-                                                                    const raw = (actorForMoves.buffs ?? [])
-                                                                        .filter((b: Buff) => b.stat === buffKey)
-                                                                        .reduce((acc: number, b: Buff) => acc * b.multiplier, 1);
-                                                                    const mult = Math.max(0.5, Math.min(1.5, raw));
-                                                                    const realVal = Math.round(safe * mult);
-                                                                    const pct = mult !== 1 ? Math.round((mult - 1) * 100) : 0;
-                                                                    return { baseVal: safe, realVal, pct, buffed: pct > 0, nerfed: pct < 0 };
-                                                                }
-
-                                                                // Fórmula CRIT.DMG escalable:
-                                                                // Base: ×1.5 (150). Cada punto sobre 150 añade 0.5% más de multiplicador.
-                                                                // Ej: 150 → ×1.50 | 200 → ×1.75 | 300 → ×2.25 | 400 → ×2.75
-                                                                // Cap suave: a partir de 300 el rendimiento decrece (raíz cuadrada del exceso)
-                                                                function calcCritMult(critDmg: number) {
-                                                                    const base = 150;
-                                                                    if (critDmg <= base) return 1.5;
-                                                                    const excess = critDmg - base;
-                                                                    const scaled = excess <= 150
-                                                                        ? excess * 0.005           // tramo lineal: 150–300
-                                                                        : 0.75 + Math.sqrt(excess - 150) * 0.025; // tramo logarítmico: >300
-                                                                    return Math.round((1.5 + scaled) * 100) / 100;
-                                                                }
-
-                                                                const atk = calcStat(actorForMoves.attack,  "atk");
-                                                                const def = calcStat(actorForMoves.defense, "def");
-                                                                const spd = calcStat(actorForMoves.speed,   "spd");
-                                                                const acc = calcStat(actorForMoves.accuracy ?? 100, "acc");
-
-                                                                // CRIT% y CRIT.DMG no tienen buffs de stat por ahora — se muestran como base
-                                                                const critChance = actorForMoves.critChance ?? 15;
-                                                                const critDmgRaw = actorForMoves.critDamage ?? 150;
-                                                                const critMult   = calcCritMult(critDmgRaw);
-
-                                                                // CRIT% y CRIT.DMG también pasan por calcStat para soportar buffs futuros
-                                                                const critChanceStat = calcStat(critChance, "crit_chance");
-                                                                const critDmgStat    = calcStat(critDmgRaw, "crit_dmg");
-
-                                                                const rows: { icon: string; label: string; baseVal: number; realVal: number; pct: number; buffed: boolean; nerfed: boolean; suffix: string }[] = [
-                                                                    { icon: "⚔️",  label: "ATK",      ...atk,          suffix: ""  },
-                                                                    { icon: "🛡️",  label: "DEF",      ...def,          suffix: ""  },
-                                                                    { icon: "💨",  label: "SPD",      ...spd,          suffix: ""  },
-                                                                    { icon: "🎯",  label: "ACC",      ...acc,          suffix: "%" },
-                                                                    { icon: "💥",  label: "%CRIT",    ...critChanceStat, suffix: "%" },
-                                                                    { icon: "🔥",  label: "CRIT DMG", ...critDmgStat,   suffix: "%" },
-                                                                ];
-
-                                                                return rows.map(({ icon, label, baseVal, realVal, pct, buffed, nerfed, suffix }) => {
-                                                                    const isModified = pct !== 0;
-                                                                    const valColor = realVal > baseVal ? "#4ade80" : realVal < baseVal ? "#f87171" : "#ffffff";
-                                                                    const valGlow  = realVal > baseVal ? "0 0 8px rgba(74,222,128,0.55)" : realVal < baseVal ? "0 0 8px rgba(248,113,113,0.55)" : "none";
-                                                                    const sf = { fontFamily: "'Exo 2', monospace", fontWeight: 900, fontSize: "12px" } as React.CSSProperties;
-                                                                    return (
-                                                                        <div key={label}
-                                                                            style={{
-                                                                                display: "grid",
-                                                                                gridTemplateColumns: "15px 72px 1fr auto",
-                                                                                alignItems: "center",
-                                                                                columnGap: "4px",
-                                                                                minWidth: 0,
-                                                                            }}>
-                                                                            <span style={{ fontSize: "12px", lineHeight: 1, textAlign: "center" }}>{icon}</span>
-                                                                            <span style={{ ...sf, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.03em", whiteSpace: "nowrap" }}>
-                                                                                {label}
-                                                                            </span>
-                                                                            <div className="flex items-center gap-1 justify-end">
-                                                                                {isModified && (
-                                                                                    <>
-                                                                                        <span style={{ ...sf, color: "#ffffff" }}>
-                                                                                            {baseVal}{suffix}
-                                                                                        </span>
-                                                                                        <span style={{ ...sf, color: "#facc15", textShadow: "0 0 6px rgba(250,204,21,0.5)" }}>
-                                                                                            {pct > 0 ? `+${pct}%` : `${pct}%`}
-                                                                                        </span>
-                                                                                    </>
-                                                                                )}
-                                                                            </div>
-                                                                            <span style={{ ...sf, color: valColor, textShadow: valGlow, textAlign: "right" }}>
-                                                                                {realVal}{suffix}
-                                                                            </span>
-                                                                        </div>
-                                                                    );
-                                                                });
-                                                            })()}
-                                                        </div>
-
-
-                                                    </div>
-                                                </div>
-
-                                                {/* ── Moves (75%) ── */}
-                                                <div className="flex-1 p-2 min-w-0 flex flex-col relative">
-                                                    {/* Overlay de espera durante turno NPC */}
-                                                    {!currentActorIsPlayer && animating && (
-                                                        <div className="absolute inset-0 z-30 flex items-center justify-center rounded-r-xl pointer-events-none"
-                                                            style={{ background: "rgba(7,11,20,0.72)", backdropFilter: "blur(2px)" }}>
-                                                            <div className="flex flex-col items-center gap-2">
-                                                                <div className="flex gap-1.5">
-                                                                    {[0,1,2].map(i => (
-                                                                        <div key={i} className="rounded-full"
-                                                                            style={{
-                                                                                width: 7, height: 7,
-                                                                                background: "#818cf8",
-                                                                                boxShadow: "0 0 8px #818cf888",
-                                                                                animation: `activeAuraParticle 0.8s ease-in-out ${i * 0.22}s infinite`,
-                                                                            }} />
-                                                                    ))}
-                                                                </div>
-                                                                <span className="font-mono text-[10px] text-slate-500 tracking-widest uppercase">Opponent acting</span>
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                    {/* Header: título + botones OBJETOS + TABLA TIPOS */}
-                                                    <div className="flex items-center justify-between mb-1.5 px-1 gap-1">
-                                                        <p className="font-mono text-xs text-yellow-400 font-bold truncate flex-1">
-                                                            Moves of {actorForMoves.name}
-                                                        </p>
-                                                        <div className="flex items-center gap-1 flex-shrink-0">
-                                                            {/* Botón OBJETOS */}
-                                                            <button
-                                                                onClick={() => { setShowItemPanel((v) => !v); setSelectedItem(null); setShowAffinityModal(false); setShowBuffsModal(false); setShowDebuffsModal(false); }}
-                                                                className={`flex items-center gap-1 px-2 py-1 rounded-lg border font-mono font-black transition-all whitespace-nowrap
-                                                                    ${showItemPanel
-                                                                        ? "bg-amber-500/25 border-amber-400/70 text-amber-300 shadow-[0_0_10px_rgba(251,191,36,0.2)]"
-                                                                        : "bg-slate-800/70 border-slate-700 text-slate-400 hover:border-amber-600/60 hover:text-amber-400 hover:bg-amber-900/20"
-                                                                    }`}
-                                                                style={{ fontSize: "10px", letterSpacing: "0.06em" }}
-                                                            >
-                                                                🎒 <span>ITEMS</span>
-                                                            </button>
-                                                            {/* Botón TABLA DE AFINIDADES */}
-                                                            <button
-                                                                onClick={() => { setShowAffinityModal((v) => !v); setShowItemPanel(false); setSelectedItem(null); setShowBuffsModal(false); setShowDebuffsModal(false); }}
-                                                                className={`flex items-center gap-1 px-2 py-1 rounded-lg border font-mono font-black transition-all whitespace-nowrap
-                                                                    ${showAffinityModal
-                                                                        ? "bg-indigo-500/25 border-indigo-400/70 text-indigo-300 shadow-[0_0_10px_rgba(129,140,248,0.2)]"
-                                                                        : "bg-slate-800/70 border-slate-700 text-slate-400 hover:border-indigo-600/60 hover:text-indigo-400 hover:bg-indigo-900/20"
-                                                                    }`}
-                                                                style={{ fontSize: "10px", letterSpacing: "0.06em" }}
-                                                            >
-                                                                📊 <span>AFFINITIES</span>
-                                                            </button>
-                                                            {/* Botón BUFOS */}
-                                                            <button
-                                                                onClick={() => { setShowBuffsModal((v) => !v); setShowItemPanel(false); setSelectedItem(null); setShowAffinityModal(false); setShowDebuffsModal(false); }}
-                                                                className={`flex items-center gap-1 px-2 py-1 rounded-lg border font-mono font-black transition-all whitespace-nowrap
-                                                                    ${showBuffsModal
-                                                                        ? "bg-emerald-500/25 border-emerald-400/70 text-emerald-300 shadow-[0_0_10px_rgba(52,211,153,0.2)]"
-                                                                        : "bg-slate-800/70 border-slate-700 text-slate-400 hover:border-emerald-600/60 hover:text-emerald-400 hover:bg-emerald-900/20"
-                                                                    }`}
-                                                                style={{ fontSize: "10px", letterSpacing: "0.06em" }}
-                                                            >
-                                                                📈 <span>BUFFS</span>
-                                                            </button>
-                                                            {/* Botón DEBUFOS */}
-                                                            <button
-                                                                onClick={() => { setShowDebuffsModal((v) => !v); setShowItemPanel(false); setSelectedItem(null); setShowAffinityModal(false); setShowBuffsModal(false); }}
-                                                                className={`flex items-center gap-1 px-2 py-1 rounded-lg border font-mono font-black transition-all whitespace-nowrap
-                                                                    ${showDebuffsModal
-                                                                        ? "bg-red-500/25 border-red-400/70 text-red-300 shadow-[0_0_10px_rgba(248,113,113,0.2)]"
-                                                                        : "bg-slate-800/70 border-slate-700 text-slate-400 hover:border-red-600/60 hover:text-red-400 hover:bg-red-900/20"
-                                                                    }`}
-                                                                style={{ fontSize: "10px", letterSpacing: "0.06em" }}
-                                                            >
-                                                                📉 <span>DEBUFFS</span>
-                                                            </button>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* ── Panel de items (overlay dentro del panel de moves) ── */}
-                                                    {showItemPanel && (
-                                                        <div className="absolute inset-0 z-20 rounded-xl flex flex-col"
-                                                            style={{
-                                                                background: "rgba(7,11,20,0.97)",
-                                                                border: "1px solid rgba(251,191,36,0.3)",
-                                                                boxShadow: "0 0 30px rgba(251,191,36,0.1)",
-                                                                backdropFilter: "blur(8px)",
-                                                                top: 0, left: 0, right: 0, bottom: 0,
-                                                            }}>
-                                                            {/* Header items */}
-                                                            <div className="flex items-center justify-between px-3 py-2 border-b border-slate-800 flex-shrink-0">
-                                                                <p className="font-mono text-xs text-amber-400 font-bold uppercase tracking-widest">
-                                                                    🎒 Combat items
-                                                                </p>
-                                                                <button onClick={() => { setShowItemPanel(false); setSelectedItem(null); }}
-                                                                    className="text-slate-500 hover:text-white text-sm font-mono transition-colors">✕</button>
-                                                            </div>
-
-                                                            {/* Lista de items */}
-                                                            <div className="flex-1 overflow-y-auto flex flex-col gap-2 min-h-0" style={{ padding: "6px 8px" }}>
-                                                                {COMBAT_ITEMS.map((item) => {
-                                                                    const qty = getCombatItemCount(item.type);
-                                                                    const isSelected = selectedItem?.type === item.type;
-                                                                    return (
-                                                                        <button
-                                                                            key={item.type}
-                                                                            disabled={qty <= 0 || animating || usingItem}
-                                                                            onClick={() => setSelectedItem(isSelected ? null : item)}
-                                                                            className={`flex items-center gap-2.5 px-3 py-2 rounded-xl border text-left transition-all
-                                                                                ${qty <= 0 || animating || usingItem
-                                                                                    ? "opacity-30 cursor-not-allowed bg-slate-900/40 border-slate-800"
-                                                                                    : isSelected
-                                                                                        ? "bg-amber-500/20 border-amber-400/70 shadow-[0_0_12px_rgba(251,191,36,0.2)]"
-                                                                                        : "bg-slate-900/60 border-slate-700 hover:border-slate-500 hover:bg-slate-800/60"
-                                                                                }`}
-                                                                        >
-                                                                            <span className="text-xl flex-shrink-0">{item.emoji}</span>
-                                                                            <div className="flex-1 min-w-0">
-                                                                                <div className="flex items-center gap-1.5">
-                                                                                    <p className="font-mono text-xs font-bold text-white truncate">{item.name}</p>
-                                                                                    <span className={`font-mono text-[10px] font-black px-1.5 rounded-full
-                                                                                        ${qty > 0 ? "bg-emerald-900/60 text-emerald-400 border border-emerald-700/50" : "bg-slate-900 text-slate-600"}`}>
-                                                                                        ×{qty}
-                                                                                    </span>
-                                                                                </div>
-                                                                                <p className="font-mono text-[10px] text-slate-400 truncate">{item.desc}</p>
-                                                                            </div>
-                                                                            {isSelected && <span className="text-amber-400 text-sm flex-shrink-0">▶</span>}
-                                                                        </button>
-                                                                    );
-                                                                })}
-                                                                {COMBAT_ITEMS.every((i) => getCombatItemCount(i.type) === 0) && (
-                                                                    <p className="text-slate-600 text-xs font-mono text-center mt-4 italic">
-                                                                        No combat items in inventory
-                                                                    </p>
-                                                                )}
-                                                            </div>
-
-                                                            {/* Instrucciones de uso */}
-                                                            {selectedItem && (
-                                                                <div className="flex-shrink-0 px-3 py-2 border-t border-amber-900/40 bg-amber-900/10">
-                                                                    <p className="font-mono text-[10px] text-amber-300 text-center leading-relaxed">
-                                                                        {selectedItem.type === "GRAND_SPARK"
-                                                                            ? <>✨ Select any of your Myths to apply to the team</>
-                                                                            : <>👆 Tap one of your Myths to cure their status</>
-                                                                        }
-                                                                    </p>
-                                                                    {/* Targets clickables — tu equipo */}
-                                                                    <div className="flex gap-2 mt-1.5 justify-center">
-                                                                        {session?.playerTeam.filter((m) => !m.defeated).map((m) => (
-                                                                            <button
-                                                                                key={m.instanceId}
-                                                                                onClick={() => handleUseItem(m.instanceId)}
-                                                                                disabled={usingItem}
-                                                                                className="flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl border border-amber-500/50 bg-amber-900/20 hover:bg-amber-800/30 hover:border-amber-400 transition-all"
-                                                                            >
-                                                                                {m.art?.portrait ? (
-                                                                                    <img src={m.art.portrait} alt={m.name}
-                                                                                        className="rounded-lg object-cover"
-                                                                                        style={{ width: 32, height: 32, imageRendering: "pixelated" }} />
-                                                                                ) : (
-                                                                                    <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-500 text-xs">?</div>
-                                                                                )}
-                                                                                <span className="font-mono text-[9px] text-amber-300 font-bold truncate max-w-[48px]">{m.name}</span>
-                                                                                {m.status && (
-                                                                                    <span className="text-[10px]">{STATUS_ICONS[m.status]}</span>
-                                                                                )}
-                                                                            </button>
-                                                                        ))}
-                                                                    </div>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                    {/* ── Tabla de Tipos — modal fixed centrado ── */}
-                                                    {showAffinityModal && (
-                                                        <div
-                                                            className="fixed inset-0 z-[9998] flex items-center justify-center p-4"
-                                                            onClick={() => setShowAffinityModal(false)}
-                                                        >
-                                                            <div
-                                                                className="relative rounded-2xl overflow-hidden max-w-2xl w-full max-h-[80vh] overflow-y-auto"
-                                                                style={{
-                                                                    background: "rgba(7,11,20,0.97)",
-                                                                    border: "1px solid rgba(129,140,248,0.4)",
-                                                                    boxShadow: "0 0 60px rgba(129,140,248,0.15), 0 20px 60px rgba(0,0,0,0.8)",
-                                                                    backdropFilter: "blur(12px)",
-                                                                }}
-                                                                onClick={(e) => e.stopPropagation()}
-                                                            >
-                                                                {/* Header */}
-                                                                <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-800 sticky top-0 bg-[#070b14]/95 backdrop-blur-sm z-10">
-                                                                    <div className="flex items-center gap-2">
-                                                                        <span className="text-xl">📊</span>
-                                                                        <p className="font-black text-indigo-300 uppercase tracking-widest" style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: "1.4rem" }}>
-                                                                            Tabla de Tipos
-                                                                        </p>
-                                                                    </div>
-                                                                    <button
-                                                                        onClick={() => setShowAffinityModal(false)}
-                                                                        className="text-slate-500 hover:text-white text-lg font-mono transition-colors w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-800"
-                                                                    >✕</button>
-                                                                </div>
-                                                                {/* Tabla */}
-                                                                <div className="p-4 overflow-x-auto">
-                                                                    {(() => {
-                                                                        const affinities: Affinity[] = ["EMBER","TIDE","GROVE","VOLT","STONE","FROST","VENOM","ASTRAL","IRON","SHADE"];
-                                                                        // Ventajas: [atacante][defensor] → multiplicador
-                                                                        const matchups: Record<string, Record<string, number>> = {
-                                                                            EMBER:  { GROVE: 2, FROST: 2, IRON: 0.5, TIDE: 0.5, EMBER: 0.5 },
-                                                                            TIDE:   { EMBER: 2, STONE: 2, GROVE: 0.5, VOLT: 0.5, FROST: 0.5 },
-                                                                            GROVE:  { TIDE: 2, STONE: 2, EMBER: 0.5, VENOM: 0.5, FROST: 0.5 },
-                                                                            VOLT:   { TIDE: 2, IRON: 2, GROVE: 0.5, STONE: 0.5, VOLT: 0.5 },
-                                                                            STONE:  { EMBER: 2, VOLT: 2, TIDE: 0.5, GROVE: 0.5, STONE: 0.5 },
-                                                                            FROST:  { GROVE: 2, VENOM: 2, EMBER: 0.5, TIDE: 0.5, FROST: 0.5 },
-                                                                            VENOM:  { GROVE: 2, ASTRAL: 2, FROST: 0.5, IRON: 0.5, VENOM: 0.5 },
-                                                                            ASTRAL: { SHADE: 2, VENOM: 2, IRON: 0.5, ASTRAL: 0.5 },
-                                                                            IRON:   { FROST: 2, ASTRAL: 2, EMBER: 0.5, VOLT: 0.5, IRON: 0.5 },
-                                                                            SHADE:  { ASTRAL: 2, IRON: 2, SHADE: 0.5, EMBER: 0.5 },
-                                                                        };
-                                                                        return (
-                                                                            <table className="w-full border-collapse" style={{ minWidth: 640 }}>
-                                                                                <thead>
-                                                                                    <tr>
-                                                                                        <th className="p-1 text-left">
-                                                                                            <span className="font-mono text-[9px] text-slate-500 uppercase tracking-wider">ATK ↓ DEF →</span>
-                                                                                        </th>
-                                                                                        {affinities.map((af) => {
-                                                                                            const c = AFFINITY_CONFIG[af];
-                                                                                            return (
-                                                                                                <th key={af} className="p-1 text-center" style={{ minWidth: 50 }}>
-                                                                                                    <div className="flex flex-col items-center gap-0.5">
-                                                                                                        <AffinityIcon affinity={af} size={22} />
-                                                                                                        <span className="font-mono font-black" style={{ fontSize: "10px", color: c.glow }}>{c.label.slice(0,4).toUpperCase()}</span>
-                                                                                                    </div>
-                                                                                                </th>
-                                                                                            );
-                                                                                        })}
-                                                                                    </tr>
-                                                                                </thead>
-                                                                                <tbody>
-                                                                                    {affinities.map((atk) => {
-                                                                                        const atkCfg = AFFINITY_CONFIG[atk];
-                                                                                        return (
-                                                                                            <tr key={atk} className="border-t border-slate-800/60 hover:bg-slate-800/20 transition-colors">
-                                                                                                <td className="p-1.5 pr-3">
-                                                                                                    <div className="flex items-center gap-1.5">
-                                                                                                        <AffinityIcon affinity={atk} size={20} />
-                                                                                                        <span className="font-mono font-bold" style={{ fontSize: "12px", color: atkCfg.glow }}>{atkCfg.label}</span>
-                                                                                                    </div>
-                                                                                                </td>
-                                                                                                {affinities.map((def) => {
-                                                                                                    const mult = matchups[atk]?.[def] ?? 1;
-                                                                                                    const bg = mult === 2 ? "rgba(34,197,94,0.15)" : mult === 0.5 ? "rgba(239,68,68,0.12)" : "transparent";
-                                                                                                    const border = mult === 2 ? "rgba(34,197,94,0.3)" : mult === 0.5 ? "rgba(239,68,68,0.25)" : "transparent";
-                                                                                                    const txt = mult === 2 ? "#4ade80" : mult === 0.5 ? "#f87171" : "#334155";
-                                                                                                    const label = mult === 2 ? "2×" : mult === 0.5 ? "½" : "—";
-                                                                                                    return (
-                                                                                                        <td key={def} className="p-1 text-center">
-                                                                                                            <div className="inline-flex items-center justify-center rounded font-mono font-black"
-                                                                                                                style={{
-                                                                                                                    width: 36, height: 30,
-                                                                                                                    background: bg,
-                                                                                                                    border: `1px solid ${border}`,
-                                                                                                                    fontSize: mult === 1 ? "13px" : "15px",
-                                                                                                                    color: txt,
-                                                                                                                }}>
-                                                                                                                {label}
-                                                                                                            </div>
-                                                                                                        </td>
-                                                                                                    );
-                                                                                                })}
-                                                                                            </tr>
-                                                                                        );
-                                                                                    })}
-                                                                                </tbody>
-                                                                            </table>
-                                                                        );
-                                                                    })()}
-                                                                </div>
-                                                                {/* Leyenda */}
-                                                                <div className="px-5 pb-4 flex items-center gap-4">
-                                                                    <div className="flex items-center gap-1.5">
-                                                                        <div className="w-5 h-4 rounded" style={{ background: "rgba(34,197,94,0.15)", border: "1px solid rgba(34,197,94,0.3)" }} />
-                                                                        <span className="font-mono text-[12px] text-emerald-400 font-bold">2× — Muy eficaz</span>
-                                                                    </div>
-                                                                    <div className="flex items-center gap-1.5">
-                                                                        <div className="w-5 h-4 rounded" style={{ background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.25)" }} />
-                                                                        <span className="font-mono text-[12px] text-red-400 font-bold">½ — Poco eficaz</span>
-                                                                    </div>
-                                                                    <div className="flex items-center gap-1.5">
-                                                                        <div className="w-5 h-4 rounded" style={{ background: "transparent", border: "1px solid #334155" }} />
-                                                                        <span className="font-mono text-[12px] text-slate-500 font-bold">— Normal</span>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    )}
-
-                                                    {/* ── Modal BUFOS ── */}
-                                                    {showBuffsModal && (
-                                                        <div
-                                                            className="fixed inset-0 z-[9998] flex items-center justify-center p-4"
-                                                            onClick={() => setShowBuffsModal(false)}
-                                                        >
-                                                            <div
-                                                                className="relative rounded-2xl overflow-hidden max-w-lg w-full max-h-[80vh] overflow-y-auto"
-                                                                style={{
-                                                                    background: "rgba(7,11,20,0.97)",
-                                                                    border: "1px solid rgba(52,211,153,0.4)",
-                                                                    boxShadow: "0 0 60px rgba(52,211,153,0.12), 0 20px 60px rgba(0,0,0,0.8)",
-                                                                    backdropFilter: "blur(12px)",
-                                                                }}
-                                                                onClick={(e) => e.stopPropagation()}
-                                                            >
-                                                                <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-800 sticky top-0 bg-[#070b14]/95 backdrop-blur-sm z-10">
-                                                                    <div className="flex items-center gap-2">
-                                                                        <span className="text-xl">📈</span>
-                                                                        <p className="font-black text-emerald-300 uppercase tracking-widest" style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: "1.4rem" }}>
-                                                                            Beneficial Effects
-                                                                        </p>
-                                                                    </div>
-                                                                    <button onClick={() => setShowBuffsModal(false)} className="text-slate-500 hover:text-white text-lg font-mono transition-colors w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-800">✕</button>
-                                                                </div>
-                                                                <div className="p-4 flex flex-col gap-2">
-                                                                    {[
-                                                                        { emoji: "🛡️", name: "Shield",        color: "#60a5fa", desc: "Absorbe daño antes de bajar HP. Dura 2 turnos del portador." },
-                                                                        { emoji: "♻️", name: "Regeneration",  color: "#4ade80", desc: "Recupera % de HP al inicio de cada turno. Acumula durante varios turnos." },
-                                                                        { emoji: "↩️", name: "Reflect Damage",   color: "#f59e0b", desc: "Devuelve automáticamente un % del daño recibido al atacante." },
-                                                                        { emoji: "✨", name: "Revive",        color: "#a78bfa", desc: "Resucita a un aliado derrotado con HP parcial." },
-                                                                        { emoji: "🌿", name: "Cleanse",  color: "#86efac", desc: "Elimina estados negativos y debuffs activos." },
-                                                                        { emoji: "⬆ATK", name: "Boost ATK",  color: "#f97316", desc: "Aumenta el ataque base. Máx +50%. Se reemplaza (no apila)." },
-                                                                        { emoji: "⬆DEF", name: "Boost DEF",  color: "#38bdf8", desc: "Aumenta la defensa base. Máx +50%." },
-                                                                        { emoji: "⬆SPD", name: "Boost SPD",  color: "#a3e635", desc: "Aumenta la velocidad, afecta el orden de turno." },
-                                                                        { emoji: "⬆ACC", name: "Boost ACC",  color: "#fde68a", desc: "Aumenta la precisión de los ataques." },
-                                                                        { emoji: "💚",   name: "Heal",    color: "#4ade80", desc: "Restaura HP de forma inmediata. El debuff_heal reduce su efectividad." },
-                                                                    ].map(({ emoji, name, color, desc }) => (
-                                                                        <div key={name} style={{
-                                                                            display: "flex", alignItems: "flex-start", gap: 10,
-                                                                            padding: "8px 10px", borderRadius: 8,
-                                                                            background: `${color}0d`, border: `1px solid ${color}22`,
-                                                                        }}>
-                                                                            <span style={{ fontSize: "1.2rem", flexShrink: 0, lineHeight: 1.4 }}>{emoji}</span>
-                                                                            <div>
-                                                                                <p style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 900, fontSize: "13px", color, letterSpacing: "0.04em", marginBottom: 2 }}>{name}</p>
-                                                                                <p style={{ fontSize: "11px", color: "#94a3b8", lineHeight: 1.5 }}>{desc}</p>
-                                                                            </div>
-                                                                        </div>
-                                                                    ))}
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    )}
-
-                                                    {/* ── Modal DEBUFOS ── */}
-                                                    {showDebuffsModal && (
-                                                        <div
-                                                            className="fixed inset-0 z-[9998] flex items-center justify-center p-4"
-                                                            onClick={() => setShowDebuffsModal(false)}
-                                                        >
-                                                            <div
-                                                                className="relative rounded-2xl overflow-hidden max-w-lg w-full max-h-[80vh] overflow-y-auto"
-                                                                style={{
-                                                                    background: "rgba(7,11,20,0.97)",
-                                                                    border: "1px solid rgba(248,113,113,0.4)",
-                                                                    boxShadow: "0 0 60px rgba(248,113,113,0.12), 0 20px 60px rgba(0,0,0,0.8)",
-                                                                    backdropFilter: "blur(12px)",
-                                                                }}
-                                                                onClick={(e) => e.stopPropagation()}
-                                                            >
-                                                                <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-800 sticky top-0 bg-[#070b14]/95 backdrop-blur-sm z-10">
-                                                                    <div className="flex items-center gap-2">
-                                                                        <span className="text-xl">📉</span>
-                                                                        <p className="font-black text-red-300 uppercase tracking-widest" style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: "1.4rem" }}>
-                                                                            Harmful Effects
-                                                                        </p>
-                                                                    </div>
-                                                                    <button onClick={() => setShowDebuffsModal(false)} className="text-slate-500 hover:text-white text-lg font-mono transition-colors w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-800">✕</button>
-                                                                </div>
-                                                                <div className="p-4 flex flex-col gap-2">
-                                                                    {[
-                                                                        { emoji: "🔥", name: "Burn",      color: "#f97316", desc: "Daño continuo cada turno. Dura 4 turnos. No apila." },
-                                                                        { emoji: "☠️", name: "Poison",          color: "#a855f7", desc: "Daño continuo cada turno. Dura 5 turnos. Apila hasta 3 stacks." },
-                                                                        { emoji: "⚡", name: "Paralysis",       color: "#fde047", desc: "25% de probabilidad de no poder actuar. Reduce SPD a la mitad. Dura 3 turnos." },
-                                                                        { emoji: "❄️", name: "Freeze",     color: "#67e8f9", desc: "70% de probabilidad de no poder actuar. 30% de descongelarse. Dura 2 turnos." },
-                                                                        { emoji: "😨", name: "Fear",           color: "#c084fc", desc: "20% de probabilidad de no poder actuar. Reduce ATK y ACC un 20%. Dura 3 turnos." },
-                                                                        { emoji: "💫", name: "Stun",    color: "#94a3b8", desc: "Guaranteed turn skip. Lasts 1 turn." },
-                                                                        { emoji: "💀", name: "Curse",       color: "#f87171", desc: "Al morir el maldito, el lanzador recupera HP. Dura indefinidamente." },
-                                                                        { emoji: "🔇", name: "Silence",        color: "#64748b", desc: "Solo puede usar ataques básicos (sin cooldown). Dura varios turnos." },
-                                                                        { emoji: "✂️", name: "Debuff Curación", color: "#fb923c", desc: "Reduce la efectividad de las curaciones recibidas." },
-                                                                        { emoji: "⬇ATK", name: "Debuff ATK",   color: "#f97316", desc: "Reduce el ataque base. Máx -50%. Se reemplaza (no apila)." },
-                                                                        { emoji: "⬇DEF", name: "Debuff DEF",   color: "#38bdf8", desc: "Reduce la defensa base. Máx -50%." },
-                                                                        { emoji: "⬇SPD", name: "Debuff SPD",   color: "#a3e635", desc: "Reduces speed, may alter turn order." },
-                                                                        { emoji: "⬇ACC", name: "Debuff ACC",   color: "#fde68a", desc: "Reduce la precisión de los ataques." },
-                                                                        { emoji: "✨",   name: "Dispel",        color: "#818cf8", desc: "Elimina todos los buffs positivos activos del objetivo." },
-                                                                    ].map(({ emoji, name, color, desc }) => (
-                                                                        <div key={name} style={{
-                                                                            display: "flex", alignItems: "flex-start", gap: 10,
-                                                                            padding: "8px 10px", borderRadius: 8,
-                                                                            background: `${color}0d`, border: `1px solid ${color}22`,
-                                                                        }}>
-                                                                            <span style={{ fontSize: "1.2rem", flexShrink: 0, lineHeight: 1.4 }}>{emoji}</span>
-                                                                            <div>
-                                                                                <p style={{ fontFamily: "'Rajdhani', sans-serif", fontWeight: 900, fontSize: "13px", color, letterSpacing: "0.04em", marginBottom: 2 }}>{name}</p>
-                                                                                <p style={{ fontSize: "11px", color: "#94a3b8", lineHeight: 1.5 }}>{desc}</p>
-                                                                            </div>
-                                                                        </div>
-                                                                    ))}
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    )}
-
-                                                    <div className="grid grid-cols-2 gap-1.5">
-                                                        {actorForMoves.moves.map((move) => {
-                                                            const cfg = AFFINITY_CONFIG[move.affinity];
-                                                            const onCooldown = !!(actorForMoves.cooldownsLeft?.[move.id] > 0);
-                                                            const cdLeft = actorForMoves.cooldownsLeft?.[move.id] ?? 0;
-                                                            const ok =
-                                                                !animating &&
-                                                                !!targetEnemy &&
-                                                                !targetEnemy.defeated &&
-                                                                !onCooldown;
-                                                            return (
-                                                                <button
-                                                                    key={move.id}
-                                                                    onClick={() => ok && handleMove(move.id)}
-                                                                    disabled={!ok}
-                                                                    className={`flex items-start gap-2 px-3 py-2 rounded-xl border text-left transition-all
-                                                                        ${ok
-                                                                            ? `${cfg.bg} ${cfg.color} border-white/10 hover:border-white/30 hover:scale-[1.02] active:scale-[0.98]`
-                                                                            : "bg-slate-900/40 border-slate-800 text-slate-600 cursor-not-allowed opacity-50"
-                                                                        }`}
-                                                                >
-                                                                    {/* Icono afinidad CDN */}
-                                                                    <div className="flex-shrink-0 mt-0.5">
-                                                                        <AffinityIcon affinity={move.affinity} size={22} />
-                                                                    </div>
-                                                                    <div className="min-w-0 flex-1">
-                                                                        {/* Fila nombre + CD activo */}
-                                                                        <div className="flex items-center justify-between gap-1 mb-1">
-                                                                            <p className="font-mono text-xs font-bold truncate">{move.name}</p>
-                                                                            {onCooldown ? (
-                                                                                <span className="flex-shrink-0 flex items-center gap-0.5 font-mono font-black rounded px-1.5"
-                                                                                    style={{ fontSize: "11px", background: "rgba(239,68,68,0.25)", border: "1px solid rgba(239,68,68,0.6)", color: "#ffffff" }}>
-                                                                                    ⏳ {cdLeft}t
-                                                                                </span>
-                                                                            ) : move.cooldown > 0 ? (
-                                                                                <span className="flex-shrink-0 flex items-center gap-0.5 font-mono font-black rounded px-1.5"
-                                                                                    style={{ fontSize: "11px", background: "rgba(100,116,139,0.2)", border: "1px solid rgba(100,116,139,0.4)", color: "#ffffff" }}>
-                                                                                    CD {move.cooldown}
-                                                                                </span>
-                                                                            ) : null}
-                                                                        </div>
-                                                                        {/* Potencia + Precisión — más visibles */}
-                                                                        <div className="flex items-center gap-2 mb-1">
-                                                                            {move.power > 0 ? (
-                                                                                <span style={{ fontSize: "12px", fontFamily: "monospace", fontWeight: 900, color: cfg.glow ?? "#f97316" }}>
-                                                                                    ⚡{move.power}
-                                                                                </span>
-                                                                            ) : (
-                                                                                <span style={{ fontSize: "11px", fontFamily: "monospace", color: "#94a3b8" }}>estado</span>
-                                                                            )}
-                                                                            <span style={{ fontSize: "11px", fontFamily: "monospace", fontWeight: 700, color: "#7dd3fc" }}>
-                                                                                🎯{move.accuracy}%
-                                                                            </span>
-                                                                            {/* Target indicator */}
-                                                                            {(() => {
-                                                                                const tgt = (move.effect as any)?.target ?? (move as any).target;
-                                                                                const label = tgt === "all_enemies" ? "ÁREA" : tgt === "all_allies" ? "ALIADOS" : tgt === "self" ? "SELF" : null;
-                                                                                const color = tgt === "all_enemies" ? "#f87171" : tgt === "all_allies" ? "#4ade80" : "#a78bfa";
-                                                                                if (!label) return null;
-                                                                                return (
-                                                                                    <span style={{ fontSize: "9px", fontFamily: "monospace", fontWeight: 900, color, background: `${color}18`, border: `1px solid ${color}44`, borderRadius: 3, padding: "1px 4px", letterSpacing: "0.06em" }}>
-                                                                                        {label}
-                                                                                    </span>
-                                                                                );
-                                                                            })()}
-                                                                        </div>
-                                                                        <p className="text-[11px] leading-snug line-clamp-2" style={{ color: "rgba(255,255,255,0.78)" }}>
-                                                                            {move.description}
-                                                                        </p>
-                                                                    </div>
-                                                                </button>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            // ── Turno NPC: panel frozen del último myth jugador ──
-                                            (() => {
-                                                const frozenMyth = session
-                                                    ? (session.playerTeam.find((m) => m.instanceId === lastPlayerActorId && !m.defeated)
-                                                        ?? session.playerTeam.find((m) => !m.defeated)
-                                                        ?? null)
-                                                    : null;
-                                                if (!frozenMyth) return (
-                                                    <div className="flex items-center justify-center h-full">
-                                                        <p className="text-slate-500 text-xs font-mono animate-pulse">Procesando...</p>
-                                                    </div>
-                                                );
-                                                const fAf = frozenMyth.affinities?.[0];
-                                                const fAfCfg = fAf ? AFFINITY_CONFIG[fAf] : null;
-                                                const fBuffMult = (stat: string) => {
-                                                    const key = stat === "attack" ? "atk" : stat === "defense" ? "def" : "spd";
-                                                    const raw = (frozenMyth.buffs ?? []).filter((b: Buff) => b.stat === key).reduce((acc: number, b: Buff) => acc * b.multiplier, 1);
-                                                    return Math.max(0.5, Math.min(1.5, raw));
-                                                };
-                                                return (
-                                                    <div className="flex h-full" style={{ opacity: 0.55, pointerEvents: "none" }}>
-                                                        {/* Stats frozen */}
-                                                        <div className={`flex-shrink-0 border-r flex flex-col justify-between overflow-hidden relative ${rarityClass(frozenMyth.rarity)}`}
-                                                            style={{ width: "22%", minWidth: 0, borderRightColor: "rgba(30,41,59,1)", filter: "saturate(0.45) brightness(0.8)" }}>
-                                                            {frozenMyth.art?.portrait && (
-                                                                <div className="absolute inset-0 pointer-events-none z-0"
-                                                                    style={{ backgroundImage: `url(${frozenMyth.art.portrait})`, backgroundSize: "cover", backgroundPosition: "center", opacity: 0.35 }} />
-                                                            )}
-                                                            <div className="absolute inset-0 pointer-events-none z-[1]"
-                                                                style={{ background: "linear-gradient(180deg, rgba(7,11,20,0.55) 0%, rgba(7,11,20,0.72) 60%, rgba(7,11,20,0.88) 100%)" }} />
-                                                            <div className="relative z-[2] flex flex-col h-full px-3 py-2 gap-1">
-                                                                <p className="font-black leading-none truncate"
-                                                                    style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: "1.25rem", color: "#64748b", letterSpacing: "0.01em" }}>
-                                                                    {frozenMyth.name}
-                                                                </p>
-                                                                <div className="flex items-center gap-1.5 flex-wrap">
-                                                                    <div className="flex items-center justify-center font-black font-mono rounded-md px-1.5"
-                                                                        style={{ height: 18, background: "rgba(15,23,40,0.8)", border: "1px solid rgba(51,65,85,0.5)", fontSize: "11px", color: "#475569" }}>
-                                                                        Lv{frozenMyth.level}
-                                                                    </div>
-                                                                    {fAfCfg && (
-                                                                        <div className="flex items-center gap-1 rounded-full px-2"
-                                                                            style={{ height: 18, background: `${fAfCfg.glow}12`, border: `1px solid ${fAfCfg.glow}30` }}>
-                                                                            <span style={{ fontSize: "11px" }}>{fAfCfg.emoji}</span>
-                                                                            <span className="font-mono font-black" style={{ fontSize: "9px", color: "#475569" }}>{fAfCfg.label.toUpperCase()}</span>
-                                                                        </div>
-                                                                    )}
-                                                                    {/* Rareza frozen */}
-                                                                    {(() => {
-                                                                        const fRar = frozenMyth.rarity ?? "COMMON";
-                                                                        const fRarCfg: Record<string, { color: string; border: string; label: string }> = {
-                                                                            COMMON:    { color: "#475569", border: "rgba(71,85,105,0.4)",  label: "CMN"  },
-                                                                            RARE:      { color: "#475569", border: "rgba(71,85,105,0.4)",  label: "RARE" },
-                                                                            EPIC:      { color: "#475569", border: "rgba(71,85,105,0.4)",  label: "EPIC" },
-                                                                            ELITE:     { color: "#475569", border: "rgba(71,85,105,0.4)",  label: "ELITE"},
-                                                                            LEGENDARY: { color: "#475569", border: "rgba(71,85,105,0.4)",  label: "LGND" },
-                                                                            MYTHIC:    { color: "#475569", border: "rgba(71,85,105,0.4)",  label: "MYTH" },
-                                                                        };
-                                                                        const frc = fRarCfg[fRar] ?? fRarCfg.COMMON;
-                                                                        return (
-                                                                            <div className="flex items-center justify-center rounded-full px-1.5 font-mono font-black flex-shrink-0"
-                                                                                style={{ height: 18, background: "rgba(15,23,40,0.8)", border: `1px solid ${frc.border}`, fontSize: "9px", color: frc.color, letterSpacing: "0.04em" }}>
-                                                                                {frc.label}
-                                                                            </div>
-                                                                        );
-                                                                    })()}
-                                                                </div>
-                                                                <div className="h-px bg-slate-800/60 my-0.5" />
-                                                                <div className="flex flex-col gap-[5px] flex-1" style={{ padding: "4px 8px" }}>
-                                                                    {(() => {
-                                                                        function calcFrozenStat(baseVal: number, buffKey: string) {
-                                                                            const raw = (frozenMyth.buffs ?? [])
-                                                                                .filter((b: Buff) => b.stat === buffKey)
-                                                                                .reduce((acc: number, b: Buff) => acc * b.multiplier, 1);
-                                                                            const mult = Math.max(0.5, Math.min(1.5, raw));
-                                                                            return { baseVal, realVal: Math.round(baseVal * mult), pct: mult !== 1 ? Math.round((mult - 1) * 100) : 0 };
-                                                                        }
-                                                                        function calcFrozenCritMult(cd: number) {
-                                                                            if (cd <= 150) return 1.5;
-                                                                            const ex = cd - 150;
-                                                                            return Math.round((1.5 + (ex <= 150 ? ex * 0.005 : 0.75 + Math.sqrt(ex - 150) * 0.025)) * 100) / 100;
-                                                                        }
-                                                                        const rows = [
-                                                                            { icon: "⚔️",  label: "ATK",      ...calcFrozenStat(frozenMyth.attack,             "atk") },
-                                                                            { icon: "🛡️",  label: "DEF",      ...calcFrozenStat(frozenMyth.defense,            "def") },
-                                                                            { icon: "💨",  label: "SPD",      ...calcFrozenStat(frozenMyth.speed,              "spd") },
-                                                                            { icon: "🎯",  label: "ACC",      ...calcFrozenStat(frozenMyth.accuracy ?? 100,    "acc"), suffix: "%" },
-                                                                            { icon: "💥",  label: "CRIT%",    baseVal: frozenMyth.critChance ?? 15, realVal: frozenMyth.critChance ?? 15, pct: 0, suffix: "%" },
-                                                                            { icon: "🔥",  label: "CRIT.DMG", baseVal: frozenMyth.critDamage ?? 150, realVal: frozenMyth.critDamage ?? 150, pct: 0, display: `×${calcFrozenCritMult(frozenMyth.critDamage ?? 150)}` },
-                                                                        ] as any[];
-                                                                        return rows.map(({ icon, label, baseVal, realVal, pct, suffix, display }: any) => {
-                                                                            const buffed = pct > 0, nerfed = pct < 0;
-                                                                            const showDisplay = display ?? (realVal + (suffix ?? ""));
-                                                                            return (
-                                                                                <div key={label} className="flex items-baseline gap-1" style={{ opacity: 0.6 }}>
-                                                                                    <span className="text-[10px] flex-shrink-0 leading-none">{icon}</span>
-                                                                                    <span className="font-mono text-[9px] text-slate-600 flex-shrink-0 uppercase tracking-wider" style={{ width: 36 }}>{label}</span>
-                                                                                    {pct !== 0 ? (
-                                                                                        <>
-                                                                                            <span className="font-mono text-[9px] text-slate-600">{baseVal + (suffix ?? "")}</span>
-                                                                                            <span className="font-mono text-[8px] font-black text-yellow-600">{pct > 0 ? `+${pct}%` : `${pct}%`}</span>
-                                                                                            <span className={`font-mono text-[12px] font-black ${buffed ? "text-emerald-700" : "text-red-800"}`}>{showDisplay}</span>
-                                                                                        </>
-                                                                                    ) : (
-                                                                                        <span className="font-mono text-[12px] font-black text-slate-500">{showDisplay}</span>
-                                                                                    )}
-                                                                                </div>
-                                                                            );
-                                                                        });
-                                                                    })()}
-                                                                </div>
-                                                                <div className="mt-auto pt-1">
-                                                                    <div className="flex items-center justify-between mb-1">
-                                                                        <span className="font-mono text-[10px] text-slate-600">HP</span>
-                                                                        <span className="font-mono text-[10px] text-slate-500">{frozenMyth.hp}/{frozenMyth.maxHp}</span>
-                                                                    </div>
-                                                                    <HpBar hp={frozenMyth.hp} maxHp={frozenMyth.maxHp} shield={frozenMyth.shield} shieldTurns={frozenMyth.shieldTurns} />
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        {/* Moves frozen */}
-                                                        <div className="flex-1 flex flex-col justify-between overflow-hidden"
-                                                            style={{ background: "rgba(7,11,20,0.3)" }}>
-                                                            <div className="px-3 pt-2 pb-1 border-b border-slate-800/60 flex-shrink-0">
-                                                                <span className="font-mono text-[10px] text-slate-600 uppercase tracking-widest">Moves of {frozenMyth.name}</span>
-                                                            </div>
-                                                            <div className="flex-1 overflow-hidden p-2">
-                                                                <div className="grid grid-cols-2 gap-1.5">
-                                                                    {frozenMyth.moves.map((move) => {
-                                                                        const cfg = AFFINITY_CONFIG[move.affinity];
-                                                                        return (
-                                                                            <div key={move.id}
-                                                                                className="flex items-start gap-1.5 px-2 py-1.5 rounded-xl border bg-slate-900/30 border-slate-800/60 opacity-40">
-                                                                                <AffinityIcon affinity={move.affinity} size={18} />
-                                                                                <div className="min-w-0 flex-1">
-                                                                                    <p className="font-mono text-xs font-bold text-slate-600">{move.name}</p>
-                                                                                    <p className="text-[10px] text-slate-700 font-mono">{move.power > 0 ? `💥 ${move.power}` : "estado"} · 🎯 {move.accuracy}%</p>
-                                                                                </div>
-                                                                            </div>
-                                                                        );
-                                                                    })}
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })()
-                                        );
-                                    })()
+                                {/* ── NPC turn waiting indicator ── */}
+                                {phase === "battle" && !currentActorIsPlayer && animating && (
+                                    <div className="absolute z-25 pointer-events-none"
+                                        style={{ bottom: 80, left: "50%", transform: "translateX(-50%)" }}>
+                                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full"
+                                            style={{ background: "rgba(7,11,20,0.82)", border: "1px solid rgba(255,255,255,0.1)", backdropFilter: "blur(6px)" }}>
+                                            <span className="flex gap-1">
+                                                {[0,1,2].map(i => (
+                                                    <span key={i} style={{ width: 5, height: 5, borderRadius: "50%", background: "#818cf8", display: "inline-block", animation: `dotPulse 1s ease-in-out ${i*0.3}s infinite` }} />
+                                                ))}
+                                            </span>
+                                            <span style={{ fontSize: 10, fontFamily: "monospace", color: "#64748b", letterSpacing: "0.08em" }}>Opponent acting</span>
+                                        </div>
+                                    </div>
                                 )}
-                            </div>
+
+                                {/* ── 3 floating move circles — battle phase only ── */}
+                            {phase === "battle" && (() => {
+                                const actorForMoves =
+                                    currentActorIsPlayer && currentActor && !currentActor.defeated
+                                        ? currentActor
+                                        : currentActorIsPlayer
+                                          ? (session?.playerTeam.find((m) => !m.defeated) ?? null)
+                                          : (() => {
+                                                const last = lastPlayerActorId
+                                                    ? [...(session?.playerTeam ?? [])].find(m => m.instanceId === lastPlayerActorId && !m.defeated)
+                                                    : null;
+                                                return last ?? (session?.playerTeam.find(m => !m.defeated) ?? null);
+                                            })();
+
+                                if (!actorForMoves) return null;
+                                const moves = actorForMoves.moves ?? [];
+                                if (moves.length === 0) return null;
+
+                                // Slots: [0]=basic, [1]=skill, [2]=ulti — order: basic left, ulti center (big), skill right
+                                const slots: Array<{ move: any; slot: "basic"|"skill"|"ulti" }> = [
+                                    { move: moves[0], slot: "basic" },
+                                    { move: moves[2] ?? moves[1], slot: "ulti" },
+                                    { move: moves[1], slot: "skill" },
+                                ];
+
+                                const isDesktopLayout = winW >= 900;
+
+                                return (
+                                    <div
+                                        className="absolute z-30 flex flex-col items-center gap-2"
+                                        style={{ bottom: isDesktopLayout ? 16 : 8, left: "50%", transform: "translateX(-50%)" }}
+                                    >
+                                        {/* Circles row */}
+                                        <div className="flex items-flex-end justify-center gap-3">
+                                        {slots.map(({ move, slot }, si) => {
+                                            if (!move) return null;
+                                            const cfg = AFFINITY_CONFIG[move.affinity as Affinity] ?? AFFINITY_CONFIG.EMBER;
+                                            const onCooldown = !!(actorForMoves.cooldownsLeft?.[move.id] > 0);
+                                            const cdLeft = actorForMoves.cooldownsLeft?.[move.id] ?? 0;
+                                            const firstLiveEnemy = session?.enemyTeam.find((m) => !m.defeated) ?? null;
+                                            const effectiveTarget = targetEnemy ?? firstLiveEnemy;
+                                            const ok = !animating && !!effectiveTarget && !effectiveTarget.defeated && !onCooldown && currentActorIsPlayer;
+                                            return (
+                                                <MoveCircle
+                                                    key={move.id ?? si}
+                                                    move={move}
+                                                    cfg={cfg}
+                                                    ok={ok}
+                                                    onCooldown={onCooldown}
+                                                    cdLeft={cdLeft}
+                                                    slot={slot}
+                                                    desktop={isDesktopLayout}
+                                                    onSelect={() => {
+                                                        if (!targetEnemy && firstLiveEnemy) setTargetEnemyMythId(firstLiveEnemy.instanceId);
+                                                        handleMove(move.id, effectiveTarget?.instanceId);
+                                                    }}
+                                                />
+                                            );
+                                        })}
+                                        </div>
+                                        {/* Desktop: move descriptions row */}
+                                        {isDesktopLayout && (
+                                            <div className="flex gap-3 justify-center">
+                                                {slots.map(({ move, slot }, si) => {
+                                                    if (!move) return null;
+                                                    const cfg = AFFINITY_CONFIG[move.affinity as Affinity] ?? AFFINITY_CONFIG.EMBER;
+                                                    const onCooldown = !!(actorForMoves.cooldownsLeft?.[move.id] > 0);
+                                                    const isUlti = slot === "ulti";
+                                                    return (
+                                                        <div key={move.id ?? si} style={{
+                                                            width: isUlti ? 160 : 130,
+                                                            background: "rgba(7,11,20,0.82)",
+                                                            border: `1px solid ${onCooldown ? "rgba(100,116,139,0.2)" : (cfg.glow ?? "#f97316") + "33"}`,
+                                                            borderRadius: 8, padding: "5px 8px",
+                                                            backdropFilter: "blur(6px)",
+                                                            opacity: onCooldown ? 0.45 : 1,
+                                                        }}>
+                                                            <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 2 }}>
+                                                                <AffinityIcon affinity={move.affinity} size={11} />
+                                                                <span style={{ fontSize: 10, fontFamily: "monospace", fontWeight: 900, color: cfg.glow ?? "#f97316" }}>
+                                                                    {move.name}
+                                                                </span>
+                                                                {move.power > 0 && <span style={{ fontSize: 9, color: "rgba(255,255,255,0.45)", marginLeft: "auto", fontFamily: "monospace" }}>⚡{move.power}</span>}
+                                                            </div>
+                                                            <p style={{ fontSize: 9, color: "rgba(255,255,255,0.5)", lineHeight: 1.4, margin: 0,
+                                                                overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as any }}>
+                                                                {move.description}
+                                                            </p>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })()}
                         </div>
 
-                        {/* ── Log panel ── */}
-                        <div
-                            className="w-64 flex-shrink-0 border-l border-slate-800 flex flex-col overflow-hidden"
-                            style={{ minHeight: 0 }}
+                        {/* ── Log toggle button — mobile only ── */}
+                        {winW < 900 && (
+                        <button
+                            onClick={() => setLogOpen(v => !v)}
+                            className="absolute z-40 flex flex-col items-center justify-center gap-2 transition-all hover:brightness-125 active:scale-95"
+                            style={{
+                                right: logOpen ? 248 : 0,
+                                top: "50%", transform: "translateY(-50%)",
+                                width: 32, height: 72,
+                                background: logOpen ? "rgba(30,41,59,0.97)" : "rgba(15,23,42,0.85)",
+                                border: "1px solid rgba(99,102,241,0.35)",
+                                borderRight: logOpen ? "none" : "1px solid rgba(99,102,241,0.35)",
+                                borderRadius: "8px 0 0 8px",
+                                boxShadow: "0 0 16px rgba(99,102,241,0.15)",
+                                transition: "right 0.25s cubic-bezier(0.4,0,0.2,1)",
+                                cursor: "pointer",
+                            }}
+                            title={logOpen ? "Hide log" : "Show log"}
                         >
-                            <div className="px-3 py-2.5 border-b border-slate-800 bg-slate-900/60 flex-shrink-0">
-                                <p className="font-mono text-xs text-yellow-400 uppercase tracking-widest font-bold">
-                                    📜 Log
-                                </p>
+                            <svg width="14" height="11" viewBox="0 0 14 11" fill="none">
+                                <line x1="1" y1="1.5"  x2="13" y2="1.5"  stroke="#818cf8" strokeWidth="1.5" strokeLinecap="round"/>
+                                <line x1="1" y1="5.5"  x2="13" y2="5.5"  stroke="#818cf8" strokeWidth="1.5" strokeLinecap="round"/>
+                                <line x1="1" y1="9.5"  x2="9"  y2="9.5"  stroke="#818cf8" strokeWidth="1.5" strokeLinecap="round"/>
+                            </svg>
+                            <span style={{ fontSize: 9, color: "#818cf8", opacity: 0.5 }}>{logOpen ? "▶" : "◀"}</span>
+                        </button>
+                        )}
+
+                        {/* ── Log panel — static on desktop, drawer on mobile ── */}
+                        <div
+                            className="flex flex-col"
+                            style={{
+                                width: 248,
+                                background: "rgba(7,11,20,0.97)",
+                                borderLeft: "1px solid rgba(99,102,241,0.2)",
+                                flexShrink: 0,
+                                ...(winW < 900 ? {
+                                    position: "absolute", right: 0, top: 0, bottom: 0,
+                                    transform: logOpen ? "translateX(0)" : "translateX(100%)",
+                                    transition: "transform 0.25s cubic-bezier(0.4,0,0.2,1)",
+                                    boxShadow: logOpen ? "-8px 0 32px rgba(0,0,0,0.5)" : "none",
+                                    zIndex: 30,
+                                } : {
+                                    zIndex: 10,
+                                }),
+                            }}
+                        >
+                            <div className="px-3 py-2.5 border-b border-slate-800 bg-slate-900/60 flex-shrink-0 flex items-center justify-between">
+                                <p className="font-mono text-xs text-indigo-400 uppercase tracking-widest font-bold">Combat Log</p>
+                                {winW < 900 && <button onClick={() => setLogOpen(false)} className="text-slate-600 hover:text-slate-300 transition-colors text-xs">✕</button>}
                             </div>
                             <div
                                 ref={logRef}
@@ -5059,8 +4365,8 @@ export default function BattlePage() {
                                     // Líneas secundarias: system, status, good, bad, heal, miss
                                     // Para líneas de status, detectar el estado en el texto para colorear apropiadamente
                                     const statusColorFromText = isStatus ? (
-                                        entry.text?.includes("burn") || entry.text?.includes("quemadura") || entry.text?.includes("Quemadura") ? "#fb923c" :
-                                        entry.text?.includes("poison") || entry.text?.includes("veneno") || entry.text?.includes("Veneno") ? "#4ade80" :
+                                        entry.text?.includes("burn") || entry.text?.includes("burn") ? "#fb923c" :
+                                        entry.text?.includes("poison") || entry.text?.includes("poison") ? "#4ade80" :
                                         entry.text?.includes("paralyze") || entry.text?.includes("parálisis") || entry.text?.includes("paraliz") ? "#fde047" :
                                         entry.text?.includes("freeze") || entry.text?.includes("congel") || entry.text?.includes("hielo") ? "#7dd3fc" :
                                         entry.text?.includes("fear") || entry.text?.includes("miedo") || entry.text?.includes("FEARED") ? "#c084fc" :
@@ -5378,12 +4684,6 @@ function DistortionOverlay({
 
 
 // ─────────────────────────────────────────
-// TabBar
-// ─────────────────────────────────────────
-
-// ─────────────────────────────────────────
-// BattleTopBar — fullscreen landscape top bar
-// ─────────────────────────────────────────
 
 function BattleTopBar({
     phase,
@@ -5402,12 +4702,14 @@ function BattleTopBar({
     const pveMax   = tok?.npcMax    ?? 10;
     const pvpCount = tok?.pvpTokens ?? 0;
     const pvpMax   = tok?.pvpMax    ?? 5;
+    const { w: tbW } = useWindowSize();
+    const tbD = tbW >= 900;
 
     return (
         <div
-            className="flex-shrink-0 flex items-center px-2 gap-2 z-30"
+            className="flex-shrink-0 flex items-center px-3 gap-2.5 z-30"
             style={{
-                height: 28,
+                height: tbD ? 46 : 30,
                 background: "rgba(4,8,15,0.96)",
                 borderBottom: "1px solid rgba(255,255,255,0.06)",
             }}
@@ -5417,10 +4719,10 @@ function BattleTopBar({
                 onClick={onBack}
                 className="flex items-center justify-center flex-shrink-0 transition-all hover:scale-110 active:scale-95"
                 style={{
-                    width: 22, height: 22, borderRadius: "50%",
+                    width: tbD ? 36 : 22, height: tbD ? 36 : 22, borderRadius: "50%",
                     background: "rgba(239,68,68,0.15)",
                     border: "1px solid rgba(239,68,68,0.4)",
-                    color: "#f87171", fontSize: 11, fontWeight: 900,
+                    color: "#f87171", fontSize: tbD ? 16 : 11, fontWeight: 900,
                 }}
                 title={phase === "battle" ? "Exit battle" : "Back"}
             >✕</button>
@@ -5429,17 +4731,17 @@ function BattleTopBar({
             <div className="flex items-center gap-1.5">
                 <div className="flex items-center gap-1 px-1.5 py-0.5 rounded"
                     style={{ background: "rgba(14,165,233,0.1)", border: "1px solid rgba(14,165,233,0.2)" }}>
-                    <span className="font-mono font-bold text-sky-300" style={{ fontSize: 9 }}>
+                    <span className="font-mono font-bold text-sky-300" style={{ fontSize: tbD ? 14 : 9 }}>
                         {pveCount}<span style={{ opacity: 0.4 }}>/{pveMax}</span>
                     </span>
-                    <span style={{ fontSize: 10 }}>⚡</span>
+                    <span style={{ fontSize: tbD ? 15 : 10 }}>⚡</span>
                 </div>
-                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded"
+                <div className="flex items-center gap-1 px-2 py-1 rounded"
                     style={{ background: "rgba(249,115,22,0.1)", border: "1px solid rgba(249,115,22,0.2)" }}>
-                    <span className="font-mono font-bold text-orange-300" style={{ fontSize: 9 }}>
+                    <span className="font-mono font-bold text-orange-300" style={{ fontSize: tbD ? 14 : 9 }}>
                         {pvpCount}<span style={{ opacity: 0.4 }}>/{pvpMax}</span>
                     </span>
-                    <span style={{ fontSize: 10 }}>⚔️</span>
+                    <span style={{ fontSize: tbD ? 15 : 10 }}>⚔️</span>
                 </div>
             </div>
 
@@ -5448,12 +4750,12 @@ function BattleTopBar({
                 {phase === "battle" && session ? (
                     <div className="flex items-center gap-1.5 px-2 py-0.5 rounded"
                         style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
-                        <span className="font-mono text-slate-500 tracking-widest uppercase" style={{ fontSize: 8 }}>Turn</span>
-                        <span className="font-mono font-black text-white tabular-nums" style={{ fontSize: 13 }}>{session.turn}</span>
+                        <span className="font-mono text-slate-500 tracking-widest uppercase" style={{ fontSize: tbD ? 12 : 8 }}>Turn</span>
+                        <span className="font-mono font-black text-white tabular-nums" style={{ fontSize: tbD ? 22 : 13 }}>{session.turn}</span>
                         {currentActorName && (
                             <>
-                                <span className="text-slate-700" style={{ fontSize: 8 }}>·</span>
-                                <span className="font-mono font-bold truncate max-w-[80px]" style={{ fontSize: 9, color: "#fde047" }}>
+                                <span className="text-slate-700" style={{ fontSize: tbD ? 12 : 8 }}>·</span>
+                                <span className="font-mono font-bold truncate" style={{ fontSize: tbD ? 15 : 9, maxWidth: tbD ? 160 : 80, color: "#fde047" }}>
                                     {currentActorName}
                                 </span>
                             </>
@@ -5470,10 +4772,10 @@ function BattleTopBar({
             <button
                 className="flex items-center justify-center flex-shrink-0 opacity-40"
                 style={{
-                    width: 22, height: 22, borderRadius: "50%",
+                    width: tbD ? 36 : 22, height: tbD ? 36 : 22, borderRadius: "50%",
                     background: "rgba(123,47,255,0.12)",
                     border: "1px solid rgba(123,47,255,0.25)",
-                    fontSize: 11,
+                    fontSize: tbD ? 18 : 11,
                 }}
                 title="Chat (coming soon)"
             >💬</button>
@@ -5481,33 +4783,3 @@ function BattleTopBar({
     );
 }
 
-// ─────────────────────────────────────────
-// TabBar
-// ─────────────────────────────────────────
-
-function TabBar({ mode, onSwitch, battleActive }: { mode: BattleMode; onSwitch: (m: BattleMode) => void; battleActive?: boolean }) {
-    return (
-        <div className="flex border-b border-slate-800 flex-shrink-0">
-            {(["npc", "pvp"] as BattleMode[]).map((m) => {
-                // Durante combate activo, TODAS las pestañas están bloqueadas
-                const blocked = !!battleActive;
-                const isActive = mode === m;
-                return (
-                    <button
-                        key={m}
-                        onClick={() => { if (!blocked) onSwitch(m); }}
-                        title={blocked ? "Cannot switch tabs during a battle" : undefined}
-                        className={`px-6 py-3 font-mono text-sm tracking-widest uppercase transition-colors relative
-                            ${isActive
-                                ? blocked ? "text-red-400/50 border-b-2 border-red-500/50" : "text-red-400 border-b-2 border-red-500"
-                                : blocked
-                                  ? "text-slate-700 cursor-not-allowed"
-                                  : "text-slate-500 hover:text-slate-300"}`}
-                    >
-                        {m === "npc" ? "⚔️ PvE" : "👥 PvP"}
-                    </button>
-                );
-            })}
-        </div>
-    );
-}
