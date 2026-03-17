@@ -1,349 +1,497 @@
+// apps/client/src/pages/ProfilePage.tsx
 import { useState, useEffect } from "react";
-import Layout from "../components/Layout";
-
 import { api } from "../lib/api";
 import { useAuth } from "../hooks/useAuth";
 
-const EMBLEM_INFO = [
-    { icon: "🪨", name: "Emblema Roca", sanctum: "Kael", affinity: "STONE", level: 10 },
-    { icon: "💧", name: "Emblema Marea", sanctum: "Lyra", affinity: "TIDE", level: 15 },
-    { icon: "⚡", name: "Emblema Tormenta", sanctum: "Zeph", affinity: "VOLT", level: 20 },
-    { icon: "🌿", name: "Emblema Bosque", sanctum: "Mira", affinity: "GROVE", level: 25 },
-    { icon: "☠️", name: "Emblema Veneno", sanctum: "Voss", affinity: "VENOM", level: 30 },
-    { icon: "✨", name: "Emblema Astral", sanctum: "Sable", affinity: "ASTRAL", level: 35 },
-    { icon: "🔥", name: "Emblema Brasas", sanctum: "Ryn", affinity: "EMBER", level: 40 },
-    { icon: "🌑", name: "Emblema Sombra", sanctum: "Nox", affinity: "SHADE", level: 50 },
-];
-
-const AVATAR_EMOJI: Record<string, string> = {
-    male_1: "👦",
-    male_2: "🧑",
-    male_3: "👨",
-    male_4: "🧔",
-    female_1: "👧",
-    female_2: "👩",
-    female_3: "🧕",
-    female_4: "👱‍♀️",
-};
-
+// ─── Constants ────────────────────────────────────────────────────────────────
 const AFFINITY_COLORS: Record<string, string> = {
-    EMBER: "#ff6b35",
-    TIDE: "#4cc9f0",
-    GROVE: "#06d6a0",
-    VOLT: "#ffd60a",
-    STONE: "#adb5bd",
-    FROST: "#a8dadc",
-    VENOM: "#7b2fff",
-    ASTRAL: "#e040fb",
-    SHADE: "#e63946",
-    IRON: "#90a4ae",
+  EMBER: "#ff6b35", TIDE: "#4cc9f0", GROVE: "#06d6a0", VOLT: "#ffd60a",
+  STONE: "#adb5bd", FROST: "#a8dadc", VENOM: "#7b2fff", ASTRAL: "#e040fb",
+  SHADE: "#e63946", IRON: "#90a4ae",
 };
 
 const RARITY_COLORS: Record<string, string> = {
-    COMMON: "#9ca3af",
-    RARE: "#4cc9f0",
-    ELITE: "#ffd60a",
-    LEGENDARY: "#e63946",
-    MYTHIC: "#a78bfa",
+  COMMON: "#64748b", RARE: "#6366f1", EPIC: "#a855f7",
+  ELITE: "#94a3b8", LEGENDARY: "#fbbf24", MYTHIC: "#f87171",
 };
 
-const RARITY_LABELS: Record<string, string> = {
-    COMMON: "Común",
-    RARE: "Rara",
-    ELITE: "Élite",
-    LEGENDARY: "Legendaria",
-    MYTHIC: "Mítica",
+const RARITY_MULT: Record<string, number> = {
+  COMMON: 1.0, RARE: 1.2, EPIC: 1.4, ELITE: 1.6, LEGENDARY: 2.0, MYTHIC: 2.5,
 };
 
-const RANK_LABELS = ["Novato", "Binder", "Rival", "Élite", "Maestro"];
-const RANK_COLORS = ["#F7FFFB", "#4cc9f0", "#e63946", "#7b2fff", "#ffd60a"];
-const RANK_THRESHOLDS = [0, 100, 300, 600, 1000];
+const PVP_RANKS = [
+  { name: "Bronze",     min: 0,    color: "#cd7f32" },
+  { name: "Silver",     min: 100,  color: "#c0c0c0" },
+  { name: "Gold",       min: 300,  color: "#ffd60a" },
+  { name: "Platinum",   min: 600,  color: "#4cc9f0" },
+  { name: "Diamond",    min: 1000, color: "#a78bfa" },
+  { name: "Ascendant",  min: 1800, color: "#f97316" },
+  { name: "Mythic",     min: 3000, color: "#f87171" },
+];
 
-function StatRow({ label, value, color = "#fff" }: { label: string; value: string | number; color?: string }) {
-    return (
-        <div className="flex items-center justify-between py-1.5 border-b border-border/30 last:border-0">
-            <span className="text-muted text-xs font-display tracking-wide">{label}</span>
-            <span className="font-display font-bold text-sm" style={{ color }}>
-                {value}
-            </span>
-        </div>
-    );
+const EMBLEMS = [
+  { icon: "🪨", name: "Stone Emblem",  sanctum: "Kael",  affinity: "STONE",  level: 10 },
+  { icon: "💧", name: "Tide Emblem",   sanctum: "Lyra",  affinity: "TIDE",   level: 15 },
+  { icon: "⚡", name: "Volt Emblem",   sanctum: "Zeph",  affinity: "VOLT",   level: 20 },
+  { icon: "🌿", name: "Grove Emblem",  sanctum: "Mira",  affinity: "GROVE",  level: 25 },
+  { icon: "☠️", name: "Venom Emblem",  sanctum: "Voss",  affinity: "VENOM",  level: 30 },
+  { icon: "✨", name: "Astral Emblem", sanctum: "Sable", affinity: "ASTRAL", level: 35 },
+  { icon: "🔥", name: "Ember Emblem",  sanctum: "Ryn",   affinity: "EMBER",  level: 40 },
+  { icon: "🌑", name: "Shade Emblem",  sanctum: "Nox",   affinity: "SHADE",  level: 50 },
+];
+
+// Placeholder frames — pending CDN assets
+const FRAMES = [
+  { id: "default",   name: "Default",   color: "#475569" },
+  { id: "silver",    name: "Silver",    color: "#c0c0c0" },
+  { id: "gold",      name: "Gold",      color: "#ffd60a" },
+  { id: "legendary", name: "Legendary", color: "#fbbf24" },
+  { id: "mythic",    name: "Mythic",    color: "#f87171" },
+];
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function calcPower(myth: any): number {
+  const mult = RARITY_MULT[myth.rarity] ?? 1.0;
+  return Math.floor(
+    (myth.maxHp * 0.4 + myth.attack * 0.3 + myth.defense * 0.2 + myth.speed * 0.1) * mult
+  );
 }
 
-function RarityBar({ rarity, count, total }: { rarity: string; count: number; total: number }) {
-    const pct = total > 0 ? Math.max(4, Math.round((count / total) * 100)) : 4;
-    const color = RARITY_COLORS[rarity] ?? "#4cc9f0";
-    return (
-        <div className="flex items-center gap-2">
-            <span className="text-xs font-display w-20 text-right flex-shrink-0" style={{ color }}>
-                {RARITY_LABELS[rarity]}
-            </span>
-            <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
-                <div
-                    className="h-full rounded-full transition-all duration-700"
-                    style={{ width: `${pct}%`, background: color, boxShadow: `0 0 6px ${color}60` }}
-                />
+function getPvpRank(pvpTokens: number) {
+  let rank = PVP_RANKS[0];
+  for (const r of PVP_RANKS) {
+    if (pvpTokens >= r.min) rank = r;
+  }
+  return rank;
+}
+
+// ─── StatRow ─────────────────────────────────────────────────────────────────
+function StatRow({ label, value, color = "rgba(255,255,255,0.7)" }: {
+  label: string; value: string | number; color?: string;
+}) {
+  return (
+    <div className="flex items-center justify-between py-1.5"
+      style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+      <span className="text-xs font-mono" style={{ color: "rgba(255,255,255,0.35)" }}>{label}</span>
+      <span className="text-xs font-bold" style={{ color }}>{value}</span>
+    </div>
+  );
+}
+
+// ─── ProfilePage ─────────────────────────────────────────────────────────────
+export default function ProfilePage() {
+  const { user } = useAuth();
+  const [trainer, setTrainer] = useState<any>(null);
+  const [party, setParty] = useState<any[]>([]);
+  const [stats, setStats] = useState<any>(null);
+
+  // Username change modal
+  const [showUsernameModal, setShowUsernameModal] = useState(false);
+  const [newUsername, setNewUsername] = useState("");
+  const [usernameMsg, setUsernameMsg] = useState("");
+  const [changingUsername, setChangingUsername] = useState(false);
+
+  // Frame picker
+  const [showFramePicker, setShowFramePicker] = useState(false);
+  const [selectedFrame, setSelectedFrame] = useState("default");
+
+  useEffect(() => {
+    Promise.all([
+      api.trainer(),
+      api.party(),
+      api.battleStats().catch(() => null),
+    ]).then(([t, p, s]) => {
+      setTrainer(t);
+      setParty(p);
+      setStats(s);
+      if (t?.avatarFrame) setSelectedFrame(t.avatarFrame);
+    });
+  }, []);
+
+  const xpForLevel = (lvl: number) => Math.floor(100 * Math.pow(lvl, 1.8));
+  const xpPct = trainer ? Math.min(100, Math.round((trainer.xp / xpForLevel(trainer.level)) * 100)) : 0;
+  const totalCombats = (stats?.wins ?? 0) + (stats?.losses ?? 0);
+  const winRate = totalCombats > 0 ? Math.round(((stats?.wins ?? 0) / totalCombats) * 100) : 0;
+  const pvpRank = getPvpRank(trainer?.pvpTokens ?? 0);
+
+  // Power calc from party
+  const totalPower = party.reduce((acc, p) => acc + calcPower(p), 0);
+  const avgPower = party.length > 0 ? Math.round(totalPower / party.length) : 0;
+
+  const totalByRarity = stats?.byRarity
+    ? Object.values(stats.byRarity as Record<string, number>).reduce((a: number, b: number) => a + b, 0)
+    : 0;
+
+  const diamonds = trainer?.diamonds ?? 0;
+  const frameColor = FRAMES.find((f) => f.id === selectedFrame)?.color ?? "#475569";
+
+  async function handleUsernameChange() {
+    if (!newUsername.trim() || newUsername.length < 3) {
+      setUsernameMsg("Min 3 characters.");
+      return;
+    }
+    if (diamonds < 150) {
+      setUsernameMsg("Not enough diamonds (need 150 💎).");
+      return;
+    }
+    setChangingUsername(true); setUsernameMsg("");
+    try {
+      await (api as any).changeUsername?.({ username: newUsername.trim() });
+      setUsernameMsg("Username updated!");
+      setShowUsernameModal(false);
+    } catch (e: any) {
+      setUsernameMsg(e.message ?? "Error updating username.");
+    } finally { setChangingUsername(false); }
+  }
+
+  return (
+    <div className="fixed inset-0 flex flex-col overflow-hidden" style={{ background:"#070b14", fontFamily:"'Exo 2',sans-serif" }}>
+      {/* ── Username change modal ── */}
+      {showUsernameModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.8)" }}
+          onClick={() => setShowUsernameModal(false)}>
+          <div className="relative rounded-2xl w-full max-w-xs p-6 flex flex-col gap-4"
+            style={{ background: "#0a1020", border: "1px solid rgba(167,139,250,0.25)" }}
+            onClick={(e) => e.stopPropagation()}>
+            <div>
+              <p className="font-black tracking-widest uppercase text-sm mb-1"
+                style={{ fontFamily: "'Rajdhani',sans-serif", color: "#e2e8f0" }}>
+                Change Username
+              </p>
+              <p className="text-[10px] font-mono" style={{ color: "rgba(255,255,255,0.35)" }}>
+                Cost: <span style={{ color: "#a78bfa" }}>150 💎</span> · You have: <span style={{ color: diamonds >= 150 ? "#a78bfa" : "#f87171" }}>{diamonds} 💎</span>
+              </p>
             </div>
-            <span className="text-xs font-display font-bold w-6 flex-shrink-0" style={{ color }}>
-                {count}
-            </span>
+            <input
+              type="text"
+              value={newUsername}
+              onChange={(e) => setNewUsername(e.target.value)}
+              placeholder="New username..."
+              maxLength={20}
+              className="w-full px-3 py-2.5 rounded-xl text-sm font-mono outline-none"
+              style={{
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(167,139,250,0.25)",
+                color: "#e2e8f0",
+              }}
+            />
+            {usernameMsg && (
+              <p className="text-[10px] font-mono" style={{ color: usernameMsg.includes("!") ? "#06d6a0" : "#f87171" }}>
+                {usernameMsg}
+              </p>
+            )}
+            <button onClick={handleUsernameChange} disabled={changingUsername || diamonds < 150}
+              className="w-full py-2.5 rounded-xl font-bold text-xs tracking-widest uppercase transition-all hover:brightness-110 active:scale-95 disabled:opacity-40"
+              style={{ background: "linear-gradient(135deg,#7b2fff,#a78bfa)", color: "#fff" }}>
+              {changingUsername ? "Changing..." : "Confirm — 150 💎"}
+            </button>
+            <button onClick={() => setShowUsernameModal(false)}
+              className="text-[10px] font-mono text-center transition-colors hover:opacity-60"
+              style={{ color: "rgba(255,255,255,0.3)" }}>
+              Cancel ✕
+            </button>
+          </div>
         </div>
-    );
-}
+      )}
 
-export default function PerfilPage() {
-    const { user } = useAuth();
-    const [trainer, setTrainer] = useState<any>(null);
-    const [party, setParty] = useState<any[]>([]);
-    const [stats, setStats] = useState<any>(null);
+      {/* ── Frame picker modal ── */}
+      {showFramePicker && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.8)" }}
+          onClick={() => setShowFramePicker(false)}>
+          <div className="relative rounded-2xl w-full max-w-xs p-5 flex flex-col gap-4"
+            style={{ background: "#0a1020", border: "1px solid rgba(255,255,255,0.1)" }}
+            onClick={(e) => e.stopPropagation()}>
+            <p className="font-black tracking-widest uppercase text-sm"
+              style={{ fontFamily: "'Rajdhani',sans-serif", color: "#e2e8f0" }}>
+              Avatar Frame
+            </p>
+            <div className="flex flex-col gap-2">
+              {FRAMES.map((f) => (
+                <button key={f.id} onClick={() => { setSelectedFrame(f.id); setShowFramePicker(false); }}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all"
+                  style={{
+                    background: selectedFrame === f.id ? `${f.color}12` : "rgba(255,255,255,0.03)",
+                    border: `1px solid ${selectedFrame === f.id ? f.color + "50" : "rgba(255,255,255,0.07)"}`,
+                  }}>
+                  <div className="w-8 h-8 rounded-full flex-shrink-0"
+                    style={{ background: `${f.color}20`, border: `2px solid ${f.color}60` }} />
+                  <span className="text-sm font-bold" style={{ color: selectedFrame === f.id ? f.color : "rgba(255,255,255,0.6)" }}>
+                    {f.name}
+                  </span>
+                  {selectedFrame === f.id && (
+                    <span className="ml-auto text-[9px] font-mono" style={{ color: f.color }}>ACTIVE</span>
+                  )}
+                </button>
+              ))}
+            </div>
+            <p className="text-[9px] font-mono text-center" style={{ color: "rgba(255,255,255,0.2)" }}>
+              More frames coming soon
+            </p>
+            <button onClick={() => setShowFramePicker(false)}
+              className="text-[10px] font-mono text-center" style={{ color: "rgba(255,255,255,0.3)" }}>
+              Close ✕
+            </button>
+          </div>
+        </div>
+      )}
 
-    useEffect(() => {
-        Promise.all([
-            api.trainer(),
-            api.party(),
-            api.battleStats().catch(() => null), // ← no rompe si falla
-        ]).then(([t, p, s]) => {
-            setTrainer(t);
-            setParty(p);
-            setStats(s);
-        });
-    }, []);
+      {/* ── Banner ── */}
+      <div className="flex-shrink-0 px-4 md:px-6 py-4 md:py-5 relative overflow-hidden"
+        style={{
+          background: "linear-gradient(135deg,#0d1525,#111d35)",
+          borderBottom: "1px solid rgba(255,255,255,0.06)",
+        }}>
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ background: "radial-gradient(ellipse 55% 100% at 85% 50%, rgba(123,47,255,0.12) 0%, transparent 60%)" }} />
+        <div className="relative flex items-center gap-4">
+          {/* Avatar with frame */}
+          <div className="relative flex-shrink-0">
+            <div className="w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center text-3xl"
+              style={{
+                background: "linear-gradient(135deg,#1a1a2e,#16213e)",
+                border: `3px solid ${frameColor}`,
+                boxShadow: `0 0 20px ${frameColor}40`,
+              }}>
+              🧙
+            </div>
+            <button onClick={() => setShowFramePicker(true)}
+              className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center transition-all hover:brightness-125 active:scale-90"
+              style={{ background: frameColor, fontSize: 10 }}
+              title="Change frame">
+              ✏
+            </button>
+          </div>
 
-    const xpForLevel = (lvl: number) => Math.floor(100 * Math.pow(lvl, 1.8));
-    const xpPct = trainer ? Math.min(100, Math.round((trainer.xp / xpForLevel(trainer.level)) * 100)) : 0;
-    const rankIdx = trainer ? RANK_THRESHOLDS.filter((t) => trainer.prestige >= t).length - 1 : 0;
-    const totalCombats = (stats?.wins ?? 0) + (stats?.losses ?? 0);
-    const winRate = totalCombats > 0 ? Math.round(((stats?.wins ?? 0) / totalCombats) * 100) : 0;
-    const totalByRarity = stats?.byRarity
-        ? Object.values(stats.byRarity as Record<string, number>).reduce((a: number, b: number) => a + b, 0)
-        : 0;
+          {/* User info */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-0.5">
+              <span className="font-black text-xl md:text-2xl tracking-wide"
+                style={{ fontFamily: "'Rajdhani',sans-serif", color: "#e2e8f0" }}>
+                {user?.username ?? "—"}
+              </span>
+              <button onClick={() => setShowUsernameModal(true)}
+                className="text-[9px] font-mono px-2 py-0.5 rounded-md transition-all hover:brightness-125 active:scale-95"
+                style={{ background: "rgba(167,139,250,0.1)", color: "#a78bfa", border: "1px solid rgba(167,139,250,0.2)" }}>
+                rename
+              </button>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-mono" style={{ color: "rgba(255,255,255,0.4)" }}>
+                Lv. {trainer?.level ?? 1}
+              </span>
+              <span className="text-xs font-mono px-2 py-0.5 rounded-full font-bold"
+                style={{
+                  background: `${pvpRank.color}15`,
+                  color: pvpRank.color,
+                  border: `1px solid ${pvpRank.color}35`,
+                }}>
+                {pvpRank.name}
+              </span>
+              <span className="text-xs font-mono" style={{ color: "#a78bfa" }}>
+                ⚡ {totalPower.toLocaleString()} PWR
+              </span>
+            </div>
+          </div>
 
-    return (
-        <Layout >
-            {/* Banner */}
-            <div
-                className="flex-shrink-0 px-6 py-4 border-b border-border relative overflow-hidden"
-                style={{ background: "linear-gradient(135deg, #0d1525, #111d35)" }}
-            >
-                <div
-                    className="absolute inset-0"
-                    style={{
-                        background:
-                            "radial-gradient(ellipse 60% 100% at 90% 50%, rgba(123,47,255,0.15) 0%, transparent 60%)",
-                    }}
-                />
-                <div className="relative flex items-center gap-5">
-                    <div
-                        className="w-14 h-14 rounded-full flex items-center justify-center text-3xl flex-shrink-0"
-                        style={{
-                            background: "linear-gradient(135deg,#7b2fff,#4cc9f0)",
-                            boxShadow: "0 0 20px rgba(76,201,240,0.3)",
-                        }}
-                    >
-                        {AVATAR_EMOJI[trainer?.avatar] ?? "🧙"}
+          {/* Diamonds */}
+          <div className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl"
+            style={{ background: "rgba(167,139,250,0.08)", border: "1px solid rgba(167,139,250,0.2)" }}>
+            <span style={{ fontSize: 14 }}>💎</span>
+            <span className="font-mono font-bold text-sm tabular-nums" style={{ color: "#c4b5fd" }}>
+              {diamonds}
+            </span>
+          </div>
+        </div>
+
+        {/* XP bar */}
+        <div className="relative mt-3">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[9px] font-mono" style={{ color: "rgba(255,255,255,0.3)" }}>
+              XP {trainer?.xp ?? 0} / {xpForLevel(trainer?.level ?? 1)}
+            </span>
+            <span className="text-[9px] font-mono" style={{ color: "rgba(255,255,255,0.3)" }}>{xpPct}%</span>
+          </div>
+          <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+            <div className="h-full rounded-full transition-all duration-700"
+              style={{
+                width: `${xpPct}%`,
+                background: "linear-gradient(90deg,#7b2fff,#4cc9f0)",
+                boxShadow: "0 0 8px rgba(76,201,240,0.4)",
+              }} />
+          </div>
+        </div>
+      </div>
+
+      {/* ── Body ── */}
+      <div className="flex-1 flex flex-col md:flex-row gap-0 md:gap-4 p-3 md:p-5 overflow-hidden min-h-0">
+
+        {/* Col 1 — Emblems */}
+        <div className="w-full md:w-48 flex-shrink-0 rounded-2xl p-4 flex flex-col mb-3 md:mb-0 overflow-hidden"
+          style={{ background: "#0a1020", border: "1px solid rgba(255,255,255,0.06)" }}>
+          <p className="font-black tracking-widest uppercase text-xs mb-3 flex-shrink-0"
+            style={{ fontFamily: "'Rajdhani',sans-serif", color: "rgba(255,255,255,0.5)" }}>
+            Emblems
+          </p>
+          <div className="flex flex-col gap-1.5 flex-1 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
+            {EMBLEMS.map((emblem, i) => {
+              const earned = trainer?.medals?.includes(i);
+              return (
+                <div key={i} className="flex items-center gap-2 rounded-xl px-2.5 py-2 transition-all"
+                  style={{
+                    background: earned ? "rgba(255,214,10,0.05)" : "rgba(255,255,255,0.02)",
+                    border: `1px solid ${earned ? "rgba(255,214,10,0.2)" : "rgba(255,255,255,0.05)"}`,
+                    opacity: earned ? 1 : 0.45,
+                  }}>
+                  <span className={`text-lg flex-shrink-0 ${earned ? "" : "grayscale"}`}>{emblem.icon}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold truncate"
+                      style={{ color: earned ? "#ffd60a" : "rgba(255,255,255,0.5)" }}>
+                      {emblem.sanctum}
+                    </p>
+                    <p className="text-[9px] font-mono" style={{ color: "rgba(255,255,255,0.25)" }}>
+                      {earned ? "✓ Earned" : `Lv. ${emblem.level}`}
+                    </p>
+                  </div>
+                  {earned && <div className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                    style={{ background: "#ffd60a", boxShadow: "0 0 6px #ffd60a" }} />}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Col 2 — Stats */}
+        <div className="flex-1 flex flex-col gap-3 overflow-hidden min-w-0">
+
+          {/* Combat stats */}
+          <div className="rounded-2xl p-4 flex-shrink-0"
+            style={{ background: "#0a1020", border: "1px solid rgba(255,255,255,0.06)" }}>
+            <p className="font-black tracking-widest uppercase text-xs mb-3"
+              style={{ fontFamily: "'Rajdhani',sans-serif", color: "rgba(255,255,255,0.5)" }}>
+              Combat
+            </p>
+            <div className="grid grid-cols-2 gap-x-6">
+              <div>
+                <StatRow label="NPC Wins"   value={stats?.wins ?? 0}   color="#06d6a0" />
+                <StatRow label="NPC Losses" value={stats?.losses ?? 0} color="#f87171" />
+                <StatRow label="Win Rate"   value={`${winRate}%`}      color="#4cc9f0" />
+              </div>
+              <div>
+                <StatRow label="PvP Wins"   value={0}                      color="#06d6a0" />
+                <StatRow label="PvP Losses" value={0}                      color="#f87171" />
+                <StatRow label="Team Power" value={avgPower.toLocaleString()} color="#fbbf24" />
+              </div>
+            </div>
+            <div className="mt-3 h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.05)" }}>
+              <div className="h-full rounded-full transition-all duration-700"
+                style={{
+                  width: `${winRate}%`,
+                  background: "linear-gradient(90deg,#06d6a0,#4cc9f0)",
+                  boxShadow: "0 0 8px rgba(6,214,160,0.35)",
+                }} />
+            </div>
+          </div>
+
+          {/* Collection */}
+          <div className="rounded-2xl p-4 flex-1 overflow-hidden flex flex-col"
+            style={{ background: "#0a1020", border: "1px solid rgba(255,255,255,0.06)" }}>
+            <p className="font-black tracking-widest uppercase text-xs mb-3 flex-shrink-0"
+              style={{ fontFamily: "'Rajdhani',sans-serif", color: "rgba(255,255,255,0.5)" }}>
+              Collection — {stats?.totalMyths ?? 0} Myths
+            </p>
+            <div className="flex flex-col gap-2 flex-1 justify-center">
+              {["COMMON","RARE","ELITE","LEGENDARY","MYTHIC"].map((r) => {
+                const count = stats?.byRarity?.[r] ?? 0;
+                const pct = totalByRarity > 0 ? Math.max(3, Math.round((count / totalByRarity) * 100)) : 3;
+                const color = RARITY_COLORS[r] ?? "#4cc9f0";
+                return (
+                  <div key={r} className="flex items-center gap-2">
+                    <span className="text-[9px] font-mono w-16 text-right flex-shrink-0" style={{ color }}>{r}</span>
+                    <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.05)" }}>
+                      <div className="h-full rounded-full transition-all duration-700"
+                        style={{ width: `${pct}%`, background: color, boxShadow: `0 0 6px ${color}60` }} />
                     </div>
-                    <div className="flex-1 min-w-0">
-                        <div className="font-display font-bold text-2xl">{user?.username}</div>
-                        <div className="flex items-center gap-3 mt-1">
-                            <span className="text-muted text-sm">Nivel {trainer?.level ?? 1}</span>
-                            <span
-                                className="text-xs px-2 py-0.5 rounded-full border font-display font-semibold"
-                                style={{
-                                    borderColor: `${RANK_COLORS[rankIdx]}44`,
-                                    color: RANK_COLORS[rankIdx],
-                                    background: `${RANK_COLORS[rankIdx]}15`,
-                                }}
-                            >
-                                {RANK_LABELS[rankIdx]}
+                    <span className="text-[9px] font-bold w-5 flex-shrink-0" style={{ color }}>{count}</span>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-3 pt-3 flex-shrink-0" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+              <StatRow label="Total XP earned" value={(stats?.totalXp ?? 0).toLocaleString()} color="#4cc9f0" />
+            </div>
+          </div>
+        </div>
+
+        {/* Col 3 — Team */}
+        <div className="w-full md:w-56 flex-shrink-0 rounded-2xl p-4 flex flex-col mt-3 md:mt-0 overflow-hidden"
+          style={{ background: "#0a1020", border: "1px solid rgba(255,255,255,0.06)" }}>
+          <p className="font-black tracking-widest uppercase text-xs mb-3 flex-shrink-0"
+            style={{ fontFamily: "'Rajdhani',sans-serif", color: "rgba(255,255,255,0.5)" }}>
+            Team
+          </p>
+          {party.length === 0 ? (
+            <div className="flex-1 flex items-center justify-center">
+              <p className="text-xs font-mono text-center" style={{ color: "rgba(255,255,255,0.25)" }}>
+                No Myths in team
+              </p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2 flex-1 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
+              {party.map((p: any) => {
+                const power = calcPower(p);
+                const rarityColor = RARITY_COLORS[p.rarity] ?? "#64748b";
+                return (
+                  <div key={p.id} className="rounded-xl p-2.5"
+                    style={{ background: "rgba(255,255,255,0.03)", border: `1px solid rgba(255,255,255,0.06)` }}>
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <div className="text-2xl flex-shrink-0">
+                        {typeof p.art?.front === "string" && p.art.front.startsWith("http")
+                          ? <img src={p.art.front} className="w-8 h-8 object-contain" alt="" />
+                          : p.art?.front ?? "❓"}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold truncate" style={{ color: "#e2e8f0" }}>
+                          {p.name ?? p.speciesId}
+                        </p>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[9px] font-mono" style={{ color: "rgba(255,255,255,0.35)" }}>Lv. {p.level}</span>
+                          <span className="text-[8px] font-mono px-1 py-0 rounded" style={{ color: rarityColor, background: `${rarityColor}15` }}>
+                            {p.rarity?.slice(0,3)}
+                          </span>
+                          {(p.affinities ?? []).map((aff: string) => (
+                            <span key={aff} className="text-[8px] font-mono px-1 rounded"
+                              style={{ color: AFFINITY_COLORS[aff] ?? "#4cc9f0", background: `${AFFINITY_COLORS[aff] ?? "#4cc9f0"}15` }}>
+                              {aff.slice(0,2)}
                             </span>
+                          ))}
                         </div>
-                        <div className="mt-2 max-w-xs">
-                            <div className="bg-white/5 rounded-full h-1.5 overflow-hidden mb-0.5">
-                                <div
-                                    className="h-full rounded-full"
-                                    style={{ width: `${xpPct}%`, background: "linear-gradient(90deg,#4cc9f0,#7b2fff)" }}
-                                />
-                            </div>
-                            <div className="text-xs text-muted">
-                                {trainer?.xp ?? 0} / {xpForLevel(trainer?.level ?? 1)} XP
-                            </div>
-                        </div>
+                      </div>
+                      <span className="text-[9px] font-mono font-bold flex-shrink-0" style={{ color: "#fbbf24" }}>
+                        {power}⚡
+                      </span>
                     </div>
-                    <div className="flex gap-6 text-center flex-shrink-0">
-                        <div>
-                            <div className="font-display font-bold text-xl text-yellow">{trainer?.coins ?? 0}</div>
-                            <div className="text-xs text-muted">Monedas</div>
+                    <div className="grid grid-cols-4 gap-x-1 gap-y-0.5">
+                      {[
+                        ["HP",  p.maxHp,    "#4cc9f0"],
+                        ["ATK", p.attack,   "#f87171"],
+                        ["DEF", p.defense,  "#06d6a0"],
+                        ["SPD", p.speed,    "#ffd60a"],
+                      ].map(([label, val, color]) => (
+                        <div key={label as string} className="text-center">
+                          <p className="text-[7px] font-mono" style={{ color: "rgba(255,255,255,0.25)" }}>{label}</p>
+                          <p className="text-[9px] font-bold" style={{ color: color as string }}>{val}</p>
                         </div>
-                        <div>
-                            <div className="font-display font-bold text-xl" style={{ color: "#a78bfa" }}>
-                                {trainer?.prestige ?? 0}
-                            </div>
-                            <div className="text-xs text-muted">Prestigio</div>
-                        </div>
-                        <div>
-                            <div className="font-display font-bold text-xl text-blue">
-                                {trainer?.medals?.length ?? 0}/8
-                            </div>
-                            <div className="text-xs text-muted">Emblemas</div>
-                        </div>
-                        <div>
-                            <div className="font-display font-bold text-xl text-green">{party.length}</div>
-                            <div className="text-xs text-muted">Myths</div>
-                        </div>
+                      ))}
                     </div>
-                </div>
+                  </div>
+                );
+              })}
             </div>
-
-            {/* Cuerpo — 3 columnas */}
-            <div className="flex-1 flex gap-4 p-6 overflow-hidden">
-                {/* Columna 1 — Emblemas */}
-                <div className="w-52 flex-shrink-0 bg-card border border-border rounded-2xl p-5 flex flex-col overflow-hidden">
-                    <div className="font-display font-bold text-sm tracking-widest uppercase mb-4 flex-shrink-0 text-white">
-                        🏅 Emblemas
-                    </div>
-                    <div className="flex flex-col gap-2 flex-1 overflow-y-auto">
-                        {EMBLEM_INFO.map((emblem, i) => {
-                            const earned = trainer?.medals?.includes(i);
-                            return (
-                                <div
-                                    key={i}
-                                    className={`flex items-center gap-2.5 rounded-xl px-3 py-2 border transition-all ${
-                                        earned ? "border-yellow/30 bg-yellow/5" : "border-border/30 opacity-40"
-                                    }`}
-                                >
-                                    <span className={`text-xl flex-shrink-0 ${earned ? "" : "grayscale"}`}>
-                                        {emblem.icon}
-                                    </span>
-                                    <div className="flex-1 min-w-0">
-                                        <div
-                                            className="font-display font-bold text-xs truncate"
-                                            style={{ color: earned ? "#ffd60a" : "#F7FFFB" }}
-                                        >
-                                            {emblem.sanctum}
-                                        </div>
-                                        <div className="text-muted text-xs truncate">
-                                            {earned ? "✓ Conseguido" : `Nv. ${emblem.level}`}
-                                        </div>
-                                    </div>
-                                    {earned && (
-                                        <div
-                                            className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                                            style={{ background: "#ffd60a", boxShadow: "0 0 6px #ffd60a" }}
-                                        />
-                                    )}
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-
-                {/* Columna 2 — Estadísticas */}
-                <div className="flex-1 flex flex-col gap-4 overflow-hidden">
-                    {/* Combate */}
-                    <div className="bg-card border border-border rounded-2xl p-5 flex-shrink-0">
-                        <div className="font-display font-bold text-sm tracking-widest uppercase mb-3 text-white">
-                            ⚔️ Combate
-                        </div>
-                        <div className="grid grid-cols-2 gap-x-6">
-                            <div>
-                                <StatRow label="Victorias NPC" value={stats?.wins ?? 0} color="#06d6a0" />
-                                <StatRow label="Derrotas NPC" value={stats?.losses ?? 0} color="#e63946" />
-                                <StatRow label="Tasa de victoria" value={`${winRate}%`} color="#4cc9f0" />
-                            </div>
-                            <div>
-                                <StatRow label="Victorias PvP" value={0} color="#06d6a0" />
-                                <StatRow label="Derrotas PvP" value={0} color="#e63946" />
-                                <StatRow label="Myths capturados" value={stats?.captures ?? 0} color="#ffd60a" />
-                            </div>
-                        </div>
-                        {/* Barra win rate */}
-                        <div className="mt-3 h-1.5 bg-white/5 rounded-full overflow-hidden">
-                            <div
-                                className="h-full rounded-full transition-all duration-700"
-                                style={{
-                                    width: `${winRate}%`,
-                                    background: "linear-gradient(90deg, #06d6a0, #4cc9f0)",
-                                    boxShadow: "0 0 8px rgba(6,214,160,0.4)",
-                                }}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Colección */}
-                    <div className="bg-card border border-border rounded-2xl p-5 flex-1 overflow-hidden flex flex-col">
-                        <div className="font-display font-bold text-sm tracking-widest uppercase mb-4 text-white flex-shrink-0">
-                            📖 Colección — {stats?.totalMyths ?? 0} Myths
-                        </div>
-                        <div className="flex flex-col gap-3 flex-1 justify-center">
-                            {["COMMON", "RARE", "ELITE", "LEGENDARY", "MYTHIC"].map((r) => (
-                                <RarityBar key={r} rarity={r} count={stats?.byRarity?.[r] ?? 0} total={totalByRarity} />
-                            ))}
-                        </div>
-                        <div className="mt-4 flex gap-4 pt-3 border-t border-border/30 flex-shrink-0">
-                            <StatRow label="XP total ganada" value={stats?.totalXp ?? 0} color="#4cc9f0" />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Columna 3 — Equipo */}
-                <div className="w-64 flex-shrink-0 bg-card border border-border rounded-2xl p-5 flex flex-col overflow-hidden">
-                    <div className="font-display font-bold text-sm tracking-widest uppercase mb-4 flex-shrink-0 text-white">
-                        🐾 Equipo
-                    </div>
-                    {party.length === 0 ? (
-                        <div className="flex-1 flex items-center justify-center text-muted text-sm text-center font-display tracking-widest">
-                            Sin Myths en el equipo
-                        </div>
-                    ) : (
-                        <div className="flex flex-col gap-3 flex-1 overflow-y-auto">
-                            {party.map((p: any) => (
-                                <div key={p.id} className="bg-bg3 rounded-xl p-3 border border-border/40">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <div className="text-3xl flex-shrink-0">{p.art?.front ?? "❓"}</div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="font-display font-bold text-sm truncate">
-                                                {p.name ?? p.speciesId}
-                                            </div>
-                                            <div className="flex items-center gap-1.5">
-                                                <span className="text-muted text-xs">Nv. {p.level}</span>
-                                                {(p.affinities ?? []).map((aff: string) => (
-                                                    <span
-                                                        key={aff}
-                                                        className="text-xs px-1.5 py-0 rounded font-display font-semibold"
-                                                        style={{
-                                                            color: AFFINITY_COLORS[aff] ?? "#4cc9f0",
-                                                            background: `${AFFINITY_COLORS[aff] ?? "#4cc9f0"}20`,
-                                                        }}
-                                                    >
-                                                        {aff.slice(0, 2)}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-xs text-muted">
-                                        <span>
-                                            HP{" "}
-                                            <span className="text-blue font-bold">
-                                                {p.hp}/{p.maxHp}
-                                            </span>
-                                        </span>
-                                        <span>
-                                            ATQ <span className="text-red font-bold">{p.attack}</span>
-                                        </span>
-                                        <span>
-                                            DEF <span className="text-green font-bold">{p.defense}</span>
-                                        </span>
-                                        <span>
-                                            VEL <span className="text-yellow font-bold">{p.speed}</span>
-                                        </span>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            </div>
-        </Layout>
-    );
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }

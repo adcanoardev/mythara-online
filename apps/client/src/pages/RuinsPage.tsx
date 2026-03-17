@@ -4,277 +4,383 @@ import { useTrainer } from "../context/TrainerContext";
 
 // ─── Zone config ──────────────────────────────────────────────────────────────
 interface Zone {
-    id: string;
-    icon: string;
-    name: string;
-    subtitle: string;
-    description: string;
-    status: "active" | "locked";
-    accent: string;
-    accentDim: string;
-    route?: string;
+  id: string;
+  name: string;
+  subtitle: string;
+  description: string;
+  tag: string;
+  status: "active" | "locked";
+  accent: string;
+  accentRgb: string;
+  route?: string;
 }
 
 const ZONES: Zone[] = [
-    {
-        id: "sanctuaries",
-        icon: "🏛️",
-        name: "Sanctuaries",
-        subtitle: "8 elemental challenges",
-        description: "Three 1v1 rounds per run. Bring 5 Myths, max 2 swaps. No healing between rounds.",
-        status: "active",
-        accent: "#a78bfa",
-        accentDim: "rgba(167,139,250,0.15)",
-        route: "/sanctuaries",
-    },
-    {
-        id: "death-tower",
-        icon: "💀",
-        name: "Death Tower",
-        subtitle: "Survival gauntlet",
-        description: "Climb an endless tower of increasingly brutal encounters. How far can you go?",
-        status: "locked",
-        accent: "#f87171",
-        accentDim: "rgba(248,113,113,0.1)",
-    },
-    {
-        id: "clan-boss",
-        icon: "👹",
-        name: "Clan Boss",
-        subtitle: "Weekly co-op raid",
-        description: "A colossal Myth awakens once a week. Team up with other Binders to bring it down.",
-        status: "locked",
-        accent: "#fb923c",
-        accentDim: "rgba(251,146,60,0.1)",
-    },
+  {
+    id: "sanctuaries",
+    name: "Sanctuaries",
+    subtitle: "8 Elemental Challenges",
+    description:
+      "Three 1v1 rounds per run. Bring 5 Myths, max 2 swaps. No healing between rounds.",
+    tag: "PvE · Solo",
+    status: "active",
+    accent: "#a78bfa",
+    accentRgb: "167,139,250",
+    route: "/sanctuaries",
+  },
+  {
+    id: "death-tower",
+    name: "Death Tower",
+    subtitle: "Survival Gauntlet",
+    description:
+      "Climb an endless tower of increasingly brutal encounters. How far can you go?",
+    tag: "PvE · Endless",
+    status: "locked",
+    accent: "#f87171",
+    accentRgb: "248,113,113",
+  },
+  {
+    id: "clan-boss",
+    name: "Clan Boss",
+    subtitle: "Weekly Co-op Raid",
+    description:
+      "A colossal Myth awakens once a week. Team up with other Binders to bring it down.",
+    tag: "Co-op · Weekly",
+    status: "locked",
+    accent: "#fb923c",
+    accentRgb: "251,146,60",
+  },
 ];
+
+// ─── SVG art per zone ─────────────────────────────────────────────────────────
+function SanctuariesArt() {
+  return (
+    <svg viewBox="0 0 220 140" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+      {/* Sky glow */}
+      <radialGradient id="sg1" cx="50%" cy="30%" r="60%">
+        <stop offset="0%" stopColor="#a78bfa" stopOpacity="0.35" />
+        <stop offset="100%" stopColor="#070b14" stopOpacity="0" />
+      </radialGradient>
+      <rect width="220" height="140" fill="url(#sg1)" />
+      {/* Pillars */}
+      {[30, 60, 90, 130, 160, 190].map((x, i) => (
+        <rect key={i} x={x - 4} y={i % 2 === 0 ? 20 : 35} width={8} height={i % 2 === 0 ? 100 : 85}
+          fill={`rgba(167,139,250,${i % 2 === 0 ? 0.18 : 0.1})`} rx="2" />
+      ))}
+      {/* Arch top */}
+      <path d="M40 45 Q110 10 180 45" stroke="rgba(167,139,250,0.3)" strokeWidth="1.5" fill="none" />
+      {/* Ground line */}
+      <line x1="0" y1="120" x2="220" y2="120" stroke="rgba(167,139,250,0.15)" strokeWidth="1" />
+      {/* Ground glow */}
+      <ellipse cx="110" cy="121" rx="90" ry="8" fill="rgba(167,139,250,0.07)" />
+      {/* Magic circle */}
+      <circle cx="110" cy="95" r="22" stroke="rgba(167,139,250,0.25)" strokeWidth="1" fill="none" strokeDasharray="4 3" />
+      <circle cx="110" cy="95" r="14" stroke="rgba(167,139,250,0.15)" strokeWidth="0.8" fill="none" />
+      {/* Center gem */}
+      <polygon points="110,82 118,95 110,108 102,95" fill="rgba(167,139,250,0.2)" stroke="rgba(167,139,250,0.5)" strokeWidth="0.8" />
+      {/* Stars */}
+      {[[20,15],[200,25],[50,60],[185,70],[15,90]].map(([sx,sy],i) => (
+        <circle key={i} cx={sx} cy={sy} r="1" fill="rgba(255,255,255,0.5)" />
+      ))}
+    </svg>
+  );
+}
+
+function DeathTowerArt() {
+  return (
+    <svg viewBox="0 0 220 140" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+      <radialGradient id="dt1" cx="50%" cy="50%" r="55%">
+        <stop offset="0%" stopColor="#f87171" stopOpacity="0.2" />
+        <stop offset="100%" stopColor="#070b14" stopOpacity="0" />
+      </radialGradient>
+      <rect width="220" height="140" fill="url(#dt1)" />
+      {/* Tower silhouette */}
+      <rect x="88" y="10" width="44" height="110" fill="rgba(30,10,10,0.8)" rx="2" />
+      <rect x="80" y="20" width="60" height="8" fill="rgba(248,113,113,0.12)" rx="1" />
+      {/* Window slits */}
+      {[30,50,70,90].map((y, i) => (
+        <rect key={i} x="106" y={y} width="8" height="12" fill="rgba(248,113,113,0.3)" rx="1" />
+      ))}
+      {/* Top flame glow */}
+      <radialGradient id="dt2" cx="50%" cy="0%" r="50%">
+        <stop offset="0%" stopColor="#f87171" stopOpacity="0.6" />
+        <stop offset="100%" stopColor="#f87171" stopOpacity="0" />
+      </radialGradient>
+      <ellipse cx="110" cy="10" rx="25" ry="18" fill="url(#dt2)" />
+      {/* Cracks on ground */}
+      <path d="M90 130 L70 140" stroke="rgba(248,113,113,0.2)" strokeWidth="1" />
+      <path d="M130 128 L155 140" stroke="rgba(248,113,113,0.15)" strokeWidth="1" />
+      {/* Skulls hinted */}
+      {[[40,115],[175,112]].map(([sx,sy],i) => (
+        <circle key={i} cx={sx} cy={sy} r="5" fill="rgba(248,113,113,0.08)" stroke="rgba(248,113,113,0.2)" strokeWidth="0.8" />
+      ))}
+      {/* Floor */}
+      <line x1="0" y1="125" x2="220" y2="125" stroke="rgba(248,113,113,0.12)" strokeWidth="1" />
+    </svg>
+  );
+}
+
+function ClanBossArt() {
+  return (
+    <svg viewBox="0 0 220 140" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+      <radialGradient id="cb1" cx="50%" cy="60%" r="65%">
+        <stop offset="0%" stopColor="#fb923c" stopOpacity="0.25" />
+        <stop offset="100%" stopColor="#070b14" stopOpacity="0" />
+      </radialGradient>
+      <rect width="220" height="140" fill="url(#cb1)" />
+      {/* Boss silhouette — massive horned creature */}
+      <ellipse cx="110" cy="85" rx="45" ry="50" fill="rgba(20,10,5,0.85)" />
+      {/* Horns */}
+      <path d="M78 55 Q55 20 65 10" stroke="rgba(251,146,60,0.4)" strokeWidth="3" fill="none" strokeLinecap="round" />
+      <path d="M142 55 Q165 20 155 10" stroke="rgba(251,146,60,0.4)" strokeWidth="3" fill="none" strokeLinecap="round" />
+      {/* Eyes */}
+      <ellipse cx="97" cy="72" rx="6" ry="4" fill="rgba(251,146,60,0.7)" />
+      <ellipse cx="123" cy="72" rx="6" ry="4" fill="rgba(251,146,60,0.7)" />
+      <ellipse cx="97" cy="72" rx="3" ry="2" fill="rgba(251,146,60,1)" />
+      <ellipse cx="123" cy="72" rx="3" ry="2" fill="rgba(251,146,60,1)" />
+      {/* Aura rings */}
+      <circle cx="110" cy="85" r="55" stroke="rgba(251,146,60,0.08)" strokeWidth="2" fill="none" />
+      <circle cx="110" cy="85" r="65" stroke="rgba(251,146,60,0.05)" strokeWidth="1.5" fill="none" />
+      {/* Ground shadow */}
+      <ellipse cx="110" cy="130" rx="50" ry="8" fill="rgba(0,0,0,0.5)" />
+      {/* Runes around */}
+      {[0,60,120,180,240,300].map((deg, i) => {
+        const rad = (deg * Math.PI) / 180;
+        const rx2 = 80 * Math.cos(rad) + 110;
+        const ry2 = 40 * Math.sin(rad) + 85;
+        return <circle key={i} cx={rx2} cy={ry2} r="2" fill="rgba(251,146,60,0.3)" />;
+      })}
+    </svg>
+  );
+}
+
+const ZONE_ART: Record<string, () => JSX.Element> = {
+  sanctuaries: SanctuariesArt,
+  "death-tower": DeathTowerArt,
+  "clan-boss": ClanBossArt,
+};
 
 // ─── RuinsPage ────────────────────────────────────────────────────────────────
 export default function RuinsPage() {
-    const navigate = useNavigate();
-    const { tokens } = useTrainer();
-    const tok = tokens as any;
-    const pveCount = tok?.npcTokens ?? 0;
-    const pveMax   = tok?.npcMax    ?? 10;
+  const navigate = useNavigate();
+  const { tokens } = useTrainer();
+  const tok = tokens as any;
+  const pveCount = tok?.npcTokens ?? 0;
+  const pveMax = tok?.npcMax ?? 10;
 
-    return (
-        <div
-            className="fixed inset-0 flex flex-col"
-            style={{ background: "#070b14", fontFamily: "'Exo 2', sans-serif" }}
+  return (
+    <div
+      className="fixed inset-0 flex flex-col"
+      style={{ background: "#070b14", fontFamily: "'Exo 2', sans-serif" }}
+    >
+      {/* ── Ambient background ── */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {/* Deep purple glow top-left */}
+        <div className="absolute" style={{
+          width: "60%", height: "55%", top: "-10%", left: "-15%",
+          background: "radial-gradient(ellipse, rgba(88,28,135,0.12) 0%, transparent 70%)",
+        }} />
+        {/* Red glow bottom-right */}
+        <div className="absolute" style={{
+          width: "50%", height: "45%", bottom: "-5%", right: "-10%",
+          background: "radial-gradient(ellipse, rgba(127,29,29,0.1) 0%, transparent 70%)",
+        }} />
+        {/* Scan lines texture */}
+        <div className="absolute inset-0" style={{
+          backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,255,255,0.008) 3px, rgba(255,255,255,0.008) 4px)",
+        }} />
+        {/* Floating rune particles */}
+        {[...Array(8)].map((_, i) => (
+          <div key={i} className="absolute rounded-full" style={{
+            width: i % 3 === 0 ? 3 : 2,
+            height: i % 3 === 0 ? 3 : 2,
+            background: i % 2 === 0 ? "#a78bfa" : "#f87171",
+            boxShadow: `0 0 8px ${i % 2 === 0 ? "#a78bfa" : "#f87171"}`,
+            left: `${10 + i * 11}%`,
+            top: `${15 + (i % 4) * 18}%`,
+            animation: `nurseryXP ${2.8 + i * 0.35}s ease-in-out infinite ${i * 0.5}s`,
+            opacity: 0.5,
+          }} />
+        ))}
+      </div>
+
+      {/* ── Top bar ── */}
+      <div
+        className="relative flex-shrink-0 flex items-center justify-between px-4 md:px-6"
+        style={{
+          height: 48,
+          background: "rgba(4,8,15,0.95)",
+          borderBottom: "1px solid rgba(255,255,255,0.06)",
+          zIndex: 10,
+        }}
+      >
+        <button
+          onClick={() => navigate("/")}
+          className="flex items-center gap-2 transition-opacity hover:opacity-70 active:scale-95"
+          style={{ color: "rgba(255,255,255,0.45)", fontSize: 11, fontFamily: "monospace" }}
         >
-            {/* ── Top bar ── */}
+          <span style={{ fontSize: 9 }}>◀</span>
+          <span className="tracking-widest uppercase">City</span>
+        </button>
+
+        <div className="flex flex-col items-center">
+          <span className="tracking-[0.22em] uppercase font-black"
+            style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: 15, color: "#e2e8f0" }}>
+            The Ruins
+          </span>
+          <span className="tracking-widest uppercase"
+            style={{ fontSize: 8, color: "rgba(255,255,255,0.22)", fontFamily: "monospace" }}>
+            PvE · Exploration
+          </span>
+        </div>
+
+        {/* Energy counter */}
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg"
+          style={{ background: "rgba(14,165,233,0.08)", border: "1px solid rgba(14,165,233,0.2)" }}>
+          <span style={{ fontSize: 13 }}>⚡</span>
+          <span className="font-mono font-bold tabular-nums"
+            style={{ fontSize: 11, color: "#7dd3fc" }}>
+            {pveCount}<span style={{ opacity: 0.35 }}>/{pveMax}</span>
+          </span>
+        </div>
+      </div>
+
+      {/* ── Zone cards ── */}
+      <div className="relative flex-1 flex flex-col md:flex-row items-stretch gap-0 overflow-hidden">
+        {ZONES.map((zone, idx) => {
+          const Art = ZONE_ART[zone.id];
+          const isLocked = zone.status === "locked";
+          const noTokens = !isLocked && pveCount <= 0;
+          const disabled = isLocked || noTokens;
+
+          return (
             <div
-                className="flex-shrink-0 flex items-center justify-between px-4 md:px-6"
-                style={{
-                    height: 48,
-                    background: "rgba(4,8,15,0.97)",
-                    borderBottom: "1px solid rgba(255,255,255,0.06)",
-                }}
+              key={zone.id}
+              onClick={() => !disabled && zone.route && navigate(zone.route)}
+              className="relative flex-1 flex flex-col overflow-hidden transition-all duration-300 group"
+              style={{
+                cursor: disabled ? "default" : "pointer",
+                borderRight: idx < ZONES.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none",
+                borderBottom: "1px solid rgba(255,255,255,0.04)",
+                filter: isLocked ? "grayscale(0.5)" : "none",
+                opacity: isLocked ? 0.65 : 1,
+                minHeight: 0,
+              }}
             >
-                {/* Back */}
-                <button
-                    onClick={() => navigate("/")}
-                    className="flex items-center gap-2 transition-opacity hover:opacity-70 active:scale-95"
-                    style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, fontFamily: "monospace" }}
-                >
-                    <span style={{ fontSize: 10 }}>◀</span>
-                    <span className="hidden sm:inline tracking-widest uppercase" style={{ fontSize: 10 }}>City</span>
-                </button>
-
-                {/* Title */}
-                <div className="flex flex-col items-center">
-                    <span
-                        className="tracking-[0.25em] uppercase font-black"
-                        style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: 15, color: "#e2e8f0", letterSpacing: "0.2em" }}
-                    >
-                        The Ruins
-                    </span>
-                    <span className="tracking-widest uppercase" style={{ fontSize: 8, color: "rgba(255,255,255,0.25)", fontFamily: "monospace" }}>
-                        PvE — Exploration
-                    </span>
-                </div>
-
-                {/* PvE token counter */}
-                <div
-                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg"
-                    style={{ background: "rgba(14,165,233,0.1)", border: "1px solid rgba(14,165,233,0.2)" }}
-                >
-                    <span className="font-mono font-bold tabular-nums" style={{ fontSize: 11, color: "#7dd3fc" }}>
-                        {pveCount}<span style={{ opacity: 0.4 }}>/{pveMax}</span>
-                    </span>
-                    <span style={{ fontSize: 12 }}>⚡</span>
-                </div>
-            </div>
-
-            {/* ── Background atmosphere ── */}
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                {/* Vignette */}
+              {/* Art background — fills top portion */}
+              <div className="absolute inset-0 overflow-hidden">
+                {/* Gradient overlay on art */}
                 <div className="absolute inset-0" style={{
-                    background: "radial-gradient(ellipse 80% 60% at 50% 40%, rgba(88,28,135,0.08) 0%, transparent 70%)",
+                  background: isLocked
+                    ? "rgba(7,11,20,0.6)"
+                    : `linear-gradient(180deg, rgba(7,11,20,0.2) 0%, rgba(7,11,20,0.75) 65%, rgba(7,11,20,0.97) 100%)`,
+                  zIndex: 1,
                 }} />
-                {/* Bottom fade */}
-                <div className="absolute bottom-0 left-0 right-0 h-40" style={{
-                    background: "linear-gradient(0deg, rgba(7,11,20,0.9) 0%, transparent 100%)",
-                }} />
-                {/* Floating rune particles */}
-                {[...Array(6)].map((_, i) => (
-                    <div
-                        key={i}
-                        className="absolute rounded-full"
-                        style={{
-                            width: 2, height: 2,
-                            background: "#a78bfa",
-                            boxShadow: "0 0 6px #a78bfa",
-                            left: `${15 + i * 14}%`,
-                            top: `${20 + (i % 3) * 20}%`,
-                            animation: `nurseryXP ${2.5 + i * 0.4}s ease-in-out infinite ${i * 0.6}s`,
-                            opacity: 0.6,
-                        }}
-                    />
-                ))}
-            </div>
+                {/* Accent glow on hover */}
+                {!isLocked && (
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{
+                    background: `radial-gradient(ellipse 80% 60% at 50% 30%, rgba(${zone.accentRgb},0.12) 0%, transparent 70%)`,
+                    zIndex: 2,
+                  }} />
+                )}
+                {/* SVG art */}
+                <div className="absolute inset-0 flex items-center justify-center" style={{ zIndex: 0 }}>
+                  <Art />
+                </div>
+              </div>
 
-            {/* ── Content ── */}
-            <div className="relative flex-1 flex flex-col items-center justify-center px-4 md:px-8 py-6 overflow-y-auto">
+              {/* Left accent bar */}
+              <div className="absolute top-0 left-0 bottom-0 w-0.5" style={{
+                background: isLocked
+                  ? "rgba(255,255,255,0.06)"
+                  : `linear-gradient(180deg, transparent 0%, ${zone.accent}80 40%, ${zone.accent}40 70%, transparent 100%)`,
+                zIndex: 3,
+              }} />
 
-                {/* Sub-header */}
-                <p
-                    className="text-center mb-8 md:mb-10 tracking-wide"
-                    style={{ color: "rgba(255,255,255,0.3)", fontSize: 12, fontFamily: "monospace" }}
-                >
-                    Choose your challenge
+              {/* Content — sits at bottom */}
+              <div className="relative flex flex-col justify-end h-full px-4 py-4 md:px-5 md:py-5" style={{ zIndex: 4 }}>
+                {/* Zone number */}
+                <div className="mb-auto pt-3">
+                  <span className="font-mono tracking-widest"
+                    style={{ fontSize: 10, color: isLocked ? "rgba(255,255,255,0.12)" : `rgba(${zone.accentRgb},0.5)` }}>
+                    {String(idx + 1).padStart(2, "0")}
+                  </span>
+                </div>
+
+                {/* Tag pill */}
+                <div className="mb-2">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-md font-mono tracking-widest"
+                    style={{
+                      fontSize: 9,
+                      background: isLocked ? "rgba(255,255,255,0.04)" : `rgba(${zone.accentRgb},0.12)`,
+                      border: `1px solid ${isLocked ? "rgba(255,255,255,0.08)" : `rgba(${zone.accentRgb},0.25)`}`,
+                      color: isLocked ? "rgba(255,255,255,0.2)" : zone.accent,
+                    }}>
+                    {isLocked ? "COMING SOON" : zone.tag}
+                  </span>
+                </div>
+
+                {/* Name */}
+                <h2 className="font-black tracking-wide leading-none mb-1"
+                  style={{
+                    fontFamily: "'Rajdhani', sans-serif",
+                    fontSize: "clamp(18px, 3vw, 26px)",
+                    color: isLocked ? "rgba(255,255,255,0.25)" : "#e2e8f0",
+                    textShadow: isLocked ? "none" : `0 0 30px rgba(${zone.accentRgb},0.4)`,
+                  }}>
+                  {zone.name}
+                </h2>
+
+                {/* Subtitle */}
+                <p className="font-mono mb-2"
+                  style={{
+                    fontSize: 10,
+                    color: isLocked ? "rgba(255,255,255,0.15)" : zone.accent,
+                    opacity: 0.9,
+                    letterSpacing: "0.08em",
+                  }}>
+                  {zone.subtitle}
                 </p>
 
-                {/* Zone cards */}
-                <div className="w-full max-w-lg flex flex-col gap-3 md:gap-4">
-                    {ZONES.map((zone) => (
-                        <ZoneCard key={zone.id} zone={zone} pveTokens={pveCount} onNavigate={navigate} />
-                    ))}
-                </div>
-            </div>
-        </div>
-    );
-}
+                {/* Description */}
+                <p className="leading-relaxed mb-3"
+                  style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", lineHeight: 1.55 }}>
+                  {zone.description}
+                </p>
 
-// ─── ZoneCard ─────────────────────────────────────────────────────────────────
-function ZoneCard({
-    zone,
-    pveTokens,
-    onNavigate,
-}: {
-    zone: Zone;
-    pveTokens: number;
-    onNavigate: (path: string) => void;
-}) {
-    const isLocked = zone.status === "locked";
-    const noTokens = !isLocked && pveTokens <= 0;
-    const disabled = isLocked || noTokens;
-
-    function handleClick() {
-        if (disabled) return;
-        if (zone.route) onNavigate(zone.route);
-    }
-
-    return (
-        <div
-            onClick={!disabled ? handleClick : undefined}
-            className="relative rounded-2xl overflow-hidden transition-all duration-200"
-            style={{
-                background: isLocked
-                    ? "rgba(255,255,255,0.02)"
-                    : zone.accentDim,
-                border: isLocked
-                    ? "1px solid rgba(255,255,255,0.06)"
-                    : `1px solid ${zone.accent}40`,
-                boxShadow: isLocked
-                    ? "none"
-                    : `0 0 24px ${zone.accent}12`,
-                cursor: disabled ? "default" : "pointer",
-                opacity: isLocked ? 0.55 : 1,
-            }}
-        >
-            {/* Hover shimmer — active only */}
-            {!isLocked && (
-                <div
-                    className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none"
-                    style={{ background: `linear-gradient(135deg, ${zone.accent}08 0%, transparent 60%)` }}
-                />
-            )}
-
-            <div className="relative flex items-center gap-4 px-4 md:px-5 py-4 md:py-5">
-                {/* Icon */}
-                <div
-                    className="flex-shrink-0 flex items-center justify-center rounded-2xl text-2xl md:text-3xl"
-                    style={{
-                        width: 52, height: 52,
-                        background: isLocked ? "rgba(255,255,255,0.04)" : `${zone.accent}18`,
-                        border: `1px solid ${isLocked ? "rgba(255,255,255,0.08)" : zone.accent + "35"}`,
-                        filter: isLocked ? "grayscale(0.6)" : "none",
-                    }}
-                >
-                    {isLocked ? "🔒" : zone.icon}
-                </div>
-
-                {/* Text */}
-                <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-0.5">
-                        <p
-                            className="font-black tracking-wide"
-                            style={{
-                                fontFamily: "'Rajdhani', sans-serif",
-                                fontSize: 16,
-                                color: isLocked ? "rgba(255,255,255,0.3)" : "#e2e8f0",
-                            }}
-                        >
-                            {zone.name}
-                        </p>
-                        {isLocked && (
-                            <span
-                                className="text-[9px] font-mono px-1.5 py-0.5 rounded-md tracking-widest"
-                                style={{ background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.25)", border: "1px solid rgba(255,255,255,0.08)" }}
-                            >
-                                COMING SOON
-                            </span>
-                        )}
-                        {noTokens && !isLocked && (
-                            <span
-                                className="text-[9px] font-mono px-1.5 py-0.5 rounded-md tracking-widest"
-                                style={{ background: "rgba(239,68,68,0.1)", color: "#f87171", border: "1px solid rgba(239,68,68,0.2)" }}
-                            >
-                                NO TOKENS
-                            </span>
-                        )}
-                    </div>
-                    <p
-                        className="text-[11px] font-mono mb-1.5"
-                        style={{ color: isLocked ? "rgba(255,255,255,0.18)" : zone.accent, opacity: isLocked ? 1 : 0.85 }}
-                    >
-                        {zone.subtitle}
-                    </p>
-                    <p
-                        className="text-[11px] leading-relaxed"
-                        style={{ color: "rgba(255,255,255,0.35)" }}
-                    >
-                        {zone.description}
-                    </p>
-                </div>
-
-                {/* Arrow — active only */}
-                {!isLocked && (
-                    <div
-                        className="flex-shrink-0 flex items-center justify-center rounded-full"
-                        style={{
-                            width: 28, height: 28,
-                            background: `${zone.accent}18`,
-                            border: `1px solid ${zone.accent}35`,
-                            color: zone.accent,
-                            fontSize: 11,
-                        }}
-                    >
-                        ▶
-                    </div>
+                {/* No tokens warning */}
+                {noTokens && !isLocked && (
+                  <div className="mb-2 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg w-fit"
+                    style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)" }}>
+                    <span style={{ fontSize: 10, color: "#f87171", fontFamily: "monospace" }}>⚡ NO ENERGY</span>
+                  </div>
                 )}
+
+                {/* Enter button — active only */}
+                {!isLocked && (
+                  <div
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl transition-all duration-200 w-fit"
+                    style={{
+                      background: noTokens ? "rgba(255,255,255,0.04)" : `rgba(${zone.accentRgb},0.12)`,
+                      border: `1px solid ${noTokens ? "rgba(255,255,255,0.08)" : `rgba(${zone.accentRgb},0.3)`}`,
+                    }}
+                  >
+                    <span className="font-black tracking-widest uppercase"
+                      style={{
+                        fontFamily: "'Rajdhani', sans-serif",
+                        fontSize: 11,
+                        color: noTokens ? "rgba(255,255,255,0.2)" : zone.accent,
+                      }}>
+                      Enter
+                    </span>
+                    <span style={{ fontSize: 9, color: noTokens ? "rgba(255,255,255,0.15)" : zone.accent }}>▶</span>
+                  </div>
+                )}
+              </div>
             </div>
-        </div>
-    );
+          );
+        })}
+      </div>
+    </div>
+  );
 }

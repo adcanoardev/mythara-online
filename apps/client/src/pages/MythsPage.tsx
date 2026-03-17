@@ -1,7 +1,7 @@
+import { useNavigate } from "react-router-dom";
 // apps/client/src/pages/MythsPage.tsx
 import { useState, useEffect, useMemo } from "react";
 import { api } from "../lib/api";
-import Layout from "../components/Layout";
 
 
 // ─── types ────────────────────────────────────────────────────────────────────
@@ -48,7 +48,7 @@ const RARITY_CONFIG: Record<
     }
 > = {
     COMMON: {
-        label: "Común",
+        label: "Common",
         border: "border-[#F7FFFB]",
         glow: "shadow-[0_0_12px_rgba(90,106,133,0.4)]",
         badge: "bg-[#1e2d45] text-[#8ca0b8]",
@@ -56,7 +56,7 @@ const RARITY_CONFIG: Record<
         glowRgb: "90,106,133",
     },
     RARE: {
-        label: "Raro",
+        label: "Rare",
         border: "border-[#4cc9f0]",
         glow: "shadow-[0_0_14px_rgba(76,201,240,0.4)]",
         badge: "bg-[#0a2233] text-[#4cc9f0]",
@@ -64,7 +64,7 @@ const RARITY_CONFIG: Record<
         glowRgb: "76,201,240",
     },
     ELITE: {
-        label: "Élite",
+        label: "Elite",
         border: "border-[#9b5de5]",
         glow: "shadow-[0_0_16px_rgba(155,93,229,0.45)]",
         badge: "bg-[#1a0b33] text-[#c77dff]",
@@ -72,7 +72,7 @@ const RARITY_CONFIG: Record<
         glowRgb: "155,93,229",
     },
     EPIC: {
-        label: "Épico",
+        label: "Epic",
         border: "border-[#f77f00]",
         glow: "shadow-[0_0_18px_rgba(247,127,0,0.5)]",
         badge: "bg-[#2a1500] text-[#f77f00]",
@@ -80,7 +80,7 @@ const RARITY_CONFIG: Record<
         glowRgb: "247,127,0",
     },
     LEGENDARY: {
-        label: "Legendario",
+        label: "Legendary",
         border: "border-[#ffd60a]",
         glow: "shadow-[0_0_20px_rgba(255,214,10,0.5)]",
         badge: "bg-[#2a1c00] text-[#ffd60a]",
@@ -88,7 +88,7 @@ const RARITY_CONFIG: Record<
         glowRgb: "255,214,10",
     },
     MYTHIC: {
-        label: "Mítico",
+        label: "Mythic",
         border: "border-[#ff006e]",
         glow: "shadow-[0_0_22px_rgba(255,0,110,0.55)]",
         badge: "bg-[#2a0015] text-[#ff006e]",
@@ -98,22 +98,22 @@ const RARITY_CONFIG: Record<
 };
 
 const AFFINITY_CONFIG: Record<Affinity, { label: string; color: string; bg: string; emoji: string }> = {
-    EMBER: { label: "Brasa", color: "text-[#ff6b35]", bg: "bg-[#ff6b35]/15", emoji: "🔥" },
-    TIDE: { label: "Marea", color: "text-[#4cc9f0]", bg: "bg-[#4cc9f0]/15", emoji: "🌊" },
-    GROVE: { label: "Bosque", color: "text-[#06d6a0]", bg: "bg-[#06d6a0]/15", emoji: "🌿" },
-    VOLT: { label: "Tormenta", color: "text-[#ffd60a]", bg: "bg-[#ffd60a]/15", emoji: "⚡" },
-    STONE: { label: "Piedra", color: "text-[#a8956a]", bg: "bg-[#a8956a]/15", emoji: "🪨" },
-    FROST: { label: "Escarcha", color: "text-[#90e0ef]", bg: "bg-[#90e0ef]/15", emoji: "❄️" },
-    VENOM: { label: "Veneno", color: "text-[#9b5de5]", bg: "bg-[#9b5de5]/15", emoji: "☠️" },
+    EMBER: { label: "Ember", color: "text-[#ff6b35]", bg: "bg-[#ff6b35]/15", emoji: "🔥" },
+    TIDE: { label: "Tide", color: "text-[#4cc9f0]", bg: "bg-[#4cc9f0]/15", emoji: "🌊" },
+    GROVE: { label: "Grove", color: "text-[#06d6a0]", bg: "bg-[#06d6a0]/15", emoji: "🌿" },
+    VOLT: { label: "Volt", color: "text-[#ffd60a]", bg: "bg-[#ffd60a]/15", emoji: "⚡" },
+    STONE: { label: "Stone", color: "text-[#a8956a]", bg: "bg-[#a8956a]/15", emoji: "🪨" },
+    FROST: { label: "Frost", color: "text-[#90e0ef]", bg: "bg-[#90e0ef]/15", emoji: "❄️" },
+    VENOM: { label: "Venom", color: "text-[#9b5de5]", bg: "bg-[#9b5de5]/15", emoji: "☠️" },
     ASTRAL: { label: "Astral", color: "text-[#c77dff]", bg: "bg-[#c77dff]/15", emoji: "✨" },
-    IRON: { label: "Hierro", color: "text-[#8d99ae]", bg: "bg-[#8d99ae]/15", emoji: "⚙️" },
-    SHADE: { label: "Sombra", color: "text-[#e63946]", bg: "bg-[#e63946]/15", emoji: "🌑" },
+    IRON: { label: "Iron", color: "text-[#8d99ae]", bg: "bg-[#8d99ae]/15", emoji: "⚙️" },
+    SHADE: { label: "Shade", color: "text-[#e63946]", bg: "bg-[#e63946]/15", emoji: "🌑" },
 };
 
 const MOVE_TYPE_LABEL: Record<string, string> = {
-    physical: "FÍS",
-    special: "ESP",
-    support: "APO",
+    physical: "PHY",
+    special: "SPC",
+    support: "SUP",
 };
 
 // ─── AffinityBadge ────────────────────────────────────────────────────────────
@@ -341,14 +341,14 @@ function MythModal({ myth, onClose }: { myth: Creature; onClose: () => void }) {
                         {myth.evolution && (
                             <div className="px-5 pb-5">
                                 <div className="rounded-xl bg-[#070b14] border border-[#1e2d45] px-4 py-3 text-sm flex items-center gap-2">
-                                    <span className="text-[#F7FFFB]">Evoluciona a</span>
+                                    <span className="text-[#F7FFFB]">Evolves to</span>
                                     <span className="text-white font-bold">#{myth.evolution.evolvesTo}</span>
                                     <span className="text-[#F7FFFB]">
                                         (
                                         {myth.evolution.method === "LEVEL"
-                                            ? `nivel ${myth.evolution.value}`
+                                            ? `level ${myth.evolution.value}`
                                             : myth.evolution.method === "ITEM"
-                                              ? `objeto (${myth.evolution.value})`
+                                              ? `item (${myth.evolution.value})`
                                               : myth.evolution.method}
                                         )
                                     </span>
@@ -444,6 +444,7 @@ const ALL_AFFINITIES: Affinity[] = [
 // ─── MythsPage ────────────────────────────────────────────────────────────────
 
 export default function MythsPage() {
+    const navigate = useNavigate();
     const [creatures, setCreatures] = useState<Creature[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -457,7 +458,7 @@ export default function MythsPage() {
         (api as any)
             .dex()
             .then((data: Creature[]) => setCreatures(Array.isArray(data) ? data : []))
-            .catch(() => setError("Error al cargar el Arcanum. Intenta recargar la página."))
+            .catch(() => setError("Failed to load Arcanum. Please reload."))
             .finally(() => setLoading(false));
     }, []);
 
@@ -476,19 +477,19 @@ export default function MythsPage() {
     );
 
     return (
-        <Layout >
+        <div className="fixed inset-0 flex flex-col" style={{ background:"#070b14" }}>
             {/* ── Header ── */}
             <div className="shrink-0 px-6 pt-5 pb-3 border-b border-[#1e2d45]">
                 <div className="flex items-center justify-between mb-3">
                     <div>
                         <h1 className="text-xl font-bold tracking-tight">Arcanum</h1>
                         <p className="text-[#F7FFFB] text-xs mt-0.5">
-                            {loading ? "Cargando…" : `${filtered.length} de ${creatures.length} Myths registrados`}
+                            {loading ? "Loading…" : `${filtered.length} de ${creatures.length} Myths registrados`}
                         </p>
                     </div>
                     <input
                         type="text"
-                        placeholder="Nombre o #id…"
+                        placeholder="Name or #id…"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         className="w-48 bg-[#0f1923] border border-[#1e2d45] rounded-lg px-3 py-1.5 text-sm placeholder-[#F7FFFB] focus:outline-none focus:border-[#4cc9f0] transition-colors"
@@ -591,6 +592,6 @@ export default function MythsPage() {
 
             {/* ── Modal ── */}
             {selected && <MythModal myth={selected} onClose={() => setSelected(null)} />}
-        </Layout>
+        </div>
     );
 }

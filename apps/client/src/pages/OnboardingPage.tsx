@@ -40,7 +40,7 @@ export default function OnboardingPage() {
         try {
             await api.onboardingComplete(avatar, gender, starter);
             navigate("/");
-            window.location.reload(); // refresca el user context
+            window.location.reload();
         } catch (e: any) {
             setError(e.message);
         } finally {
@@ -87,7 +87,7 @@ export default function OnboardingPage() {
                         </svg>
                         <div>
                             <h1 className="font-display font-bold text-2xl tracking-widest text-yellow">
-                                ¡Bienvenido, Binder!
+                                Welcome, Binder!
                             </h1>
                             <p className="text-muted text-xs tracking-wider">Configura tu perfil antes de comenzar</p>
                         </div>
@@ -95,7 +95,7 @@ export default function OnboardingPage() {
 
                     {/* Barra de progreso */}
                     <div className="flex gap-2 mt-4">
-                        {["Género", "Avatar", "Myth inicial"].map((label, i) => (
+                        {["Gender", "Avatar", "Starter Myth"].map((label, i) => (
                             <div key={i} className="flex-1">
                                 <div
                                     className={`h-1 rounded-full transition-all duration-500 mb-1
@@ -112,7 +112,7 @@ export default function OnboardingPage() {
                                     className={`text-xs font-display text-center transition-all
                                     ${i === stepIdx ? "text-blue" : i < stepIdx ? "text-green" : "text-muted"}`}
                                 >
-                                    {i < stepIdx ? "✅" : label}
+                                    {i < stepIdx ? "✓" : label}
                                 </div>
                             </div>
                         ))}
@@ -121,7 +121,7 @@ export default function OnboardingPage() {
 
                 {/* Contenido del paso */}
                 <div className="flex-1 overflow-y-auto p-8">
-                    {/* PASO 1: Género */}
+                    {/* Step 1: Gender */}
                     {step === "gender" && (
                         <div>
                             <h2 className="font-display font-bold text-xl tracking-widest mb-6 text-center">
@@ -138,7 +138,7 @@ export default function OnboardingPage() {
                                     >
                                         <div className="text-6xl mb-3">{g === "male" ? "👦" : "👧"}</div>
                                         <div className="font-display font-bold text-lg tracking-widest uppercase">
-                                            {g === "male" ? "Masculino" : "Femenino"}
+                                            {g === "male" ? "Male" : "Female"}
                                         </div>
                                     </div>
                                 ))}
@@ -252,7 +252,7 @@ export default function OnboardingPage() {
                             onClick={() => setStep(STEPS[stepIdx - 1])}
                             className="flex-1 py-3 rounded-xl border border-border text-muted font-display font-bold text-sm tracking-widest uppercase hover:border-blue hover:text-blue transition-all"
                         >
-                            ← Atrás
+                            ← Back
                         </button>
                     )}
 
@@ -266,7 +266,7 @@ export default function OnboardingPage() {
                                 boxShadow: "0 0 16px rgba(76,201,240,0.3)",
                             }}
                         >
-                            Siguiente →
+                            Next →
                         </button>
                     ) : (
                         <button
@@ -278,7 +278,7 @@ export default function OnboardingPage() {
                                 boxShadow: "0 0 20px rgba(230,57,70,0.4)",
                             }}
                         >
-                            {loading ? "Comenzando..." : "🎮 ¡Comenzar aventura!"}
+                            {loading ? "Starting..." : "🎮 Begin Adventure!"}
                         </button>
                     )}
                 </div>

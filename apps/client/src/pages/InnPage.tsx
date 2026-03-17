@@ -1,7 +1,6 @@
+import { useNavigate } from "react-router-dom";
 // apps/client/src/pages/InnPage.tsx
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import Layout from "../components/Layout";
 import { api } from "../lib/api";
 
 // ─── CDN image URLs ───────────────────────────────────────────────────────────
@@ -241,13 +240,23 @@ function MineCard() {
     );
 }
 
+// ─── Boosted champions this week (static placeholder — backend pending) ────────
+const BOOSTED_MYTHS = [
+    { name: "Embralith", rarity: "ELITE",     boost: "+40%", color: "#e2e8f0" },
+    { name: "Pyroxar",   rarity: "RARE",      boost: "+25%", color: "#6366f1" },
+    { name: "Volthorn",  rarity: "RARE",      boost: "+25%", color: "#6366f1" },
+    { name: "Glacivern", rarity: "LEGENDARY", boost: "+15%", color: "#fbbf24" },
+];
+
 // ─── ForgeCard ────────────────────────────────────────────────────────────────
 function ForgeCard() {
-    const navigate = useNavigate();
     const [forge, setForge] = useState<any>(null);
     const [fragmentCount, setFragmentCount] = useState<number>(0);
     const [collecting, setCollecting] = useState(false);
     const [msg, setMsg] = useState("");
+    const [showOpenModal, setShowOpenModal] = useState(false);
+    const [opening, setOpening] = useState(false);
+    const [openResult, setOpenResult] = useState<any>(null);
 
     const load = useCallback(async () => {
         try {
@@ -274,65 +283,215 @@ function ForgeCard() {
         finally { setCollecting(false); }
     }
 
+    async function handleOpenFragment() {
+        setOpening(true); setOpenResult(null);
+        try {
+            const res = await (api as any).fragmentOpen?.();
+            setOpenResult(res);
+            load();
+        } catch (e: any) { setOpenResult({ error: e.message }); }
+        finally { setOpening(false); }
+    }
+
     const serverMs = forge !== null ? (forge.nextCollectMs ?? 0) : null;
     const countdown = useCountdown(serverMs);
     const ready = forge?.ready ?? false;
     const showButton = ready || (forge !== null && countdown === 0);
 
     return (
-        <CardShell image={INN_IMAGES.forge} ready={showButton} accentColor="#4cc9f0">
-            <CardHeader emoji="◈" name="Fragment Forge" subtitle="Myth summoning" level={forge?.level ?? null} accentColor="#4cc9f0" />
+        <>
+            {/* ── Fragment opening modal ── */}
+            {showOpenModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    style={{ background: "rgba(0,0,0,0.85)" }}
+                    onClick={() => { setShowOpenModal(false); setOpenResult(null); }}>
+                    <div className="relative rounded-2xl w-full max-w-sm flex flex-col overflow-hidden"
+                        style={{ background: "#0a1020", border: "1px solid rgba(76,201,240,0.25)", boxShadow: "0 0 60px rgba(76,201,240,0.15)" }}
+                        onClick={(e) => e.stopPropagation()}>
 
-            {/* Rarity rates */}
-            <div className="grid grid-cols-5 gap-1.5 mb-3">
-                {FRAGMENT_RATES.map((r) => (
-                    <div key={r.rarity} className="flex flex-col items-center justify-center gap-0.5 rounded-xl py-1.5 px-1"
-                        style={{ background: r.bg, border: `1px solid ${r.border}`, aspectRatio: "1/1" }}>
-                        <span className="text-[9px] font-mono font-bold" style={{ color: r.color }}>{r.pct}</span>
-                        <span className="text-[7px] md:text-[8px] font-mono text-center leading-tight"
-                            style={{ color: "rgba(255,255,255,0.4)" }}>{r.rarity}</span>
+                        {/* Header */}
+                        <div className="px-5 py-4 border-b" style={{ borderColor: "rgba(76,201,240,0.12)" }}>
+                            <p className="font-black tracking-widest uppercase text-sm"
+                                style={{ fontFamily: "'Rajdhani',sans-serif", color: "#e2e8f0" }}>
+                                Fragment Forge
+                            </p>
+                            <p className="text-[10px] font-mono" style={{ color: "rgba(255,255,255,0.3)" }}>
+                                ◈ {fragmentCount} fragments available
+                            </p>
+                        </div>
+
+                        {/* Drop rates */}
+                        <div className="px-5 pt-4 pb-2">
+                            <p className="text-[9px] font-mono tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.25)" }}>
+                                DROP RATES
+                            </p>
+                            <div className="flex gap-1.5">
+                                {FRAGMENT_RATES.map((r) => (
+                                    <div key={r.rarity} className="flex-1 flex flex-col items-center gap-0.5 rounded-lg py-1.5"
+                                        style={{ background: r.bg, border: `1px solid ${r.border}` }}>
+                                        <span className="text-[9px] font-mono font-bold" style={{ color: r.color }}>{r.pct}</span>
+                                        <span className="text-[7px] font-mono" style={{ color: "rgba(255,255,255,0.35)" }}>{r.rarity.slice(0,3)}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Boosted this week */}
+                        <div className="px-5 pt-3 pb-2">
+                            <p className="text-[9px] font-mono tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.25)" }}>
+                                ⚡ BOOSTED THIS WEEK
+                            </p>
+                            <div className="flex flex-col gap-1.5">
+                                {BOOSTED_MYTHS.map((m) => (
+                                    <div key={m.name} className="flex items-center justify-between px-2.5 py-1.5 rounded-lg"
+                                        style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                                        <div>
+                                            <span className="text-xs font-bold" style={{ color: "#e2e8f0" }}>{m.name}</span>
+                                            <span className="text-[9px] font-mono ml-2" style={{ color: m.color }}>{m.rarity}</span>
+                                        </div>
+                                        <span className="text-[10px] font-mono font-bold"
+                                            style={{ color: "#06d6a0" }}>{m.boost}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Fragment animation + open result */}
+                        <div className="flex flex-col items-center py-5">
+                            {openResult ? (
+                                openResult.error ? (
+                                    <p className="text-xs font-mono" style={{ color: "#f87171" }}>{openResult.error}</p>
+                                ) : (
+                                    <div className="flex flex-col items-center gap-2">
+                                        <span className="text-5xl" style={{ filter: "drop-shadow(0 0 20px rgba(76,201,240,0.8))" }}>◈</span>
+                                        <p className="font-bold text-sm" style={{ color: "#4cc9f0" }}>
+                                            {openResult.myth?.name ?? "Myth obtained!"}
+                                        </p>
+                                        <span className="text-[9px] font-mono px-2 py-0.5 rounded-full"
+                                            style={{ background: "rgba(76,201,240,0.1)", color: "#4cc9f0", border: "1px solid rgba(76,201,240,0.25)" }}>
+                                            {openResult.rarity ?? ""}
+                                        </span>
+                                    </div>
+                                )
+                            ) : (
+                                <div className="relative flex items-center justify-center w-20 h-20">
+                                    <div className="absolute inset-0 rounded-full"
+                                        style={{ background: "radial-gradient(circle,rgba(76,201,240,0.15) 0%,transparent 70%)", animation: "forgeGlow 2.5s ease-in-out infinite" }} />
+                                    <span className="text-6xl select-none" style={{
+                                        color: "#fff",
+                                        filter: "drop-shadow(0 0 14px rgba(255,255,255,0.85)) drop-shadow(0 0 30px rgba(76,201,240,0.5))",
+                                        animation: opening ? "none" : "forgeFloat 3s ease-in-out infinite",
+                                        transform: opening ? "scale(1.2)" : undefined,
+                                        transition: "transform 0.3s",
+                                    }}>◈</span>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Actions */}
+                        <div className="px-5 pb-5 flex flex-col gap-2">
+                            {!openResult && (
+                                <button onClick={handleOpenFragment} disabled={opening || fragmentCount === 0}
+                                    className="w-full py-2.5 rounded-xl font-bold text-xs tracking-widest uppercase transition-all hover:brightness-110 active:scale-95 disabled:opacity-40"
+                                    style={{ background: "linear-gradient(135deg,#4cc9f0,#7b2fff)", color: "#fff", boxShadow: "0 0 16px rgba(76,201,240,0.25)" }}>
+                                    {opening ? "Opening..." : `◈ Open Fragment (${fragmentCount})`}
+                                </button>
+                            )}
+                            {openResult && !openResult.error && (
+                                <button onClick={() => { setOpenResult(null); }}
+                                    className="w-full py-2.5 rounded-xl font-bold text-xs tracking-widest uppercase transition-all hover:brightness-110 active:scale-95"
+                                    style={{ background: "linear-gradient(135deg,#4cc9f0,#7b2fff)", color: "#fff" }}>
+                                    Open Another
+                                </button>
+                            )}
+                            <button onClick={() => { setShowOpenModal(false); setOpenResult(null); }}
+                                className="w-full py-2 text-[10px] font-mono transition-colors hover:bg-white/5 rounded-xl"
+                                style={{ color: "rgba(255,255,255,0.3)" }}>
+                                Close ✕
+                            </button>
+                        </div>
                     </div>
-                ))}
-            </div>
-
-            {/* Floating fragment */}
-            <div className="flex-1 flex items-center justify-center">
-                <div className="relative flex items-center justify-center w-16 h-16 md:w-20 md:h-20">
-                    <div className="absolute inset-0 rounded-full"
-                        style={{ background: "radial-gradient(circle,rgba(255,255,255,0.12) 0%,transparent 70%)", animation: "forgeGlow 2.5s ease-in-out infinite" }} />
-                    <span className="text-5xl md:text-6xl select-none" style={{
-                        color: "#ffffff",
-                        filter: "drop-shadow(0 0 14px rgba(255,255,255,0.85)) drop-shadow(0 0 30px rgba(76,201,240,0.5))",
-                        animation: "forgeFloat 3s ease-in-out infinite",
-                    }}>◈</span>
-                </div>
-            </div>
-
-            <CollectMsg msg={msg} />
-
-            {forge === null ? (
-                <div className="w-full h-6 bg-white/5 rounded-full animate-pulse mb-2" />
-            ) : showButton ? (
-                <div className="mb-2">
-                    <CollectButton collecting={collecting} label="Collect fragment" onClick={handleCollect}
-                        gradient="linear-gradient(135deg,#06d6a0,#04a57a)"
-                        shadow="0 0 16px rgba(6,214,160,0.3)" />
-                </div>
-            ) : (
-                <div className="mb-2">
-                    <ProgressBar ms={countdown} totalMs={FORGE_COOLDOWN_MS[forge.level] ?? 6*3600*1000}
-                        color="linear-gradient(90deg,#4cc9f0,#7b2fff)" />
                 </div>
             )}
 
-            {fragmentCount > 0 && (
-                <button onClick={() => navigate("/fragment")}
+            <CardShell image={INN_IMAGES.forge} ready={showButton} accentColor="#4cc9f0">
+                <CardHeader emoji="◈" name="Fragment Forge" subtitle="Myth summoning" level={forge?.level ?? null} accentColor="#4cc9f0" />
+
+                {/* Boosted this week — compact preview */}
+                <div className="mb-2">
+                    <p className="text-[8px] font-mono tracking-widest mb-1.5" style={{ color: "rgba(255,255,255,0.22)" }}>
+                        ⚡ BOOSTED THIS WEEK
+                    </p>
+                    <div className="flex gap-1.5">
+                        {BOOSTED_MYTHS.slice(0, 3).map((m) => (
+                            <span key={m.name} className="text-[8px] font-mono px-1.5 py-0.5 rounded-md"
+                                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: m.color }}>
+                                {m.name}
+                            </span>
+                        ))}
+                        <span className="text-[8px] font-mono px-1.5 py-0.5 rounded-md"
+                            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.3)" }}>
+                            +1
+                        </span>
+                    </div>
+                </div>
+
+                {/* Rarity rates — compact */}
+                <div className="grid grid-cols-5 gap-1 mb-2">
+                    {FRAGMENT_RATES.map((r) => (
+                        <div key={r.rarity} className="flex flex-col items-center justify-center gap-0.5 rounded-lg py-1 px-0.5"
+                            style={{ background: r.bg, border: `1px solid ${r.border}` }}>
+                            <span className="text-[8px] font-mono font-bold" style={{ color: r.color }}>{r.pct}</span>
+                            <span className="text-[6px] font-mono text-center leading-tight"
+                                style={{ color: "rgba(255,255,255,0.35)" }}>{r.rarity.slice(0,3)}</span>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Floating fragment */}
+                <div className="flex-1 flex items-center justify-center">
+                    <div className="relative flex items-center justify-center w-14 h-14 md:w-16 md:h-16">
+                        <div className="absolute inset-0 rounded-full"
+                            style={{ background: "radial-gradient(circle,rgba(255,255,255,0.12) 0%,transparent 70%)", animation: "forgeGlow 2.5s ease-in-out infinite" }} />
+                        <span className="text-4xl md:text-5xl select-none" style={{
+                            color: "#ffffff",
+                            filter: "drop-shadow(0 0 14px rgba(255,255,255,0.85)) drop-shadow(0 0 30px rgba(76,201,240,0.5))",
+                            animation: "forgeFloat 3s ease-in-out infinite",
+                        }}>◈</span>
+                    </div>
+                </div>
+
+                <CollectMsg msg={msg} />
+
+                {forge === null ? (
+                    <div className="w-full h-6 bg-white/5 rounded-full animate-pulse mb-2" />
+                ) : showButton ? (
+                    <div className="mb-2">
+                        <CollectButton collecting={collecting} label="Collect fragment" onClick={handleCollect}
+                            gradient="linear-gradient(135deg,#06d6a0,#04a57a)"
+                            shadow="0 0 16px rgba(6,214,160,0.3)" />
+                    </div>
+                ) : (
+                    <div className="mb-2">
+                        <ProgressBar ms={countdown} totalMs={FORGE_COOLDOWN_MS[forge.level] ?? 6*3600*1000}
+                            color="linear-gradient(90deg,#4cc9f0,#7b2fff)" />
+                    </div>
+                )}
+
+                <button onClick={() => setShowOpenModal(true)}
                     className="w-full py-2.5 rounded-xl font-bold text-xs tracking-widest uppercase transition-all hover:brightness-110 active:scale-95"
-                    style={{ background: "linear-gradient(135deg,#4cc9f0 0%,#7b2fff 100%)", color: "#fff", boxShadow: "0 0 16px rgba(76,201,240,0.25)" }}>
-                    ◈ Open fragments ({fragmentCount})
+                    style={{
+                        background: fragmentCount > 0
+                            ? "linear-gradient(135deg,#4cc9f0 0%,#7b2fff 100%)"
+                            : "rgba(255,255,255,0.05)",
+                        color: fragmentCount > 0 ? "#fff" : "rgba(255,255,255,0.25)",
+                        border: fragmentCount > 0 ? "none" : "1px solid rgba(255,255,255,0.08)",
+                        boxShadow: fragmentCount > 0 ? "0 0 16px rgba(76,201,240,0.25)" : "none",
+                    }}>
+                    {fragmentCount > 0 ? `◈ Open Fragments (${fragmentCount})` : "◈ No Fragments"}
                 </button>
-            )}
-        </CardShell>
+            </CardShell>
+        </>
     );
 }
 
@@ -652,18 +811,25 @@ function NurseryCard() {
 
 // ─── InnPage ──────────────────────────────────────────────────────────────────
 export default function InnPage() {
+    const navigate = useNavigate();
     return (
-        <Layout>
+        <div className="fixed inset-0 flex flex-col" style={{ background:"#070b14", fontFamily:"'Exo 2',sans-serif" }}>
             <style>{`.inn-scrollbar::-webkit-scrollbar{display:none}`}</style>
 
-            {/* Page header */}
-            <div className="flex-shrink-0 px-4 md:px-6 py-3 md:py-4 border-b border-white/5 flex items-center">
-                <h1 className="font-display font-bold text-xl md:text-2xl tracking-widest">
-                    <span className="text-white">Inn</span>
-                </h1>
+            {/* Topbar */}
+            <div className="flex-shrink-0 flex items-center justify-between px-4 md:px-6" style={{ height:48, background:"rgba(4,8,15,0.97)", borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
+                <button onClick={() => navigate("/")} className="flex items-center gap-2 transition-opacity hover:opacity-70 active:scale-95" style={{ color:"rgba(255,255,255,0.45)", fontSize:11, fontFamily:"monospace" }}>
+                    <span style={{ fontSize:9 }}>◀</span>
+                    <span className="tracking-widest uppercase">City</span>
+                </button>
+                <div className="flex flex-col items-center">
+                    <span className="tracking-[0.22em] uppercase font-black" style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:15, color:"#e2e8f0" }}>Outpost</span>
+                    <span className="tracking-widest uppercase" style={{ fontSize:8, color:"rgba(255,255,255,0.22)", fontFamily:"monospace" }}>Mine · Forge · Lab · Nursery</span>
+                </div>
+                <div style={{ width:60 }} />
             </div>
 
-            {/* 2×2 grid — mobile scrollable, desktop fixed */}
+            {/* 2×2 grid */}
             <div className="flex-1 overflow-y-auto inn-scrollbar p-3 md:p-5">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 max-w-3xl mx-auto">
                     <MineCard />
@@ -672,6 +838,6 @@ export default function InnPage() {
                     <NurseryCard />
                 </div>
             </div>
-        </Layout>
+        </div>
     );
 }

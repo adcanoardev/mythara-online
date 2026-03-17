@@ -1,5 +1,5 @@
+import { useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback, useRef } from "react";
-import Layout from "../components/Layout";
 
 import { api } from "../lib/api";
 
@@ -68,7 +68,7 @@ function MythCard({
                     <div className={`font-display font-bold truncate ${compact ? "text-xs" : "text-sm"}`}>
                         {(myth as any).name ?? myth.speciesId}
                     </div>
-                    <div className="text-muted text-xs">Nv. {myth.level}</div>
+                    <div className="text-muted text-xs">Lv. {myth.level}</div>
                 </div>
             </div>
             {!compact && (
@@ -141,7 +141,7 @@ function PartySlot({
     );
 }
 
-export default function EquipoPage() {
+export default function TeamPage() {
     const [all, setAll] = useState<MythInstance[]>([]);
     const [party, setParty] = useState<(MythInstance | null)[]>([null, null, null]);
     const [dragId, setDragId] = useState<string | null>(null);
@@ -211,7 +211,7 @@ export default function EquipoPage() {
         if (!isInParty) return;
         const totalInParty = party.filter(Boolean).length;
         if (totalInParty <= 1) {
-            setMsg("❌ Necesitas al menos 1 Myth en el equipo");
+            setMsg("Need at least 1 Myth in the team");
             setTimeout(() => setMsg(""), 2000);
             return;
         }
@@ -221,12 +221,20 @@ export default function EquipoPage() {
         dragIdRef.current = null;
         saveParty(newParty);
     }
+    const navigate = useNavigate();
     return (
-        <Layout >
-            <div className="flex-shrink-0 px-6 py-4 border-b border-border flex items-center justify-between">
-                <h1 className="font-display font-bold text-2xl tracking-widest">
-                    🐾 <span className="text-blue">Equipo</span>
-                </h1>
+        <div className="fixed inset-0 flex flex-col" style={{ background:"#070b14", fontFamily:"'Exo 2',sans-serif" }}>
+            {/* Topbar */}
+            <div className="flex-shrink-0 flex items-center justify-between px-4 md:px-6" style={{ height:48, background:"rgba(4,8,15,0.97)", borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
+                <button onClick={() => navigate("/")} className="flex items-center gap-2 transition-opacity hover:opacity-70 active:scale-95" style={{ color:"rgba(255,255,255,0.45)", fontSize:11, fontFamily:"monospace" }}>
+                    <span style={{ fontSize:9 }}>◀</span>
+                    <span className="tracking-widest uppercase hidden sm:inline">City</span>
+                </button>
+                <span className="tracking-[0.22em] uppercase font-black" style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:15, color:"#e2e8f0" }}>Team</span>
+                <div style={{ width:60 }} />
+            </div>
+            <div className="flex-shrink-0 flex items-center justify-between px-4 py-2 border-b" style={{ borderColor:"rgba(255,255,255,0.06)" }}>
+                <span className="text-sm font-bold" style={{ color:"rgba(255,255,255,0.6)" }}>🐾 Active Team</span>
                 {msg && (
                     <span
                         className="text-xs font-semibold"
@@ -238,10 +246,10 @@ export default function EquipoPage() {
             </div>
 
             <div className="flex-1 flex overflow-hidden p-6 gap-6">
-                {/* Equipo activo */}
+                {/* Active Team */}
                 <div className="w-64 flex-shrink-0 flex flex-col gap-3">
                     <div className="font-display font-bold text-sm tracking-widest text-white uppercase mb-1">
-                        Equipo activo
+                        Active Team
                     </div>
                     {[0, 1, 2].map((slot) => (
                         <PartySlot
@@ -271,10 +279,10 @@ export default function EquipoPage() {
                     </div>
                 </div>
 
-                {/* Almacenamiento */}
+                {/* Storage */}
                 <div className="flex-1 flex flex-col overflow-hidden">
                     <div className="font-display font-bold text-sm tracking-widest text-white uppercase mb-3 flex-shrink-0">
-                        Almacenamiento — {storage.length} Myths
+                        Storage — {storage.length} Myths
                     </div>
                     <div
                         className="flex-1 overflow-y-auto rounded-2xl border border-border bg-card/50 p-4"
@@ -328,6 +336,6 @@ export default function EquipoPage() {
                     )}
                 </div>
             </div>
-        </Layout>
+        </div>
     );
 }

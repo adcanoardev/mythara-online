@@ -1,144 +1,107 @@
+// apps/client/src/pages/InventoryPage.tsx
 import { useState, useEffect } from "react";
-import Layout from "../components/Layout";
-
+import { useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
 
 const ITEM_ICONS: Record<string, string> = {
-    FRAGMENT: "🔴",
-    SHARD: "🔵",
-    CRYSTAL: "⚫",
-    RUNE: "🟣",
-    ELIXIR: "🧪",
-    MEGA_ELIXIR: "🧪",
-    GRAND_ELIXIR: "🧪",
-    SPARK: "💊",
-    GRAND_SPARK: "✨",
-    EMBER_SHARD: "🔥",
-    TIDE_SHARD: "💧",
-    VOLT_SHARD: "⚡",
-    GROVE_SHARD: "🌿",
-    FROST_SHARD: "❄️",
-    BOND_CRYSTAL: "🔗",
-    ASTRAL_SCALE: "🐉",
-    IRON_COAT: "⚙️",
-    SOVEREIGN_STONE: "👑",
-    CIPHER_CORE: "⬆️",
+    FRAGMENT:"🔴", SHARD:"🔵", CRYSTAL:"⚫", RUNE:"🟣",
+    ELIXIR:"🧪", MEGA_ELIXIR:"🧪", GRAND_ELIXIR:"🧪",
+    SPARK:"💊", GRAND_SPARK:"✨",
+    EMBER_SHARD:"🔥", TIDE_SHARD:"💧", VOLT_SHARD:"⚡", GROVE_SHARD:"🌿", FROST_SHARD:"❄️",
+    BOND_CRYSTAL:"🔗", ASTRAL_SCALE:"🐉", IRON_COAT:"⚙️", SOVEREIGN_STONE:"👑", CIPHER_CORE:"⬆️",
 };
 
 const ITEM_COLORS: Record<string, string> = {
-    FRAGMENT: "#e63946",
-    SHARD: "#4cc9f0",
-    CRYSTAL: "#adb5bd",
-    RUNE: "#7b2fff",
-    ELIXIR: "#06d6a0",
-    MEGA_ELIXIR: "#06d6a0",
-    GRAND_ELIXIR: "#06d6a0",
-    SPARK: "#ffd60a",
-    GRAND_SPARK: "#ffd60a",
-    EMBER_SHARD: "#ff6b35",
-    TIDE_SHARD: "#4cc9f0",
-    VOLT_SHARD: "#ffd60a",
-    GROVE_SHARD: "#06d6a0",
-    FROST_SHARD: "#a8dadc",
-    BOND_CRYSTAL: "#adb5bd",
-    ASTRAL_SCALE: "#7b2fff",
-    IRON_COAT: "#adb5bd",
-    SOVEREIGN_STONE: "#ffd60a",
-    CIPHER_CORE: "#e040fb",
+    FRAGMENT:"#e63946", SHARD:"#4cc9f0", CRYSTAL:"#adb5bd", RUNE:"#7b2fff",
+    ELIXIR:"#06d6a0", MEGA_ELIXIR:"#06d6a0", GRAND_ELIXIR:"#06d6a0",
+    SPARK:"#ffd60a", GRAND_SPARK:"#ffd60a",
+    EMBER_SHARD:"#ff6b35", TIDE_SHARD:"#4cc9f0", VOLT_SHARD:"#ffd60a",
+    GROVE_SHARD:"#06d6a0", FROST_SHARD:"#a8dadc",
+    BOND_CRYSTAL:"#adb5bd", ASTRAL_SCALE:"#7b2fff",
+    IRON_COAT:"#adb5bd", SOVEREIGN_STONE:"#ffd60a", CIPHER_CORE:"#e040fb",
 };
 
 const ITEM_NAMES: Record<string, string> = {
-    FRAGMENT: "Fragmento",
-    SHARD: "Astilla",
-    CRYSTAL: "Cristal",
-    RUNE: "Runa",
-    ELIXIR: "Elixir",
-    MEGA_ELIXIR: "Mega Elixir",
-    GRAND_ELIXIR: "Gran Elixir",
-    SPARK: "Chispa",
-    GRAND_SPARK: "Gran Chispa",
-    EMBER_SHARD: "Shard Ember",
-    TIDE_SHARD: "Shard Tide",
-    VOLT_SHARD: "Shard Volt",
-    GROVE_SHARD: "Shard Grove",
-    FROST_SHARD: "Shard Frost",
-    BOND_CRYSTAL: "Cristal Vínculo",
-    ASTRAL_SCALE: "Escama Astral",
-    IRON_COAT: "Capa de Hierro",
-    SOVEREIGN_STONE: "Piedra Soberana",
-    CIPHER_CORE: "Núcleo Cifrado",
+    FRAGMENT:"Fragment", SHARD:"Shard", CRYSTAL:"Crystal", RUNE:"Rune",
+    ELIXIR:"Elixir", MEGA_ELIXIR:"Mega Elixir", GRAND_ELIXIR:"Grand Elixir",
+    SPARK:"Spark", GRAND_SPARK:"Grand Spark",
+    EMBER_SHARD:"Ember Shard", TIDE_SHARD:"Tide Shard", VOLT_SHARD:"Volt Shard",
+    GROVE_SHARD:"Grove Shard", FROST_SHARD:"Frost Shard",
+    BOND_CRYSTAL:"Bond Crystal", ASTRAL_SCALE:"Astral Scale",
+    IRON_COAT:"Iron Coat", SOVEREIGN_STONE:"Sovereign Stone", CIPHER_CORE:"Cipher Core",
 };
 
 const CATEGORIES: Record<string, string[]> = {
-    Fragmentos: ["FRAGMENT", "SHARD", "CRYSTAL", "RUNE"],
-    Elixires: ["ELIXIR", "MEGA_ELIXIR", "GRAND_ELIXIR", "SPARK", "GRAND_SPARK"],
-    Shards: ["EMBER_SHARD", "TIDE_SHARD", "VOLT_SHARD", "GROVE_SHARD", "FROST_SHARD"],
-    Objetos: ["BOND_CRYSTAL", "ASTRAL_SCALE", "IRON_COAT", "SOVEREIGN_STONE", "CIPHER_CORE"],
+    Fragments: ["FRAGMENT", "SHARD", "CRYSTAL", "RUNE"],
+    Elixirs:   ["ELIXIR", "MEGA_ELIXIR", "GRAND_ELIXIR", "SPARK", "GRAND_SPARK"],
+    Shards:    ["EMBER_SHARD", "TIDE_SHARD", "VOLT_SHARD", "GROVE_SHARD", "FROST_SHARD"],
+    Items:     ["BOND_CRYSTAL", "ASTRAL_SCALE", "IRON_COAT", "SOVEREIGN_STONE", "CIPHER_CORE"],
 };
 
-export default function InventarioPage() {
+export default function InventoryPage() {
+    const navigate = useNavigate();
     const [inventory, setInventory] = useState<any[]>([]);
-    const [filter, setFilter] = useState("Todos");
+    const [filter, setFilter] = useState("All");
 
-    useEffect(() => {
-        api.inventory().then(setInventory);
-    }, []);
+    useEffect(() => { api.inventory().then(setInventory); }, []);
 
-    const filtered = filter === "Todos" ? inventory : inventory.filter((i) => CATEGORIES[filter]?.includes(i.item));
+    const filtered = filter === "All" ? inventory : inventory.filter(i => CATEGORIES[filter]?.includes(i.item));
 
     return (
-        <Layout >
-            <div className="flex-shrink-0 px-6 py-4 border-b border-border flex items-center justify-between">
-                <h1 className="font-display font-bold text-2xl tracking-widest">
-                    🎒 <span className="text-blue">Inventario</span>
-                </h1>
-                <div className="flex gap-2">
-                    {["Todos", ...Object.keys(CATEGORIES)].map((cat) => (
-                        <button
-                            key={cat}
-                            onClick={() => setFilter(cat)}
-                            className={`px-3 py-1 rounded-lg font-display font-bold text-xs tracking-widest uppercase transition-all
-                                ${filter === cat ? "text-bg" : "border border-border text-muted hover:border-blue hover:text-blue"}`}
-                            style={filter === cat ? { background: "linear-gradient(135deg,#4cc9f0,#7b2fff)" } : {}}
-                        >
-                            {cat}
-                        </button>
-                    ))}
-                </div>
+        <div className="fixed inset-0 flex flex-col" style={{ background:"#070b14", fontFamily:"'Exo 2',sans-serif" }}>
+            {/* Topbar */}
+            <div className="flex-shrink-0 flex items-center justify-between px-4 md:px-6" style={{ height:48, background:"rgba(4,8,15,0.97)", borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
+                <button onClick={() => navigate("/")} className="flex items-center gap-2 transition-opacity hover:opacity-70 active:scale-95" style={{ color:"rgba(255,255,255,0.45)", fontSize:11, fontFamily:"monospace" }}>
+                    <span style={{ fontSize:9 }}>◀</span>
+                    <span className="tracking-widest uppercase hidden sm:inline">City</span>
+                </button>
+                <span className="tracking-[0.22em] uppercase font-black" style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:15, color:"#e2e8f0" }}>Inventory</span>
+                <div style={{ width:60 }} />
             </div>
 
-            <div className="flex-1 p-6 overflow-hidden">
+            {/* Filter bar */}
+            <div className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 border-b" style={{ borderColor:"rgba(255,255,255,0.06)" }}>
+                {["All", ...Object.keys(CATEGORIES)].map(cat => (
+                    <button key={cat} onClick={() => setFilter(cat)}
+                        className="px-3 py-1 rounded-lg text-xs font-bold tracking-widest uppercase transition-all"
+                        style={{
+                            background: filter === cat ? "linear-gradient(135deg,#4cc9f0,#7b2fff)" : "rgba(255,255,255,0.04)",
+                            color: filter === cat ? "#070b14" : "rgba(255,255,255,0.5)",
+                            border: filter === cat ? "none" : "1px solid rgba(255,255,255,0.1)",
+                            fontFamily:"'Rajdhani',sans-serif",
+                        }}>
+                        {cat}
+                    </button>
+                ))}
+            </div>
+
+            {/* Grid */}
+            <div className="flex-1 p-4 overflow-y-auto" style={{ scrollbarWidth:"none" }}>
                 {filtered.length === 0 ? (
-                    <div className="h-full flex flex-col items-center justify-center text-muted">
-                        <div className="text-5xl mb-4">📦</div>
-                        <div className="font-display font-bold text-xl tracking-widest">
-                            {filter === "Todos" ? "Inventario vacío" : `Sin ${filter.toLowerCase()}`}
-                        </div>
-                        <div className="text-sm mt-2">Combate y recoge la mina para conseguir objetos</div>
+                    <div className="h-full flex flex-col items-center justify-center gap-3">
+                        <div style={{ fontSize:48 }}>📦</div>
+                        <p className="font-bold tracking-widest uppercase text-lg" style={{ fontFamily:"'Rajdhani',sans-serif", color:"rgba(255,255,255,0.4)" }}>
+                            {filter === "All" ? "Inventory empty" : `No ${filter.toLowerCase()}`}
+                        </p>
+                        <p style={{ fontSize:12, color:"rgba(255,255,255,0.25)" }}>
+                            Battle and collect from the mine to get items
+                        </p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-4 gap-3 h-full content-start overflow-y-auto">
+                    <div className="grid gap-3" style={{ gridTemplateColumns:"repeat(auto-fill,minmax(100px,1fr))" }}>
                         {filtered.map((item: any) => {
-                            const icon = ITEM_ICONS[item.item] ?? "📦";
-                            const color = ITEM_COLORS[item.item] ?? "#F7FFFB";
-                            const name = ITEM_NAMES[item.item] ?? item.item.replace(/_/g, " ");
+                            const icon  = ITEM_ICONS[item.item]  ?? "📦";
+                            const color = ITEM_COLORS[item.item] ?? "#e2e8f0";
+                            const name  = ITEM_NAMES[item.item]  ?? item.item.replace(/_/g," ");
                             return (
-                                <div
-                                    key={item.item}
-                                    className="bg-card border border-border rounded-2xl p-4 hover:border-blue/40 transition-all relative overflow-hidden group aspect-square flex flex-col justify-between"
-                                >
-                                    <div
-                                        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                                        style={{
-                                            background: `radial-gradient(ellipse at top left, ${color}15, transparent 60%)`,
-                                        }}
-                                    />
-                                    <span className="text-3xl relative">{icon}</span>
-                                    <div className="relative">
-                                        <div className="font-display font-bold text-lg" style={{ color }}>
-                                            {item.quantity}
-                                        </div>
-                                        <div className="font-display text-xs text-muted truncate">{name}</div>
+                                <div key={item.item} className="group relative rounded-2xl p-4 flex flex-col justify-between aspect-square transition-all hover:scale-105"
+                                    style={{ background:"rgba(255,255,255,0.03)", border:`1px solid rgba(255,255,255,0.07)` }}>
+                                    <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+                                        style={{ background:`radial-gradient(ellipse at top left,${color}18,transparent 65%)` }} />
+                                    <span style={{ fontSize:28 }}>{icon}</span>
+                                    <div>
+                                        <div className="font-black text-xl" style={{ fontFamily:"'Rajdhani',sans-serif", color }}>{item.quantity}</div>
+                                        <div className="text-xs font-mono truncate" style={{ color:"rgba(255,255,255,0.4)" }}>{name}</div>
                                     </div>
                                 </div>
                             );
@@ -146,6 +109,6 @@ export default function InventarioPage() {
                     </div>
                 )}
             </div>
-        </Layout>
+        </div>
     );
 }

@@ -1,112 +1,90 @@
+// apps/client/src/pages/RankingPage.tsx
 import { useState, useEffect } from "react";
-import Layout from "../components/Layout";
-
+import { useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
 import { useAuth } from "../hooks/useAuth";
 
 const RANK_COLORS: Record<string, string> = {
-    Campeón: "#ffd60a",
-    Elite: "#7b2fff",
-    Rival: "#e63946",
-    Entrenador: "#4cc9f0",
-    Novato: "#F7FFFB",
+    Champion: "#ffd60a",
+    Elite:    "#7b2fff",
+    Rival:    "#e63946",
+    Trainer:  "#4cc9f0",
+    Novice:   "#e2e8f0",
+    // keep Spanish keys as fallback
+    Campeón:    "#ffd60a",
+    Trainer: "#4cc9f0",
+    Novato:     "#e2e8f0",
 };
 
 export default function RankingPage() {
-    const { user } = useAuth();
+    const { user }  = useAuth();
+    const navigate  = useNavigate();
     const [data, setData] = useState<any>(null);
 
-    useEffect(() => {
-        api.ranking().then(setData);
-    }, []);
+    useEffect(() => { api.ranking().then(setData); }, []);
 
-    const top3 = data?.ranking?.slice(0, 3) ?? [];
-    const rest = data?.ranking?.slice(3) ?? [];
+    const top3  = data?.ranking?.slice(0, 3) ?? [];
+    const rest  = data?.ranking?.slice(3)    ?? [];
     const myPos = data?.myPosition;
 
     return (
-        <Layout >
-            {/* Header */}
-            <div className="flex-shrink-0 px-6 py-4 border-b border-border flex items-center justify-between">
-                <h1 className="font-display font-bold text-2xl tracking-widest">
-                    🏆 <span className="text-yellow">Ranking Global</span>
-                </h1>
-                {myPos && (
-                    <div className="px-4 py-1.5 bg-yellow/5 border border-yellow/20 rounded-xl text-sm font-display text-yellow tracking-widest">
-                        Tu posición: #{myPos}
-                    </div>
-                )}
+        <div className="fixed inset-0 flex flex-col" style={{ background:"#070b14", fontFamily:"'Exo 2',sans-serif" }}>
+            {/* Topbar */}
+            <div className="flex-shrink-0 flex items-center justify-between px-4 md:px-6" style={{ height:48, background:"rgba(4,8,15,0.97)", borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
+                <button onClick={() => navigate("/")} className="flex items-center gap-2 transition-opacity hover:opacity-70 active:scale-95" style={{ color:"rgba(255,255,255,0.45)", fontSize:11, fontFamily:"monospace" }}>
+                    <span style={{ fontSize:9 }}>◀</span>
+                    <span className="tracking-widest uppercase hidden sm:inline">City</span>
+                </button>
+                <div className="flex items-center gap-3">
+                    <span className="tracking-[0.22em] uppercase font-black" style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:15, color:"#e2e8f0" }}>Ranking</span>
+                    {myPos && (
+                        <span className="font-mono text-xs px-2 py-0.5 rounded-lg" style={{ background:"rgba(255,214,10,0.08)", border:"1px solid rgba(255,214,10,0.2)", color:"#ffd60a" }}>
+                            #{myPos}
+                        </span>
+                    )}
+                </div>
+                <div style={{ width:60 }} />
             </div>
 
-            <div className="flex-1 flex gap-4 p-6 overflow-hidden">
-                {/* Podio */}
-                <div className="w-56 flex-shrink-0 flex flex-col gap-3">
+            <div className="flex-1 flex gap-4 p-4 md:p-6 overflow-hidden min-h-0">
+                {/* Podium */}
+                <div className="w-48 md:w-56 flex-shrink-0 flex flex-col gap-3 overflow-y-auto" style={{ scrollbarWidth:"none" }}>
                     {[top3[0], top3[1], top3[2]].map((trainer: any, i: number) => {
                         if (!trainer) return null;
-                        const medals = ["🥇", "🥈", "🥉"];
+                        const medals = ["🥇","🥈","🥉"];
+                        const rColor = RANK_COLORS[trainer.rank] ?? "#e2e8f0";
                         return (
-                            <div
-                                key={trainer.userId}
-                                className={`bg-card border rounded-2xl p-4 text-center
-                                    ${i === 0 ? "border-yellow/40" : "border-border"}`}
-                                style={i === 0 ? { boxShadow: "0 0 16px rgba(255,214,10,0.1)" } : {}}
-                            >
-                                <div className="text-3xl mb-1">{medals[i]}</div>
-                                <div className="font-display font-bold">{trainer.username}</div>
-                                <div
-                                    className="font-display font-bold text-xl mt-1"
-                                    style={{ color: RANK_COLORS[trainer.rank] }}
-                                >
-                                    {trainer.prestige}
-                                </div>
-                                <div className="text-xs font-display" style={{ color: RANK_COLORS[trainer.rank] }}>
-                                    {trainer.rank}
-                                </div>
+                            <div key={trainer.userId} className="rounded-2xl p-4 text-center"
+                                style={{ background:"rgba(255,255,255,0.03)", border:`1px solid ${i===0?"rgba(255,214,10,0.3)":"rgba(255,255,255,0.07)"}`, boxShadow:i===0?"0 0 16px rgba(255,214,10,0.08)":"none" }}>
+                                <div style={{ fontSize:28, marginBottom:4 }}>{medals[i]}</div>
+                                <div className="font-bold text-sm" style={{ color:"#e2e8f0" }}>{trainer.username}</div>
+                                <div className="font-black text-xl mt-1" style={{ color:rColor, fontFamily:"'Rajdhani',sans-serif" }}>{trainer.prestige}</div>
+                                <div className="text-xs" style={{ color:rColor }}>{trainer.rank}</div>
                             </div>
                         );
                     })}
                 </div>
 
-                {/* Lista */}
-                <div className="flex-1 bg-card border border-border rounded-2xl overflow-hidden flex flex-col">
-                    <div className="flex-shrink-0 grid grid-cols-[40px_1fr_60px_80px] gap-3 px-4 py-2 border-b border-border text-xs text-muted font-display tracking-widest uppercase">
-                        <span>#</span>
-                        <span>Entrenador</span>
-                        <span>Nv.</span>
-                        <span>Prestigio</span>
+                {/* List */}
+                <div className="flex-1 flex flex-col rounded-2xl overflow-hidden min-w-0" style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.07)" }}>
+                    <div className="flex-shrink-0 grid px-4 py-2.5 border-b" style={{ gridTemplateColumns:"40px 1fr 60px 80px", gap:12, borderColor:"rgba(255,255,255,0.06)", fontSize:10, fontFamily:"monospace", color:"rgba(255,255,255,0.3)", letterSpacing:"0.1em" }}>
+                        <span>#</span><span>Trainer</span><span>Lv.</span><span>Prestige</span>
                     </div>
-                    <div className="flex-1 overflow-y-auto">
+                    <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth:"none" }}>
                         {rest.map((trainer: any) => {
-                            const isMe = trainer.username === user?.username;
+                            const isMe   = trainer.username === user?.username;
+                            const rColor = RANK_COLORS[trainer.rank] ?? "#e2e8f0";
                             return (
-                                <div
-                                    key={trainer.userId}
-                                    className={`grid grid-cols-[40px_1fr_60px_80px] gap-3 px-4 py-3 border-b border-border/40 last:border-0
-                                        ${isMe ? "bg-yellow/5" : "hover:bg-white/3"}`}
-                                >
-                                    <span className={`font-display font-bold ${isMe ? "text-yellow" : "text-muted"}`}>
-                                        {trainer.position}
-                                    </span>
+                                <div key={trainer.userId} className="grid px-4 py-3 border-b" style={{ gridTemplateColumns:"40px 1fr 60px 80px", gap:12, borderColor:"rgba(255,255,255,0.04)", background:isMe?"rgba(255,214,10,0.04)":"transparent" }}>
+                                    <span className="font-mono text-sm" style={{ color:isMe?"#ffd60a":"rgba(255,255,255,0.35)" }}>{trainer.position}</span>
                                     <div className="flex items-center gap-2 min-w-0">
-                                        <span className="font-semibold truncate">{trainer.username}</span>
-                                        {isMe && (
-                                            <span className="text-xs text-yellow font-display flex-shrink-0">(tú)</span>
-                                        )}
+                                        <span className="font-semibold text-sm truncate" style={{ color:"#e2e8f0" }}>{trainer.username}</span>
+                                        {isMe && <span className="text-xs flex-shrink-0" style={{ color:"#ffd60a" }}>(you)</span>}
                                     </div>
-                                    <span className="text-muted font-display">{trainer.level}</span>
+                                    <span className="text-sm" style={{ color:"rgba(255,255,255,0.4)" }}>{trainer.level}</span>
                                     <div>
-                                        <span
-                                            className="font-display font-bold"
-                                            style={{ color: RANK_COLORS[trainer.rank] }}
-                                        >
-                                            {trainer.prestige}
-                                        </span>
-                                        <div
-                                            className="text-xs font-display"
-                                            style={{ color: RANK_COLORS[trainer.rank] }}
-                                        >
-                                            {trainer.rank}
-                                        </div>
+                                        <div className="font-black text-sm" style={{ fontFamily:"'Rajdhani',sans-serif", color:rColor }}>{trainer.prestige}</div>
+                                        <div className="text-xs" style={{ color:rColor }}>{trainer.rank}</div>
                                     </div>
                                 </div>
                             );
@@ -114,6 +92,6 @@ export default function RankingPage() {
                     </div>
                 </div>
             </div>
-        </Layout>
+        </div>
     );
 }

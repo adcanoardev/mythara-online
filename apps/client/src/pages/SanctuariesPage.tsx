@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import Layout from "../components/Layout";
 import { useTrainer } from "../context/TrainerContext";
 import { useMapDrag } from "../hooks/useMapDrag";
 import { api } from "../lib/api";
@@ -136,7 +135,7 @@ export default function SanctuariesPage() {
     const clearCount = (z: SanctumDef) => sanctumClears[z.id] ?? 0;
 
     return (
-        <Layout>
+        <div className="fixed inset-0 flex flex-col overflow-hidden" style={{ background:"#070b14", fontFamily:"'Exo 2',sans-serif" }}>
             <style>{`
                 @keyframes smPulse  { 0%{transform:translate(-50%,-50%) scale(.6);opacity:.8} 100%{transform:translate(-50%,-50%) scale(2.6);opacity:0} }
                 @keyframes sheetUp  { from{transform:translateY(100%)} to{transform:translateY(0)} }
@@ -442,6 +441,6 @@ export default function SanctuariesPage() {
                     </>
                 )}
             </div>
-        </Layout>
+        </div>
     );
 }

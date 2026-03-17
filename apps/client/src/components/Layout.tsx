@@ -4,7 +4,7 @@ import { useAuth } from "../hooks/useAuth";
 import { api } from "../lib/api";
 import { useTrainer } from "../context/TrainerContext";
 
-// Avatars — misma data que server/src/data/avatars.ts
+// Avatars — mirrors server/src/data/avatars.ts
 const AVATARS = [
     { id: "male_1",   gender: "male",   emoji: "🧢", name: "Kael"  },
     { id: "male_2",   gender: "male",   emoji: "🎩", name: "Ryn"   },
@@ -21,18 +21,18 @@ const AVATARS = [
 // ─────────────────────────────────────────
 
 const NAV = [
-    { icon: "🏡", label: "Inn",           path: "/inn" },
-    { icon: "👤", label: "Profile",       path: "/profile" },
-    { icon: "⚔️",  label: "Team",         path: "/team" },
-    { icon: "🗡️",  label: "Fight",        path: "/ruins" },
-    { icon: "🏛️",  label: "Sanctuaries",  path: "/sanctuaries" },
-    { icon: "📖",  label: "Arcanum",      path: "/myths" },
-    { icon: "◈",   label: "Fragments",    path: "/fragment" },
-    { icon: "🎒",  label: "Inventory",    path: "/inventory" },
-    { icon: "💎",  label: "Shop",         path: "/shop" },
-    { icon: "⚡",   label: "Ascend",       path: "/ascend" },
-    { icon: "🏆",  label: "Ranking",      path: "/ranking" },
-    { icon: "⚙️",  label: "Settings",     path: "/settings" },
+    { icon: "👤", label: "Profile",      path: "/profile" },
+    { icon: "🐉", label: "Tavern",       path: "/tavern" },
+    { icon: "🗡️", label: "Ruins",        path: "/ruins" },
+    { icon: "⚔️", label: "Arena",        path: "/arena" },
+    { icon: "🏡", label: "Outpost",      path: "/inn" },
+    { icon: "🛒", label: "Market",       path: "/market" },
+    { icon: "🏰", label: "Guild",        path: "/guild" },
+    { icon: "📖", label: "Arcanum",      path: "/arcanum" },
+    { icon: "🏛️", label: "Sanctuaries",  path: "/sanctuaries" },
+    { icon: "🏆", label: "Ranking",      path: "/ranking" },
+    { icon: "⚡",  label: "Ascend",       path: "/ascend" },
+    { icon: "⚙️", label: "Settings",     path: "/settings" },
 ];
 
 // ─────────────────────────────────────────
@@ -123,7 +123,7 @@ export function avatarUrl(avatarId: string): string {
 }
 
 // ─────────────────────────────────────────
-// Marcos de avatar (CSS)
+// Avatar frames (CSS)
 // ─────────────────────────────────────────
 
 export interface AvatarFrame {
@@ -417,11 +417,11 @@ export default function Layout({ children, sidebar, battleLocked, onBattleLocked
     const diamonds      = trainerAny?.diamonds   ?? 0;
     const currentAvatar = trainerAny?.avatar     ?? "male_1";
     const gender        = trainerAny?.gender     ?? "";
-    const frameKey        = trainerAny?.avatarFrame ?? "none"; // siempre desde BD
+    const frameKey        = trainerAny?.avatarFrame ?? "none"; // always from DB
     const unlockedFrames  = (trainerAny?.unlockedFrames as string[]) ?? ["none", "silver"];
     const frameStyle    = (AVATAR_FRAMES.find(f => f.key === frameKey) ?? AVATAR_FRAMES[0]).style;
 
-    // Tokens — estructura real de /tokens/me:
+    // Tokens — real structure from /tokens/me:
     // { npcTokens, npcMax, nextNpcRechargeMs, pvpTokens, pvpMax, nextPvpRechargeMs }
     const tok        = tokens as any;
     const pveCount   = tok?.npcTokens ?? 0;
@@ -437,7 +437,7 @@ export default function Layout({ children, sidebar, battleLocked, onBattleLocked
     const handleSaveAvatar = async (newAvatarId: string, newFrameKey: string) => {
         try {
             await api.updateAvatar({ avatar: newAvatarId, avatarFrame: newFrameKey });
-            reload(); // recarga trainer desde servidor
+            reload(); // reload trainer from server
         } catch (e: any) {
             addToast(e.message ?? "Error saving", "error");
         }
@@ -616,7 +616,7 @@ export default function Layout({ children, sidebar, battleLocked, onBattleLocked
                                     {trainerAny?.name ?? user?.username ?? "—"}
                                 </p>
                                 <p className="text-xs text-muted mt-0.5">
-                                    Lv.{trainerAny?.level ?? 1}
+                                    Lv. {trainerAny?.level ?? 1}
                                     {trainerAny?.rank && <span className="ml-1 text-white/25">· {trainerAny.rank}</span>}
                                 </p>
                             </div>

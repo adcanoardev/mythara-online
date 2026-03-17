@@ -23,7 +23,7 @@ export default function LoginPage() {
 
     return (
         <div className="min-h-screen bg-bg flex items-center justify-center relative overflow-hidden">
-            {/* Fondo — mapa mundial */}
+            {/* Background — world map */}
             <div className="absolute inset-0 pointer-events-none">
                 <img
                     src="https://raw.githubusercontent.com/adcanoardev/mythara-assets/refs/heads/main/maps/mythara_map.avif"
@@ -106,10 +106,10 @@ export default function LoginPage() {
                 {/* Campos */}
                 {mode === "register" && (
                     <div className="mb-4">
-                        <label className="block text-xs text-muted tracking-widest uppercase mb-2">Binder</label>
+                        <label className="block text-xs text-muted tracking-widest uppercase mb-2">Username</label>
                         <input
                             className="w-full bg-white/5 border border-border rounded-lg px-4 py-3 text-sm outline-none focus:border-blue transition-colors"
-                            placeholder="Tu nombre de Binder"
+                            placeholder="Your Binder name"
                             value={form.username}
                             onChange={(e) => setForm({ ...form, username: e.target.value })}
                         />
@@ -126,7 +126,7 @@ export default function LoginPage() {
                     />
                 </div>
                 <div className="mb-6">
-                    <label className="block text-xs text-muted tracking-widest uppercase mb-2">Contraseña</label>
+                    <label className="block text-xs text-muted tracking-widest uppercase mb-2">Password</label>
                     <input
                         className="w-full bg-white/5 border border-border rounded-lg px-4 py-3 text-sm outline-none focus:border-blue transition-colors"
                         placeholder="••••••••"
@@ -148,7 +148,7 @@ export default function LoginPage() {
                         boxShadow: "0 0 24px rgba(123,47,255,0.4)",
                     }}
                 >
-                    {loading ? "..." : mode === "login" ? "Entrar a Mythara" : "Crear Binder"}
+                    {loading ? "..." : mode === "login" ? "Enter Mythara" : "Create Binder"}
                 </button>
 
                 <div className="relative my-5 text-center">
@@ -165,7 +165,7 @@ export default function LoginPage() {
                     }}
                     className="w-full py-3 rounded-xl border border-border text-muted font-display font-semibold text-sm tracking-widest uppercase hover:border-blue hover:text-blue transition-all"
                 >
-                    {mode === "login" ? "Crear nueva cuenta" : "Ya tengo cuenta"}
+                    {mode === "login" ? "Create account" : "I have an account"}
                 </button>
             </div>
         </div>
