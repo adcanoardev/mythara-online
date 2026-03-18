@@ -3,6 +3,8 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTrainer } from "../context/TrainerContext";
 import { useMapDrag } from "../hooks/useMapDrag";
+import ChatPanel from "../components/ChatPanel";
+import AvatarWithFrame from "../components/AvatarWithFrame";
 
 type District = {
     id: string; name: string; color: string;
@@ -30,14 +32,7 @@ const FOG_DRIFT = [
     { id: 3, dur: "64s", delay: "28s", top: "78%", w: "55%", h: "18%", blur: "32px", op: 0.16 },
 ];
 
-const CHAT_MESSAGES = [
-    { user: "KaelDrake",   text: "Anyone want to do Nexus runs?" },
-    { user: "Sylvara99",   text: "I got a Mythic from the Arena!" },
-    { user: "IronBinder",  text: "Guild war starts in 2 hours" },
-    { user: "NightMythra", text: "Selling EPIC fragments, DM me" },
-    { user: "ZarakBolt",   text: "Sanctum 4 solo clear ✓" },
-    { user: "KaelDrake",   text: "GG ZarakBolt!!" },
-];
+
 
 const PVP_RANKS = [
     { name: "Bronze",    color: "#cd7f32", minPvp: 0   },
@@ -53,12 +48,16 @@ const RARITY_MULT: Record<string, number> = {
     COMMON: 1.0, RARE: 1.2, EPIC: 1.4, ELITE: 1.6, LEGENDARY: 2.0, MYTHIC: 2.5,
 };
 
+const FRAME_CDN = "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@20c2494c976794775042d559db3df66687914944/frames";
+
 const FRAMES = [
-    { id: "default",   name: "Default",   color: "#64748b" },
-    { id: "silver",    name: "Silver",    color: "#c0c0c0" },
-    { id: "gold",      name: "Gold",      color: "var(--accent-gold)" },
-    { id: "legendary", name: "Legendary", color: "#f59e0b" },
-    { id: "mythic",    name: "Mythic",    color: "var(--accent-red)" },
+    { id: "frame_1", name: "Iron",      color: "#94a3b8", url: `${FRAME_CDN}/frame_1.webp` },
+    { id: "frame_2", name: "Silver",    color: "#c0c0c0", url: `${FRAME_CDN}/frame_2.webp` },
+    { id: "frame_3", name: "Gold",      color: "#fbbf24", url: `${FRAME_CDN}/frame_3.webp` },
+    { id: "frame_4", name: "Emerald",   color: "#34d399", url: `${FRAME_CDN}/frame_4.webp` },
+    { id: "frame_5", name: "Legendary", color: "#fb923c", url: `${FRAME_CDN}/frame_5.webp` },
+    { id: "frame_6", name: "Mythic",    color: "#a78bfa", url: `${FRAME_CDN}/frame_6.webp` },
+    { id: "frame_7", name: "Dragon",    color: "#f87171", url: `${FRAME_CDN}/frame_7.webp` },
 ];
 
 const BOTTOM_BAR = [
@@ -86,7 +85,11 @@ function fmtGold(n: number): string {
 }
 
 const CITY_URL = "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@6c846616e655b326640372a11da43a34cfae8dd1/maps/main_map_home_bg.webp";
-const AVATAR_URL = (av: string) => `https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@7613486785dc2b2089f6d345e1281e9316c1d982/avatars/${av}.webp`;
+const AVATAR_CDN_BASE = "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@8788a27ffc7fdfbb47b3379de8219f24117be8aa/avatars";
+const AVATAR_URL = (av: string) => {
+    const id = av && av.startsWith("avatar_") ? av : `avatar_${av ?? "male_1"}`;
+    return `${AVATAR_CDN_BASE}/${id}.webp`;
+};
 
 export default function HomePage() {
     const { trainer } = useTrainer();
@@ -95,12 +98,8 @@ export default function HomePage() {
     const mapRef       = useRef<HTMLDivElement>(null);
     const [hoveredId,   setHoveredId]   = useState<string | null>(null);
     const [chatOpen,    setChatOpen]    = useState(false);
-    const [avatarModal, setAvatarModal] = useState(false);
-    const [selFrame,    setSelFrame]    = useState("gold");
     const { offset: rawOffset, onMouseDown, onTouchStart, didDrag } = useMapDrag(containerRef, mapRef, { initialYRatio: 0.44 });
     const offset = rawOffset ?? { x: 0, y: 0 };
-    // Mobile: draggable 140% map. Desktop: same map but browser shows more of it naturally.
-
 
     const t           = trainer as any;
     const binderLevel = t?.binderLevel ?? 1;
@@ -117,11 +116,8 @@ export default function HomePage() {
     const guildTag    = t?.guildTag    ?? null;
     const party       = t?.party       ?? [];
     const totalPower  = party.reduce((acc: number, m: any) => acc + calcPower(m), 0);
-    const wins        = t?.stats?.wins  ?? 0;
-    const losses      = t?.stats?.losses ?? 0;
-    const winRate     = (wins+losses) > 0 ? Math.round((wins/(wins+losses))*100) : 0;
-    const totalMyths  = t?.totalMyths  ?? 0;
-    const frameColor  = FRAMES.find(f => f.id === selFrame)?.color ?? "#fbbf24";
+    // Frame siempre desde TrainerContext — fuente de verdad compartida con ProfilePage
+    const selFrame    = t?.avatarFrame ?? "frame_1";
 
     const nexus = DISTRICTS.find(d => d.id === "nexus")!;
 
@@ -159,38 +155,42 @@ export default function HomePage() {
                 paddingTop:"max(20px,env(safe-area-inset-top))",
                 gap:"12px",
             }}>
-                {/* Avatar block — clickable */}
-                <div className="flex items-center gap-3 pointer-events-auto flex-shrink-0">
-                    <button className="avatar-btn" onClick={() => setAvatarModal(true)} style={{
-                        position:"relative",width:86,height:86,flexShrink:0,
-                        background:"none",border:"none",padding:0,cursor:"pointer",
-                        transition:"transform 0.15s ease",
-                    }}>
-                        <div style={{ position:"absolute",inset:0,borderRadius:12,border:`2.5px solid ${frameColor}cc`,boxShadow:`0 0 18px ${frameColor}44,inset 0 0 12px rgba(0,0,0,.55)`,zIndex:2,pointerEvents:"none" }} />
-                        <img src={AVATAR_URL(avatar)} onError={e=>{(e.target as HTMLImageElement).style.display="none"}}
-                            style={{ width:"100%",height:"100%",objectFit:"cover",borderRadius:10,display:"block",position:"relative",zIndex:1 }} alt={username} />
-                        <div style={{ position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:36,borderRadius:10,background:"linear-gradient(135deg,#1a1a2e,#16213e)",zIndex:0 }}>🧙</div>
-                        <div style={{ position:"absolute",top:-10,left:-10,minWidth:32,height:32,padding:"0 7px",background:"linear-gradient(135deg,#78350f,#f59e0b,#fbbf24)",border:"2.5px solid #020810",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"Rajdhani,sans-serif",fontWeight:700,fontSize:14,color:"#020810",lineHeight:1,zIndex:3 }}>{binderLevel}</div>
-                    </button>
+                {/* ── Profile card — opción B ── */}
+                <div className="pointer-events-auto flex-shrink-0" style={{ display:"flex", alignItems:"center", gap:0 }}>
 
-                    {/* Name + rank + power + XP */}
-                    <div style={{ minWidth:0,pointerEvents:"none" }}>
-                        <div style={{ fontFamily:"Rajdhani,sans-serif",fontWeight:700,fontSize:22,color:"#fff",lineHeight:1.1,maxWidth:160,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textShadow:"0 1px 6px rgba(0,0,0,.9)" }}>
-                            {guildTag && <span style={{ color:"#7b2fff",marginRight:3,fontWeight:900,letterSpacing:".08em" }}>[{guildTag}]</span>}
+                    {/* AVATAR + MARCO — componente reutilizable */}
+                    <AvatarWithFrame
+                        avatar={avatar}
+                        frameId={selFrame}
+                        size={160}
+                        padding={27} 
+                        level={t?.level ?? 1}
+                        onClick={() => navigate("/profile")}
+                        className="avatar-btn"
+                    />
+
+                    {/* DATOS — a la derecha del avatar */}
+                    <div style={{ marginLeft: 0, display:"flex", flexDirection:"column", gap:5, minWidth:0 }}>
+                        {/* Nombre */}
+                        <div style={{ fontFamily:"Rajdhani,sans-serif", fontWeight:700, fontSize:22, color:"#e2e8f0", lineHeight:1.1, whiteSpace:"nowrap", textShadow:"0 1px 6px rgba(0,0,0,0.9)" }}>
+                            {guildTag && <span style={{ color:"#a78bfa", marginRight:3, fontWeight:900, fontSize:17 }}>[{guildTag}]</span>}
                             {username}
                         </div>
-                        <div style={{ display:"flex",alignItems:"center",gap:8,marginTop:3 }}>
-                            <span style={{ fontSize:13,color:"rgba(251,191,36,.70)",fontFamily:"Rajdhani,sans-serif",fontWeight:600 }}>Binder · Lv {binderLevel}</span>
-                            <span style={{ fontSize:11,fontFamily:"Rajdhani,sans-serif",fontWeight:700,color:pvpRank.color,padding:"1px 7px",borderRadius:5,background:`${pvpRank.color}22`,border:`1px solid ${pvpRank.color}55`,textShadow:`0 0 8px ${pvpRank.color}88` }}>{pvpRank.name}</span>
-                        </div>
-                        {totalPower > 0 && (
-                            <div style={{ marginTop:2 }}>
-                                <span style={{ fontSize:11,fontFamily:"Rajdhani,sans-serif",fontWeight:700,color:"var(--accent-gold)" }}>⚡ {totalPower.toLocaleString()} PWR</span>
+                        {/* Barra XP */}
+                        <div style={{ position:"relative", height:18, width:160, background:"rgba(0,0,0,0.5)", borderRadius:3, overflow:"hidden", border:"1px solid rgba(76,201,240,0.3)" }}>
+                            <div style={{ width:`${xpPct}%`, height:"100%", background:"linear-gradient(90deg,#4cc9f0,#7b2fff)", transition:"width 0.5s" }} />
+                            <div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, fontFamily:"Rajdhani,sans-serif", fontWeight:700, letterSpacing:".1em", color:"#e2e8f0", textShadow:"0 1px 3px rgba(0,0,0,0.9)" }}>
+                                {Math.round(xpPct)}% XP
                             </div>
-                        )}
-                        <div style={{ width:140,height:18,background:"rgba(255,255,255,.10)",borderRadius:6,marginTop:5,overflow:"hidden",position:"relative" }}>
-                            <div style={{ width:`${xpPct}%`,height:"100%",borderRadius:6,background:"linear-gradient(90deg,#facc15 0%,#fde68a 45%,#facc15 60%,#facc15 100%)",backgroundSize:"200% auto",animation:"xpShimmer 3s linear infinite",transition:"width 0.5s" }} />
-                            <div style={{ position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontFamily:"Rajdhani,sans-serif",fontWeight:700,color:xpPct>40?"#020810":"rgba(251,191,36,.90)",textShadow:xpPct>40?"none":"0 1px 3px rgba(0,0,0,.8)" }}>{Math.round(xpPct)}% XP</div>
+                        </div>
+                        {/* Power + Rango */}
+                        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                            <div style={{ fontFamily:"Rajdhani,sans-serif", fontWeight:700, fontSize:13, color:"#fbbf24", textShadow:"0 1px 4px rgba(0,0,0,0.9)" }}>
+                                Power: {totalPower > 0 ? totalPower.toLocaleString() : "—"} PWR
+                            </div>
+                            <div style={{ padding:"2px 8px", borderRadius:4, background:`${pvpRank.color}22`, border:`1px solid ${pvpRank.color}88`, fontFamily:"Rajdhani,sans-serif", fontWeight:700, fontSize:10, color:pvpRank.color, letterSpacing:".08em", textTransform:"uppercase" }}>
+                                {pvpRank.name}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -276,130 +276,8 @@ export default function HomePage() {
             </div>
 
             {/* ── AVATAR MODAL ── */}
-            {avatarModal && (
-                <>
-                    <div onClick={() => setAvatarModal(false)} style={{ position:"fixed",inset:0,zIndex:40,background:"rgba(4,7,16,.82)",backdropFilter:"blur(8px)" }} />
-                    <div style={{ position:"fixed",inset:0,zIndex:41,display:"flex",alignItems:"center",justifyContent:"center",pointerEvents:"none" }}>
-                        <div style={{ pointerEvents:"all",width:"100%",maxWidth:400,height:"100dvh",maxHeight:"100dvh",background:"rgba(5,9,20,.99)",borderRadius:0,border:"none",display:"flex",flexDirection:"column",overflow:"hidden",animation:"modalFadeIn .22s cubic-bezier(.34,1.2,.64,1) forwards" }}
-                            ref={el => {
-                                if (!el) return;
-                                const apply = () => {
-                                    const d = window.innerWidth >= 480;
-                                    el.style.height       = d ? "auto"  : "100dvh";
-                                    el.style.maxHeight    = d ? "88dvh" : "100dvh";
-                                    el.style.borderRadius = d ? "20px"  : "0";
-                                    el.style.border       = d ? "1px solid rgba(56,189,248,.22)" : "none";
-                                    el.style.boxShadow    = d ? "0 0 0 1px rgba(56,189,248,.10),0 32px 80px rgba(0,0,0,.90)" : "none";
-                                };
-                                apply();
-                                window.addEventListener("resize", apply);
-                            }}
-                        >
-                            {/* Header */}
-                            <div style={{ flexShrink:0,padding:"16px 16px 12px",background:"linear-gradient(135deg,rgba(13,21,37,.98),rgba(17,29,53,.98))",borderBottom:"1px solid rgba(255,255,255,.07)",display:"flex",alignItems:"center",gap:12,position:"relative" }}>
-                                <div style={{ width:64,height:64,borderRadius:12,border:`3px solid ${frameColor}`,boxShadow:`0 0 18px ${frameColor}40`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:32,flexShrink:0,position:"relative",overflow:"hidden",background:"linear-gradient(135deg,#1a1a2e,#16213e)" }}>
-                                    <img src={AVATAR_URL(avatar)} onError={e=>{(e.target as HTMLImageElement).style.display="none"}} style={{ position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",borderRadius:10 }} alt="" />
-                                    <span style={{ position:"relative",zIndex:1 }}>🧙</span>
-                                </div>
-                                <div style={{ flex:1,minWidth:0 }}>
-                                    <div style={{ fontFamily:"Rajdhani,sans-serif",fontWeight:900,fontSize:20,color:"var(--text-primary)",letterSpacing:".04em" }}>
-                                        {guildTag && <span style={{ color:"#7b2fff",marginRight:4,fontWeight:900,letterSpacing:".08em" }}>[{guildTag}]</span>}
-                                        {username}
-                                    </div>
-                                    <div style={{ display:"flex",alignItems:"center",gap:8,marginTop:3 }}>
-                                        <span style={{ fontSize:11,fontFamily:"Rajdhani,sans-serif",fontWeight:700,color:pvpRank.color,padding:"1px 7px",borderRadius:5,background:`${pvpRank.color}18`,border:`1px solid ${pvpRank.color}40` }}>{pvpRank.name}</span>
-                                        {totalPower>0 && <span style={{ fontSize:11,fontFamily:"Rajdhani,sans-serif",fontWeight:700,color:"var(--accent-gold)" }}>⚡ {totalPower.toLocaleString()} PWR</span>}
-                                    </div>
-                                </div>
-                                <button onClick={() => setAvatarModal(false)} style={{ position:"absolute",top:12,right:12,width:32,height:32,borderRadius:"50%",background:"rgba(56,189,248,.15)",border:"2px solid rgba(56,189,248,.65)",color:"#38bdf8",display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,fontWeight:700,cursor:"pointer",boxShadow:"0 0 12px rgba(56,189,248,.30)" }}>✕</button>
-                            </div>
-
-                            {/* Scrollable body */}
-                            <div style={{ flex:1,overflowY:"auto",display:"flex",flexDirection:"column" }}>
-                                {/* XP bar */}
-                                <div style={{ padding:"10px 16px 12px",borderBottom:"1px solid rgba(255,255,255,.05)" }}>
-                                    <div style={{ display:"flex",justifyContent:"space-between",marginBottom:5,fontSize:9,fontFamily:"monospace",color:"rgba(255,255,255,.3)" }}>
-                                        <span>XP {xp} / {xpMax}</span>
-                                        <span>Lv. {binderLevel} → {binderLevel+1}</span>
-                                    </div>
-                                    <div style={{ height:7,background:"rgba(255,255,255,.07)",borderRadius:4,overflow:"hidden" }}>
-                                        <div style={{ width:`${xpPct}%`,height:"100%",borderRadius:4,background:"linear-gradient(90deg,#facc15,#fde68a)",transition:"width .5s" }} />
-                                    </div>
-                                </div>
-
-                                {/* Stats grid */}
-                                <div style={{ padding:"12px 16px 14px",borderBottom:"1px solid rgba(255,255,255,.05)" }}>
-                                    <p style={{ fontSize:9,fontFamily:"monospace",letterSpacing:".12em",color:"rgba(255,255,255,.25)",textTransform:"uppercase",marginBottom:10 }}>Combat & Economy</p>
-                                    <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:7 }}>
-                                        {[
-                                            { val:wins,            label:"NPC Wins",    color:"var(--accent-green)" },
-                                            { val:`${winRate}%`,   label:"Win Rate",    color:"var(--accent-blue)" },
-                                            { val:fmtGold(gold),   label:"Gold",        color:"#fcd34d" },
-                                            { val:`${diamonds}💎`, label:"Diamonds",    color:"#c4b5fd" },
-                                            { val:totalMyths,      label:"Myths Owned", color:"#a78bfa" },
-                                            { val:pvpTokens,       label:"PvP Tokens",  color:pvpRank.color },
-                                        ].map(({ val, label, color }) => (
-                                            <div key={label} style={{ background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.07)",borderRadius:12,padding:"10px 12px" }}>
-                                                <div style={{ fontFamily:"Rajdhani,sans-serif",fontWeight:900,fontSize:20,lineHeight:1,color }}>{val}</div>
-                                                <div style={{ fontSize:9,fontFamily:"monospace",color:"rgba(255,255,255,.28)",marginTop:3,textTransform:"uppercase",letterSpacing:".08em" }}>{label}</div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Frame picker */}
-                                <div style={{ padding:"12px 16px 16px" }}>
-                                    <p style={{ fontSize:9,fontFamily:"monospace",letterSpacing:".12em",color:"rgba(255,255,255,.25)",textTransform:"uppercase",marginBottom:12 }}>Avatar Frame</p>
-                                    <div style={{ display:"flex",gap:12 }}>
-                                        {FRAMES.map(f => (
-                                            <button key={f.id} onClick={() => setSelFrame(f.id)} style={{ display:"flex",flexDirection:"column",alignItems:"center",gap:4,background:"none",border:"none",cursor:"pointer",padding:0,transition:"transform .15s",transform:selFrame===f.id?"scale(1.18)":"scale(1)" }}>
-                                                <div style={{ width:40,height:40,borderRadius:"50%",border:`2.5px solid ${selFrame===f.id?f.color:f.color+"55"}`,background:`${f.color}15`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,boxShadow:selFrame===f.id?`0 0 14px ${f.color}70`:"none",transition:"all .15s" }}>🧙</div>
-                                                <span style={{ fontSize:8,fontFamily:"monospace",letterSpacing:".06em",color:selFrame===f.id?f.color:"rgba(255,255,255,.28)" }}>{f.name}</span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Actions — pinned bottom */}
-                            <div style={{ flexShrink:0,padding:"12px 16px 16px",display:"flex",gap:8,borderTop:"1px solid rgba(255,255,255,.08)",background:"rgba(5,9,20,.98)" }}>
-                                <button onClick={() => { setAvatarModal(false); navigate("/profile"); }} style={{ flex:1,padding:12,borderRadius:14,background:"rgba(56,189,248,.12)",border:"1.5px solid rgba(56,189,248,.50)",color:"#38bdf8",fontFamily:"Rajdhani,sans-serif",fontWeight:700,fontSize:12,textTransform:"uppercase",letterSpacing:".1em",cursor:"pointer",boxShadow:"0 0 14px rgba(56,189,248,.15)" }}>Full Profile →</button>
-                                <button onClick={() => { setAvatarModal(false); navigate("/settings"); }} style={{ padding:"12px 16px",borderRadius:14,background:"rgba(255,255,255,.05)",border:"1.5px solid rgba(255,255,255,.14)",color:"rgba(255,255,255,.55)",fontSize:18,cursor:"pointer" }}>⚙</button>
-                            </div>
-                        </div>
-                    </div>
-                </>
-            )}
-
             {/* ── CHAT OVERLAY ── */}
-            {chatOpen && (
-                <>
-                    <div onClick={() => setChatOpen(false)} style={{ position:"absolute",inset:0,zIndex:30,background:"rgba(4,7,16,.55)",backdropFilter:"blur(3px)" }} />
-                    <div style={{ position:"absolute",zIndex:31,background:"rgba(8,13,26,.98)",display:"flex",flexDirection:"column",...(isMobile?{ left:0,right:0,bottom:0,height:"90%",borderRadius:"20px 20px 0 0",borderTop:"1px solid rgba(99,102,241,.35)",animation:"chatSlideUp .26s cubic-bezier(.34,1.2,.64,1) forwards",boxShadow:"0 -8px 40px rgba(0,0,0,.7)"}:{ top:0,right:0,bottom:0,width:340,borderLeft:"1px solid rgba(99,102,241,.30)",animation:"chatSlideIn .22s cubic-bezier(.34,1.2,.64,1) forwards",boxShadow:"-8px 0 40px rgba(0,0,0,.6)"}) }}>
-                        {isMobile && <div style={{ display:"flex",justifyContent:"center",padding:"10px 0 4px" }}><div style={{ width:40,height:4,borderRadius:2,background:"rgba(255,255,255,.20)" }} /></div>}
-                        <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"14px 16px 12px",paddingTop:isMobile?"10px":"max(16px,env(safe-area-inset-top))",borderBottom:"1px solid rgba(255,255,255,.07)",background:"rgba(4,7,16,.60)" }}>
-                            <div style={{ display:"flex",gap:8 }}>
-                                {["Global","Guild"].map((tab,i) => (
-                                    <button key={tab} style={{ padding:"6px 16px",borderRadius:8,background:i===0?"rgba(99,102,241,.25)":"transparent",border:i===0?"1px solid rgba(99,102,241,.50)":"1px solid rgba(255,255,255,.10)",color:i===0?"#a5b4fc":"rgba(232,240,254,.45)",fontFamily:"Rajdhani,sans-serif",fontWeight:700,fontSize:14,textTransform:"uppercase",letterSpacing:".06em",cursor:"pointer" }}>{tab}</button>
-                                ))}
-                            </div>
-                            <button onClick={() => setChatOpen(false)} style={{ width:34,height:34,borderRadius:"50%",background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.12)",color:"rgba(232,240,254,.55)",fontSize:16,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>✕</button>
-                        </div>
-                        <div style={{ flex:1,overflowY:"auto",padding:"12px 16px",display:"flex",flexDirection:"column",gap:12 }}>
-                            {CHAT_MESSAGES.map((msg,i) => (
-                                <div key={i} style={{ display:"flex",flexDirection:"column",gap:2 }}>
-                                    <span style={{ fontFamily:"Rajdhani,sans-serif",fontWeight:700,fontSize:13,color:"#818cf8" }}>{msg.user}</span>
-                                    <span style={{ fontSize:14,color:"rgba(232,240,254,.82)",lineHeight:1.4 }}>{msg.text}</span>
-                                </div>
-                            ))}
-                        </div>
-                        <div style={{ padding:"10px 14px",paddingBottom:"max(12px,env(safe-area-inset-bottom))",borderTop:"1px solid rgba(255,255,255,.07)",display:"flex",gap:8,alignItems:"center" }}>
-                            <input type="text" placeholder="Enter your message..." style={{ flex:1,padding:"10px 14px",background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.12)",borderRadius:10,color:"var(--text-primary)",fontSize:14,fontFamily:"Exo 2,sans-serif",outline:"none" }} />
-                            <button style={{ padding:"10px 18px",borderRadius:10,background:"linear-gradient(135deg,#4f46e5,#6366f1)",border:"none",color:"#fff",fontFamily:"Rajdhani,sans-serif",fontWeight:700,fontSize:14,cursor:"pointer" }}>Send</button>
-                        </div>
-                    </div>
-                </>
-            )}
+            {chatOpen && <ChatPanel onClose={() => setChatOpen(false)} />}
         </div>
     );
 }

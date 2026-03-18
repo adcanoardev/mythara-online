@@ -4,6 +4,7 @@ import { api } from "../lib/api";
 import { useAuth } from "../hooks/useAuth";
 import { useTrainer } from "../context/TrainerContext";
 import PageTopbar from "../components/PageTopbar";
+import AvatarWithFrame from "../components/AvatarWithFrame";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const AFFINITY_COLORS: Record<string, string> = {
@@ -42,13 +43,21 @@ const EMBLEMS = [
   { icon: "🌑", name: "Shade Emblem",  sanctum: "Nox",   affinity: "SHADE",  level: 50 },
 ];
 
-// Placeholder frames — pending CDN assets
+const FRAME_CDN = "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@20c2494c976794775042d559db3df66687914944/frames";
+const AVATAR_CDN_BASE = "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@8788a27ffc7fdfbb47b3379de8219f24117be8aa/avatars";
+const AVATAR_URL = (av: string) => {
+  const id = av.startsWith("avatar_") ? av : `avatar_${av}`;
+  return `${AVATAR_CDN_BASE}/${id}.webp`;
+};
+
 const FRAMES = [
-  { id: "default",   name: "Default",   color: "#475569" },
-  { id: "silver",    name: "Silver",    color: "#c0c0c0" },
-  { id: "gold",      name: "Gold",      color: "var(--accent-gold)" },
-  { id: "legendary", name: "Legendary", color: "var(--accent-gold)" },
-  { id: "mythic",    name: "Mythic",    color: "var(--accent-red)" },
+  { id: "frame_1", name: "Iron",      color: "#94a3b8", url: `${FRAME_CDN}/frame_1.webp` },
+  { id: "frame_2", name: "Silver",    color: "#c0c0c0", url: `${FRAME_CDN}/frame_2.webp` },
+  { id: "frame_3", name: "Gold",      color: "#fbbf24", url: `${FRAME_CDN}/frame_3.webp` },
+  { id: "frame_4", name: "Emerald",   color: "#34d399", url: `${FRAME_CDN}/frame_4.webp` },
+  { id: "frame_5", name: "Legendary", color: "#fb923c", url: `${FRAME_CDN}/frame_5.webp` },
+  { id: "frame_6", name: "Mythic",    color: "#a78bfa", url: `${FRAME_CDN}/frame_6.webp` },
+  { id: "frame_7", name: "Dragon",    color: "#f87171", url: `${FRAME_CDN}/frame_7.webp` },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -83,7 +92,7 @@ function StatRow({ label, value, color = "rgba(255,255,255,0.7)" }: {
 // ─── ProfilePage ─────────────────────────────────────────────────────────────
 export default function ProfilePage() {
   const { user } = useAuth();
-  const { guildTag } = useTrainer();
+  const { trainer: ctxTrainer, guildTag, reload: reloadTrainer } = useTrainer();
   const [trainer, setTrainer] = useState<any>(null);
   const [party, setParty] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
@@ -94,9 +103,9 @@ export default function ProfilePage() {
   const [usernameMsg, setUsernameMsg] = useState("");
   const [changingUsername, setChangingUsername] = useState(false);
 
-  // Frame picker
+  // Frame — SIN estado local, siempre desde TrainerContext (fuente de verdad)
   const [showFramePicker, setShowFramePicker] = useState(false);
-  const [selectedFrame, setSelectedFrame] = useState("default");
+  const selectedFrame = ctxTrainer?.avatarFrame ?? "frame_1";
 
   useEffect(() => {
     Promise.all([
@@ -107,7 +116,6 @@ export default function ProfilePage() {
       setTrainer(t);
       setParty(p);
       setStats(s);
-      if (t?.avatarFrame) setSelectedFrame(t.avatarFrame);
     });
   }, []);
 
@@ -126,7 +134,16 @@ export default function ProfilePage() {
     : 0;
 
   const diamonds = trainer?.diamonds ?? 0;
-  const frameColor = FRAMES.find((f) => f.id === selectedFrame)?.color ?? "#475569";
+  const frameColor = FRAMES.find((f) => f.id === selectedFrame)?.color ?? "#94a3b8";
+  const frameUrl   = FRAMES.find((f) => f.id === selectedFrame)?.url ?? "";
+
+  async function handleFrameChange(frameId: string) {
+    setShowFramePicker(false);
+    try {
+      await api.updateFrame(frameId);
+      reloadTrainer(); // TrainerContext se actualiza → selectedFrame se recalcula solo
+    } catch {}
+  }
 
   async function handleUsernameChange() {
     if (!newUsername.trim() || newUsername.length < 3) {
@@ -218,15 +235,18 @@ export default function ProfilePage() {
             </p>
             <div className="flex flex-col gap-2">
               {FRAMES.map((f) => (
-                <button key={f.id} onClick={() => { setSelectedFrame(f.id); setShowFramePicker(false); }}
+                <button key={f.id} onClick={() => handleFrameChange(f.id)}
                   className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all"
                   style={{
                     background: selectedFrame === f.id ? `${f.color}12` : "rgba(255,255,255,0.03)",
                     border: `1px solid ${selectedFrame === f.id ? f.color + "50" : "rgba(255,255,255,0.07)"}`,
                   }}>
-                  <div className="w-8 h-8 rounded-full flex-shrink-0"
-                    style={{ background: `${f.color}20`, border: `2px solid ${f.color}60` }} />
-                  <span className="text-sm font-bold" style={{ color: selectedFrame === f.id ? f.color : "var(--text-primary)" }}>
+                  <AvatarWithFrame
+                    avatar={trainer?.avatar ?? "male_1"}
+                    frameId={f.id}
+                    size={44}
+                  />
+                  <span className="text-sm font-bold" style={{ color: selectedFrame === f.id ? f.color : "#e2e8f0" }}>
                     {f.name}
                   </span>
                   {selectedFrame === f.id && (
@@ -247,93 +267,69 @@ export default function ProfilePage() {
       )}
 
       {/* ── Banner ── */}
-      <div className="flex-shrink-0 px-4 md:px-6 py-4 md:py-5 relative overflow-hidden"
+      <div className="flex-shrink-0 px-4 md:px-6 py-3 md:py-5 relative"
         style={{
           background: "linear-gradient(135deg,#0d1525,#111d35)",
           borderBottom: "1px solid rgba(255,255,255,0.06)",
         }}>
         <div className="absolute inset-0 pointer-events-none"
           style={{ background: "radial-gradient(ellipse 55% 100% at 85% 50%, rgba(123,47,255,0.12) 0%, transparent 60%)" }} />
-        <div className="relative flex items-center gap-4">
-          {/* Avatar with frame */}
-          <div className="relative flex-shrink-0">
-            <div className="w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center text-3xl"
-              style={{
-                background: "linear-gradient(135deg,#1a1a2e,#16213e)",
-                border: `3px solid ${frameColor}`,
-                boxShadow: `0 0 20px ${frameColor}40`,
-              }}>
-              🧙
-            </div>
-            <button onClick={() => setShowFramePicker(true)}
-              className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center transition-all hover:brightness-125 active:scale-90"
-              style={{ background: frameColor, fontSize: "var(--font-xs)" }}
-              title="Change frame">
-              ✏
-            </button>
+        <div className="relative flex items-center gap-3">
+          {/* AVATAR — más pequeño en móvil */}
+          <div className="flex-shrink-0">
+            <AvatarWithFrame
+              avatar={trainer?.avatar ?? "male_1"}
+              frameId={selectedFrame}
+              size={90}
+              padding={15}
+              level={trainer?.level ?? 1}
+              onClick={() => setShowFramePicker(true)}
+            />
           </div>
 
-          {/* User info */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-0.5">
-              <span className="font-black text-xl md:text-2xl tracking-wide"
-                style={{ fontFamily: "'Rajdhani',sans-serif", color: "var(--text-primary)" }}>
-                {guildTag && (
-                  <span style={{ color: "#7b2fff", marginRight: 4, fontWeight: 900, letterSpacing: ".08em" }}>
-                    [{guildTag}]
-                  </span>
-                )}
+          {/* User info + diamonds */}
+          <div className="flex-1 min-w-0 flex flex-col gap-1">
+            {/* Nombre + rename + diamonds en una fila */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-black text-lg tracking-wide truncate"
+                style={{ fontFamily: "'Rajdhani',sans-serif", color: "#e2e8f0", maxWidth: 160 }}>
+                {guildTag && <span style={{ color:"#a78bfa", marginRight:4, fontWeight:900 }}>[{guildTag}]</span>}
                 {user?.username ?? "—"}
               </span>
               <button onClick={() => setShowUsernameModal(true)}
-                className="text-[9px] font-mono px-2 py-0.5 rounded-md transition-all hover:brightness-125 active:scale-95"
-                style={{ background: "rgba(167,139,250,0.1)", color: "#a78bfa", border: "1px solid rgba(167,139,250,0.2)" }}>
+                className="text-[9px] font-mono px-2 py-0.5 rounded-md flex-shrink-0"
+                style={{ background:"rgba(167,139,250,0.1)", color:"#a78bfa", border:"1px solid rgba(167,139,250,0.2)" }}>
                 rename
               </button>
+              {/* Diamonds — junto al nombre en móvil */}
+              <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg flex-shrink-0"
+                style={{ background:"rgba(167,139,250,0.08)", border:"1px solid rgba(167,139,250,0.2)" }}>
+                <span style={{ fontSize:13 }}>💎</span>
+                <span className="font-mono font-bold text-xs" style={{ color:"#c4b5fd" }}>{diamonds}</span>
+              </div>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-mono" style={{ color: "var(--text-secondary)" }}>
-                Lv. {trainer?.level ?? 1}
-              </span>
+            {/* Stats */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-mono" style={{ color:"#8892a4" }}>Lv. {trainer?.level ?? 1}</span>
               <span className="text-xs font-mono px-2 py-0.5 rounded-full font-bold"
-                style={{
-                  background: `${pvpRank.color}15`,
-                  color: pvpRank.color,
-                  border: `1px solid ${pvpRank.color}35`,
-                }}>
+                style={{ background:`${pvpRank.color}15`, color:pvpRank.color, border:`1px solid ${pvpRank.color}35` }}>
                 {pvpRank.name}
               </span>
-              <span className="text-xs font-mono" style={{ color: "#a78bfa" }}>
-                ⚡ {totalPower.toLocaleString()} PWR
-              </span>
+              <span className="text-xs font-mono" style={{ color:"#fbbf24" }}>⚡ {totalPower.toLocaleString()} PWR</span>
             </div>
-          </div>
-
-          {/* Diamonds */}
-          <div className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl"
-            style={{ background: "rgba(167,139,250,0.08)", border: "1px solid rgba(167,139,250,0.2)" }}>
-            <span style={{ fontSize: "var(--font-md)" }}>💎</span>
-            <span className="font-mono font-bold text-sm tabular-nums" style={{ color: "#c4b5fd" }}>
-              {diamonds}
-            </span>
-          </div>
-        </div>
-
-        {/* XP bar */}
-        <div className="relative mt-3">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[9px] font-mono" style={{ color: "var(--text-muted)" }}>
-              XP {trainer?.xp ?? 0} / {xpForLevel(trainer?.level ?? 1)}
-            </span>
-            <span className="text-[9px] font-mono" style={{ color: "var(--text-muted)" }}>{xpPct}%</span>
-          </div>
-          <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
-            <div className="h-full rounded-full transition-all duration-700"
-              style={{
-                width: `${xpPct}%`,
-                background: "linear-gradient(90deg,#7b2fff,#4cc9f0)",
-                boxShadow: "0 0 8px rgba(76,201,240,0.4)",
-              }} />
+            {/* XP bar — dentro del bloque de info para que quepa en móvil */}
+            <div className="relative mt-1">
+              <div className="flex items-center justify-between mb-0.5">
+                <span className="text-[9px] font-mono" style={{ color: "#5a6a80" }}>
+                  XP {trainer?.xp ?? 0} / {xpForLevel(trainer?.level ?? 1)}
+                </span>
+                <span className="text-[9px] font-mono" style={{ color: "#5a6a80" }}>{xpPct}%</span>
+              </div>
+              <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                <div className="h-full rounded-full transition-all duration-700"
+                  style={{ width: `${xpPct}%`, background: "linear-gradient(90deg,#7b2fff,#4cc9f0)" }} />
+              </div>
+            </div>
           </div>
         </div>
       </div>

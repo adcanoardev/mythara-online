@@ -61,8 +61,8 @@ function ComingSoon({ name }: { name: string }) {
 function ChatButtonFloating({ user, onOpen }: { user: any; onOpen: () => void }) {
   const location = useLocation();
   // No mostrar en páginas que ya tienen el botón integrado en su topbar
-  const pagesWithOwnChat = ["/tavern", "/outpost", "/guild", "/arena", "/ruins", "/market", "/battle"];
-  const hasOwnChat = pagesWithOwnChat.some(r => location.pathname.startsWith(r));
+  const pagesWithOwnChat = ["/", "/tavern", "/outpost", "/guild", "/arena", "/ruins", "/market", "/battle"];
+  const hasOwnChat = pagesWithOwnChat.some(r => location.pathname === r || (r !== "/" && location.pathname.startsWith(r)));
   if (!user || hasOwnChat) return null;
   return (
     <button

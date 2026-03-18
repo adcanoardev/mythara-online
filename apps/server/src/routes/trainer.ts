@@ -75,13 +75,17 @@ router.get("/trainer/me", requireAuth, async (req, res) => {
 // ─── AVATAR / MARCO ──────────────────────────────────────────────────────────
 // Lista canonica de avatares validos (misma que onboarding)
 const VALID_AVATAR_IDS = [
+    "avatar_male_1","avatar_male_2","avatar_male_3","avatar_male_4",
+    "avatar_female_1","avatar_female_2","avatar_female_3","avatar_female_4",
+    // IDs legacy (compatibilidad usuarios existentes)
     "male_1","male_2","male_3","male_4",
     "female_1","female_2","female_3","female_4",
 ];
 
 // Lista canonica de todos los marcos que existen en el juego
 const ALL_FRAME_KEYS = [
-    "none","silver","gold","mythic","arcane","ember","tide","legendary",
+    "none",
+    "frame_1","frame_2","frame_3","frame_4","frame_5","frame_6","frame_7",
 ];
 
 router.post("/trainer/avatar", requireAuth, async (req, res) => {
@@ -99,7 +103,7 @@ router.post("/trainer/avatar", requireAuth, async (req, res) => {
             if (!VALID_AVATAR_IDS.includes(avatar)) {
                 return res.status(400).json({ error: "Avatar no valido" });
             }
-            const avatarGender = avatar.startsWith("male") ? "male" : "female";
+            const avatarGender = (avatar.includes("female")) ? "female" : "male";
             if (profile.gender && profile.gender !== avatarGender) {
                 return res.status(400).json({ error: "Avatar no corresponde a tu genero" });
             }
@@ -112,7 +116,9 @@ router.post("/trainer/avatar", requireAuth, async (req, res) => {
                 return res.status(400).json({ error: "Marco no valido" });
             }
             // unlockedFrames viene de BD, nunca del cliente
-            const unlocked: string[] = (profile as any).unlockedFrames ?? ["none", "silver"];
+            const unlocked: string[] = (profile as any).unlockedFrames?.length
+                ? (profile as any).unlockedFrames
+                : ["none", "frame_1", "frame_2", "frame_3", "frame_4", "frame_5", "frame_6", "frame_7"];
             if (!unlocked.includes(avatarFrame)) {
                 return res.status(403).json({ error: "Marco no desbloqueado. Visitala Tienda." });
             }

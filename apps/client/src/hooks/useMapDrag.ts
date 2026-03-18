@@ -1,5 +1,17 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 
+const STORAGE_KEY = "mythara_map_offset";
+
+function readStoredOffset(): { x: number; y: number } | null {
+    try {
+        const raw = sessionStorage.getItem(STORAGE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (typeof parsed.x === "number" && typeof parsed.y === "number") return parsed;
+    } catch {}
+    return null;
+}
+
 /**
  * useMapDrag
  *
@@ -8,6 +20,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
  *
  * Options:
  * - initialYRatio: 0 = show top of map, 0.5 = center (default), 1 = show bottom
+ *   (ignored if a saved position exists in sessionStorage)
  */
 export function useMapDrag(
     containerRef: React.RefObject<HTMLDivElement>,
@@ -16,7 +29,20 @@ export function useMapDrag(
 ) {
     const { initialYRatio = 0.5 } = options;
 
-    const [offset, setOffset]   = useState({ x: 0, y: 0 });
+    // Initialize from sessionStorage if available
+    const [offset, setOffsetRaw] = useState<{ x: number; y: number }>(
+        () => readStoredOffset() ?? { x: 0, y: 0 }
+    );
+
+    // Wrap setOffset to persist to sessionStorage on every change
+    const setOffset = useCallback((value: { x: number; y: number } | ((prev: { x: number; y: number }) => { x: number; y: number })) => {
+        setOffsetRaw(prev => {
+            const next = typeof value === "function" ? value(prev) : value;
+            try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch {}
+            return next;
+        });
+    }, []);
+
     const dragging  = useRef(false);
     const startPos  = useRef({ x: 0, y: 0 });
     const startOff  = useRef({ x: 0, y: 0 });
@@ -47,16 +73,23 @@ export function useMapDrag(
             if (!c || !m) return;
             centered.current = true;
 
+            // If we have a saved position, clamp it to current viewport and restore it
+            const stored = readStoredOffset();
+            if (stored) {
+                setOffset(clamp(stored.x, stored.y));
+                return;
+            }
+
+            // No saved position — use initialYRatio default
             const maxOffsetY = Math.min(0, c.offsetHeight - m.offsetHeight);
             const targetY = maxOffsetY * initialYRatio;
-
             setOffset(clamp(
                 (c.offsetWidth - m.offsetWidth) / 2,
                 targetY,
             ));
         }, 80);
         return () => clearTimeout(timer);
-    }, [clamp, containerRef, mapRef, initialYRatio]);
+    }, [clamp, containerRef, mapRef, initialYRatio, setOffset]);
 
     // Momentum animation loop
     const startMomentum = useCallback((vx: number, vy: number) => {
@@ -70,7 +103,6 @@ export function useMapDrag(
             if (Math.abs(vx) < MIN_VEL && Math.abs(vy) < MIN_VEL) return;
             setOffset(prev => {
                 const next = clamp(prev.x + vx, prev.y + vy);
-                // stop if we hit the boundary
                 if (next.x === prev.x) vx = 0;
                 if (next.y === prev.y) vy = 0;
                 return next;
@@ -78,7 +110,7 @@ export function useMapDrag(
             rafRef.current = requestAnimationFrame(tick);
         };
         rafRef.current = requestAnimationFrame(tick);
-    }, [clamp]);
+    }, [clamp, setOffset]);
 
     const onMouseDown = useCallback((e: React.MouseEvent) => {
         if (rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -99,7 +131,6 @@ export function useMapDrag(
             if (Math.abs(dx) > 3 || Math.abs(dy) > 3) didDrag.current = true;
             setOffset(clamp(startOff.current.x + dx, startOff.current.y + dy));
 
-            // Track velocity
             const now = performance.now();
             const dt  = now - lastTime.current;
             if (dt > 0) {
@@ -122,7 +153,7 @@ export function useMapDrag(
             window.removeEventListener("mousemove", onMove);
             window.removeEventListener("mouseup",   onUp);
         };
-    }, [clamp, startMomentum]);
+    }, [clamp, startMomentum, setOffset]);
 
     const onTouchStart = useCallback((e: React.TouchEvent) => {
         if (e.touches.length !== 1) return;
@@ -144,7 +175,6 @@ export function useMapDrag(
             if (Math.abs(dx) > 3 || Math.abs(dy) > 3) didDrag.current = true;
             setOffset(clamp(startOff.current.x + dx, startOff.current.y + dy));
 
-            // Track velocity
             const now = performance.now();
             const dt  = now - lastTime.current;
             if (dt > 0) {
@@ -167,13 +197,13 @@ export function useMapDrag(
             window.removeEventListener("touchmove", onMove);
             window.removeEventListener("touchend",  onEnd);
         };
-    }, [clamp, startMomentum]);
+    }, [clamp, startMomentum, setOffset]);
 
     useEffect(() => {
         const ro = new ResizeObserver(() => setOffset(p => clamp(p.x, p.y)));
         if (containerRef.current) ro.observe(containerRef.current);
         return () => ro.disconnect();
-    }, [clamp, containerRef]);
+    }, [clamp, containerRef, setOffset]);
 
     // Cleanup RAF on unmount
     useEffect(() => () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); }, []);

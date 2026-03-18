@@ -39,6 +39,8 @@ export const api = {
     tokens: () => request<any>("/tokens/me"),
     updateAvatar: (data: { avatar?: string; avatarFrame?: string }) =>
         request<any>("/trainer/avatar", { method: "POST", body: JSON.stringify(data) }),
+    updateFrame: (avatarFrame: string) =>
+        request<any>("/trainer/avatar", { method: "POST", body: JSON.stringify({ avatarFrame }) }),
     inventory: () => request<any[]>("/inventory/me"),
     party: () => request<any[]>("/creatures/party"),
     creatures: () => request<any[]>("/creatures/me"),
