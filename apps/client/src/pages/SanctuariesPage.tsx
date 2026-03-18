@@ -11,7 +11,7 @@ import { api } from "../lib/api";
 
 const SANCTUM_DATA = [
     {
-        id: 0, name: "EMBER",  icon: "🔥", color: "#ff6b35",
+        id: 0, name: "EMBER",  icon: "🔥", color: "var(--accent-orange)",
         requiredLevel: 5,  biome: "Volcanic",   guardian: "Ignar the Forged",
         lore: "Plains of ash and rivers of burning lava. Ignar commands flame and pure destruction.",
         px: 0.38, py: 0.52,
@@ -392,7 +392,7 @@ export default function SanctuariesPage() {
                                 </div>
 
                                 {error && (
-                                    <div className="mb-2 text-xs text-center font-display" style={{ color: "#f87171" }}>
+                                    <div className="mb-2 text-xs text-center font-display" style={{ color: "var(--accent-red)" }}>
                                         ❌ {error}
                                     </div>
                                 )}

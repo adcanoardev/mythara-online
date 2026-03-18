@@ -386,7 +386,7 @@ function MoveCircle({
                         <span style={{ fontFamily: "monospace", fontWeight: 900, color: "#fff", fontSize: 11 }}>{move.name}</span>
                         {move.power > 0 && <span style={{ fontSize: 10, color: cfg.glow ?? "#f97316", fontFamily: "monospace", fontWeight: 900, marginLeft: "auto" }}>⚡{move.power}</span>}
                     </div>
-                    <p style={{ fontSize: 10, color: "rgba(255,255,255,0.65)", lineHeight: 1.5 }}>{move.description}</p>
+                    <p style={{ fontSize: 10, color: "var(--text-primary)", lineHeight: 1.5 }}>{move.description}</p>
                     {/* Arrow */}
                     <div style={{ position: "absolute", bottom: -5, left: "50%", transform: "translateX(-50%) rotate(45deg)", width: 8, height: 8, background: "rgba(7,11,20,0.97)", border: `1px solid ${cfg.glow ?? "#6366f1"}44`, borderTop: "none", borderLeft: "none" }} />
                 </div>
@@ -1750,7 +1750,7 @@ function ArenaMyth({
                                 COMMON:    { color: "#cbd5e1", border: "#475569",  bg: "rgba(71,85,105,0.2)"   },
                                 RARE:      { color: "#a5b4fc", border: "#6366f1",  bg: "rgba(99,102,241,0.2)"  },
                                 EPIC:      { color: "#d8b4fe", border: "#a855f7",  bg: "rgba(168,85,247,0.2)"  },
-                                ELITE:     { color: "#e2e8f0", border: "#94a3b8",  bg: "rgba(148,163,184,0.2)" },
+                                ELITE:     { color: "var(--text-primary)", border: "#94a3b8",  bg: "rgba(148,163,184,0.2)" },
                                 LEGENDARY: { color: "#fde68a", border: "#fbbf24",  bg: "rgba(251,191,36,0.2)"  },
                                 MYTHIC:    { color: "#fca5a5", border: "#f87171",  bg: "rgba(248,113,113,0.2)" },
                             };
@@ -2736,25 +2736,25 @@ export default function BattlePage() {
 
         const BUFF_OVERLAYS: Record<string, { text: string; color: string; glow: string }> = {
             boost_atk:  { text: "⚔️ ATK ▲",    color: "#4ade80", glow: "#22c55e" },
-            boost_def:  { text: "🛡️ DEF ▲",    color: "#34d399", glow: "#10b981" },
+            boost_def:  { text: "🛡️ DEF ▲",    color: "var(--accent-green)", glow: "#10b981" },
             boost_spd:  { text: "💨 SPD ▲",    color: "#67e8f9", glow: "#06b6d4" },
             boost_acc:  { text: "🎯 ACC ▲",    color: "#a3e635", glow: "#84cc16" },
             shield:     { text: "🛡️ SHIELD",  color: "#93c5fd", glow: "#3b82f6" },
-            regen:      { text: "💚 REGEN",    color: "#34d399", glow: "#10b981" },
+            regen:      { text: "💚 REGEN",    color: "var(--accent-green)", glow: "#10b981" },
             heal:       { text: "💚 HEAL", color: "#4ade80", glow: "#22c55e" },
             counter:    { text: "🔄 REFLECT",  color: "#fde68a", glow: "#f59e0b" },
             cleanse:    { text: "✨ CLEANSE",   color: "#e0e7ff", glow: "#a5b4fc" },
         };
         const DEBUFF_OVERLAYS: Record<string, { text: string; color: string; glow: string }> = {
-            debuff_atk: { text: "⚔️ ATK ▼",   color: "#f87171", glow: "#ef4444" },
-            debuff_def: { text: "🛡️ DEF ▼",   color: "#fb923c", glow: "#f97316" },
-            debuff_spd: { text: "💨 SPD ▼",   color: "#fbbf24", glow: "#f59e0b" },
+            debuff_atk: { text: "⚔️ ATK ▼",   color: "var(--accent-red)", glow: "#ef4444" },
+            debuff_def: { text: "🛡️ DEF ▼",   color: "var(--accent-orange)", glow: "#f97316" },
+            debuff_spd: { text: "💨 SPD ▼",   color: "var(--accent-gold)", glow: "#f59e0b" },
             debuff_acc: { text: "🎯 ACC ▼",   color: "#f472b6", glow: "#ec4899" },
             silence:    { text: "🔇 SILENCE", color: "#94a3b8", glow: "#64748b" },
             dispel:     { text: "💨 DISPEL",   color: "#a78bfa", glow: "#7c3aed" },
         };
         const STATUS_OVERLAYS: Record<string, { text: string; color: string; glow: string }> = {
-            burn:     { text: "🔥 BURNED",   color: "#fb923c", glow: "#f97316" },
+            burn:     { text: "🔥 BURNED",   color: "var(--accent-orange)", glow: "#f97316" },
             poison:   { text: "☠️ POISONED",color: "#4ade80", glow: "#22c55e" },
             freeze:   { text: "❄️ FROZEN", color: "#7dd3fc", glow: "#38bdf8" },
             fear:     { text: "😨 FEARED",  color: "#c084fc", glow: "#a855f7" },
@@ -3333,7 +3333,7 @@ export default function BattlePage() {
                                 Abandon battle?
                             </h2>
                             <p className="text-sm leading-relaxed" style={{ color: "#94a3b8" }}>
-                                If you leave now, this battle will count as a <span style={{ color: "#f87171", fontWeight: 700 }}>defeat</span>.
+                                If you leave now, this battle will count as a <span style={{ color: "var(--accent-red)", fontWeight: 700 }}>defeat</span>.
                             </p>
                         </div>
                         <div className="flex flex-col gap-2.5">
@@ -3343,7 +3343,7 @@ export default function BattlePage() {
                                 style={{
                                     background: "linear-gradient(135deg, rgba(239,68,68,0.20) 0%, rgba(185,28,28,0.25) 100%)",
                                     border: "1.5px solid rgba(239,68,68,0.55)",
-                                    color: "#f87171",
+                                    color: "var(--accent-red)",
                                     boxShadow: "0 0 20px rgba(239,68,68,0.15)",
                                 }}>
                                 Leave and lose battle
@@ -4192,9 +4192,9 @@ export default function BattlePage() {
                                                                 <span style={{ fontSize: 10, fontFamily: "monospace", fontWeight: 900, color: cfg.glow ?? "#f97316" }}>
                                                                     {move.name}
                                                                 </span>
-                                                                {move.power > 0 && <span style={{ fontSize: 9, color: "rgba(255,255,255,0.45)", marginLeft: "auto", fontFamily: "monospace" }}>⚡{move.power}</span>}
+                                                                {move.power > 0 && <span style={{ fontSize: 9, color: "var(--text-secondary)", marginLeft: "auto", fontFamily: "monospace" }}>⚡{move.power}</span>}
                                                             </div>
-                                                            <p style={{ fontSize: 9, color: "rgba(255,255,255,0.5)", lineHeight: 1.4, margin: 0,
+                                                            <p style={{ fontSize: 9, color: "var(--text-secondary)", lineHeight: 1.4, margin: 0,
                                                                 overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as any }}>
                                                                 {move.description}
                                                             </p>
@@ -4332,7 +4332,7 @@ export default function BattlePage() {
                                                     {isEnemyActor && <span style={{ fontSize: "10px", opacity: 0.5 }}>👾</span>}
                                                     <AfBadge affinity={entry.actorAffinity} name={entry.actorName} />
                                                     <span style={{ fontSize: "11px", color: "#64748b", fontFamily: "monospace" }}>usa</span>
-                                                    <span style={{ fontSize: "12px", color: "#e2e8f0", fontWeight: 700, fontFamily: "monospace" }}>{moveName}</span>
+                                                    <span style={{ fontSize: "12px", color: "var(--text-primary)", fontWeight: 700, fontFamily: "monospace" }}>{moveName}</span>
                                                     {entry.targetName && entry.targetName !== entry.actorName && (
                                                         <>
                                                             <span style={{ fontSize: "10px", color: "#475569" }}>→</span>
@@ -4353,7 +4353,7 @@ export default function BattlePage() {
                                                     {isMissed && <span style={{ fontSize: "11px", color: "#64748b", fontFamily: "monospace" }}>miss!</span>}
                                                     {/* Estado aplicado */}
                                                     {status && (
-                                                        <span style={{ fontSize: "11px", color: "#fb923c", fontFamily: "monospace" }}>
+                                                        <span style={{ fontSize: "11px", color: "var(--accent-orange)", fontFamily: "monospace" }}>
                                                             {statusIc} {status}
                                                         </span>
                                                     )}
@@ -4722,7 +4722,7 @@ function BattleTopBar({
                     width: tbD ? 36 : 22, height: tbD ? 36 : 22, borderRadius: "50%",
                     background: "rgba(239,68,68,0.15)",
                     border: "1px solid rgba(239,68,68,0.4)",
-                    color: "#f87171", fontSize: tbD ? 16 : 11, fontWeight: 900,
+                    color: "var(--accent-red)", fontSize: tbD ? 16 : 11, fontWeight: 900,
                 }}
                 title={phase === "battle" ? "Exit battle" : "Back"}
             >✕</button>

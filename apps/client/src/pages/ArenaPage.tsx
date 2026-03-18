@@ -226,19 +226,19 @@ export default function ArenaPage() {
         <button
           onClick={() => navigate("/")}
           className="flex items-center gap-2 transition-opacity hover:opacity-70 active:scale-95"
-          style={{ color: "rgba(255,255,255,0.45)", fontSize: 11, fontFamily: "monospace" }}
+          style={{ color: "var(--text-secondary)", fontSize: "var(--font-sm)", fontFamily: "monospace" }}
         >
-          <span style={{ fontSize: 9 }}>◀</span>
+          <span style={{ fontSize: "var(--font-xs)" }}>◀</span>
           <span className="tracking-widest uppercase">City</span>
         </button>
 
         <div className="flex flex-col items-center">
           <span className="tracking-[0.22em] uppercase font-black"
-            style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: 15, color: "#e2e8f0" }}>
+            style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: "var(--font-lg)", color: "var(--text-primary)" }}>
             The Arena
           </span>
           <span className="tracking-widest uppercase"
-            style={{ fontSize: 8, color: "rgba(255,255,255,0.22)", fontFamily: "monospace" }}>
+            style={{ fontSize: "var(--font-2xs)", color: "var(--text-muted)", fontFamily: "monospace" }}>
             PvP · Combat
           </span>
         </div>
@@ -246,9 +246,9 @@ export default function ArenaPage() {
         {/* PvP energy counter */}
         <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg"
           style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)" }}>
-          <span style={{ fontSize: 13 }}>⚔️</span>
+          <span style={{ fontSize: "var(--font-base)" }}>⚔️</span>
           <span className="font-mono font-bold tabular-nums"
-            style={{ fontSize: 11, color: "#fcd34d" }}>
+            style={{ fontSize: "var(--font-sm)", color: "#fcd34d" }}>
             {pvpCount}<span style={{ opacity: 0.35 }}>/{pvpMax}</span>
           </span>
         </div>
@@ -308,7 +308,7 @@ export default function ArenaPage() {
                 {/* Zone number */}
                 <div className="mb-auto pt-3">
                   <span className="font-mono tracking-widest"
-                    style={{ fontSize: 10, color: isLocked ? "rgba(255,255,255,0.1)" : `rgba(${mode.accentRgb},0.45)` }}>
+                    style={{ fontSize: "var(--font-xs)", color: isLocked ? "rgba(255,255,255,0.1)" : `rgba(${mode.accentRgb},0.45)` }}>
                     {String(idx + 1).padStart(2, "0")}
                   </span>
                 </div>
@@ -317,7 +317,7 @@ export default function ArenaPage() {
                 <div className="mb-2">
                   <span className="inline-flex items-center px-2 py-0.5 rounded-md font-mono tracking-widest"
                     style={{
-                      fontSize: 9,
+                      fontSize: "var(--font-xs)",
                       background: isLocked ? "rgba(255,255,255,0.04)" : `rgba(${mode.accentRgb},0.1)`,
                       border: `1px solid ${isLocked ? "rgba(255,255,255,0.08)" : `rgba(${mode.accentRgb},0.22)`}`,
                       color: isLocked ? "rgba(255,255,255,0.18)" : mode.accent,
@@ -339,13 +339,13 @@ export default function ArenaPage() {
 
                 {/* Subtitle */}
                 <p className="font-mono mb-2"
-                  style={{ fontSize: 10, color: isLocked ? "rgba(255,255,255,0.14)" : mode.accent, letterSpacing: "0.08em" }}>
+                  style={{ fontSize: "var(--font-xs)", color: isLocked ? "rgba(255,255,255,0.14)" : mode.accent, letterSpacing: "0.08em" }}>
                   {mode.subtitle}
                 </p>
 
                 {/* Description */}
                 <p className="leading-relaxed mb-3"
-                  style={{ fontSize: 11, color: "rgba(255,255,255,0.33)", lineHeight: 1.55 }}>
+                  style={{ fontSize: "var(--font-sm)", color: "var(--text-secondary)", lineHeight: 1.55 }}>
                   {mode.description}
                 </p>
 
@@ -353,7 +353,7 @@ export default function ArenaPage() {
                 {noTokens && !isLocked && (
                   <div className="mb-2 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg w-fit"
                     style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)" }}>
-                    <span style={{ fontSize: 10, color: "#f87171", fontFamily: "monospace" }}>⚔️ NO ENERGY</span>
+                    <span style={{ fontSize: "var(--font-xs)", color: "var(--accent-red)", fontFamily: "monospace" }}>⚔️ NO ENERGY</span>
                   </div>
                 )}
 
@@ -369,12 +369,12 @@ export default function ArenaPage() {
                     <span className="font-black tracking-widest uppercase"
                       style={{
                         fontFamily: "'Rajdhani', sans-serif",
-                        fontSize: 11,
+                        fontSize: "var(--font-sm)",
                         color: noTokens ? "rgba(255,255,255,0.18)" : mode.accent,
                       }}>
                       {mode.id === "ranking" ? "View" : "Enter"}
                     </span>
-                    <span style={{ fontSize: 9, color: noTokens ? "rgba(255,255,255,0.14)" : mode.accent }}>▶</span>
+                    <span style={{ fontSize: "var(--font-xs)", color: noTokens ? "rgba(255,255,255,0.14)" : mode.accent }}>▶</span>
                   </div>
                 )}
               </div>

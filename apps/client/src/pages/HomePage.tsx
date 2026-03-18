@@ -19,8 +19,8 @@ const DISTRICTS: District[] = [
     { id:"inn",     name:"Outpost",   color:"#84cc16", description:"Mine · Forge · Inventory",       route:"/inn",     px:0.367, py:0.643, hitW:0.163, hitH:0.138 },
     { id:"market",  name:"Market",    color:"#38bdf8", description:"Shop · Gold · Diamonds",         route:"/market",  px:0.726, py:0.543, hitW:0.166, hitH:0.207 },
     { id:"arcanum", name:"Arcanum",   color:"#60a5fa", description:"Mythsdex · Encyclopedia",        route:"/arcanum", px:0.507, py:0.162, hitW:0.142, hitH:0.275 },
-    { id:"guild",   name:"Guild",     color:"#fbbf24", description:"Missions · Achievements · Pass", route:"/guild",   px:0.530, py:0.642, hitW:0.128, hitH:0.249 },
-    { id:"ruins",   name:"The Ruins", color:"#34d399", description:"PvE · Sanctums · Boss · Tower",  route:"/ruins",   px:0.289, py:0.463, hitW:0.217, hitH:0.154 },
+    { id:"guild",   name:"Guild",     color:"var(--accent-gold)", description:"Missions · Achievements · Pass", route:"/guild",   px:0.530, py:0.642, hitW:0.128, hitH:0.249 },
+    { id:"ruins",   name:"The Ruins", color:"var(--accent-green)", description:"PvE · Sanctums · Boss · Tower",  route:"/ruins",   px:0.289, py:0.463, hitW:0.217, hitH:0.154 },
 ];
 
 const FOG_DRIFT = [
@@ -42,7 +42,7 @@ const CHAT_MESSAGES = [
 const PVP_RANKS = [
     { name: "Bronze",    color: "#cd7f32", minPvp: 0   },
     { name: "Silver",    color: "#94a3b8", minPvp: 10  },
-    { name: "Gold",      color: "#fbbf24", minPvp: 25  },
+    { name: "Gold",      color: "var(--accent-gold)", minPvp: 25  },
     { name: "Platinum",  color: "#67e8f9", minPvp: 50  },
     { name: "Diamond",   color: "#818cf8", minPvp: 100 },
     { name: "Ascendant", color: "#f472b6", minPvp: 200 },
@@ -56,9 +56,9 @@ const RARITY_MULT: Record<string, number> = {
 const FRAMES = [
     { id: "default",   name: "Default",   color: "#64748b" },
     { id: "silver",    name: "Silver",    color: "#c0c0c0" },
-    { id: "gold",      name: "Gold",      color: "#fbbf24" },
+    { id: "gold",      name: "Gold",      color: "var(--accent-gold)" },
     { id: "legendary", name: "Legendary", color: "#f59e0b" },
-    { id: "mythic",    name: "Mythic",    color: "#f87171" },
+    { id: "mythic",    name: "Mythic",    color: "var(--accent-red)" },
 ];
 
 const BOTTOM_BAR = [
@@ -185,7 +185,7 @@ export default function HomePage() {
                         </div>
                         {totalPower > 0 && (
                             <div style={{ marginTop:2 }}>
-                                <span style={{ fontSize:11,fontFamily:"Rajdhani,sans-serif",fontWeight:700,color:"#fbbf24" }}>⚡ {totalPower.toLocaleString()} PWR</span>
+                                <span style={{ fontSize:11,fontFamily:"Rajdhani,sans-serif",fontWeight:700,color:"var(--accent-gold)" }}>⚡ {totalPower.toLocaleString()} PWR</span>
                             </div>
                         )}
                         <div style={{ width:140,height:18,background:"rgba(255,255,255,.10)",borderRadius:6,marginTop:5,overflow:"hidden",position:"relative" }}>
@@ -198,8 +198,8 @@ export default function HomePage() {
                 {/* Resources + chat */}
                 <div style={{ display:"flex",alignItems:"center",gap:6,pointerEvents:"auto",flexWrap:"nowrap" }}>
                     {[
-                        { icon:"⚡",  value:String(npcTokens), color:"#e2e8f0", border:"rgba(255,255,255,.14)" },
-                        { icon:"⚔️", value:String(pvpTokens), color:"#e2e8f0", border:"rgba(255,255,255,.14)" },
+                        { icon:"⚡",  value:String(npcTokens), color:"var(--text-primary)", border:"rgba(255,255,255,.14)" },
+                        { icon:"⚔️", value:String(pvpTokens), color:"var(--text-primary)", border:"rgba(255,255,255,.14)" },
                         { icon:"💎",  value:String(diamonds),  color:"#c4b5fd", border:"rgba(139,92,246,.45)" },
                         { icon:"🪙",  value:fmtGold(gold),     color:"#fcd34d", border:"rgba(251,191,36,.45)" },
                     ].map(({ icon, value, color, border }) => (
@@ -302,13 +302,13 @@ export default function HomePage() {
                                     <span style={{ position:"relative",zIndex:1 }}>🧙</span>
                                 </div>
                                 <div style={{ flex:1,minWidth:0 }}>
-                                    <div style={{ fontFamily:"Rajdhani,sans-serif",fontWeight:900,fontSize:20,color:"#e2e8f0",letterSpacing:".04em" }}>
+                                    <div style={{ fontFamily:"Rajdhani,sans-serif",fontWeight:900,fontSize:20,color:"var(--text-primary)",letterSpacing:".04em" }}>
                                         {guildTag && <span style={{ color:"rgba(255,255,255,.38)",marginRight:4 }}>[{guildTag}]</span>}
                                         {username}
                                     </div>
                                     <div style={{ display:"flex",alignItems:"center",gap:8,marginTop:3 }}>
                                         <span style={{ fontSize:11,fontFamily:"Rajdhani,sans-serif",fontWeight:700,color:pvpRank.color,padding:"1px 7px",borderRadius:5,background:`${pvpRank.color}18`,border:`1px solid ${pvpRank.color}40` }}>{pvpRank.name}</span>
-                                        {totalPower>0 && <span style={{ fontSize:11,fontFamily:"Rajdhani,sans-serif",fontWeight:700,color:"#fbbf24" }}>⚡ {totalPower.toLocaleString()} PWR</span>}
+                                        {totalPower>0 && <span style={{ fontSize:11,fontFamily:"Rajdhani,sans-serif",fontWeight:700,color:"var(--accent-gold)" }}>⚡ {totalPower.toLocaleString()} PWR</span>}
                                     </div>
                                 </div>
                                 <button onClick={() => setAvatarModal(false)} style={{ position:"absolute",top:12,right:12,width:32,height:32,borderRadius:"50%",background:"rgba(56,189,248,.15)",border:"2px solid rgba(56,189,248,.65)",color:"#38bdf8",display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,fontWeight:700,cursor:"pointer",boxShadow:"0 0 12px rgba(56,189,248,.30)" }}>✕</button>
@@ -332,8 +332,8 @@ export default function HomePage() {
                                     <p style={{ fontSize:9,fontFamily:"monospace",letterSpacing:".12em",color:"rgba(255,255,255,.25)",textTransform:"uppercase",marginBottom:10 }}>Combat & Economy</p>
                                     <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:7 }}>
                                         {[
-                                            { val:wins,            label:"NPC Wins",    color:"#06d6a0" },
-                                            { val:`${winRate}%`,   label:"Win Rate",    color:"#4cc9f0" },
+                                            { val:wins,            label:"NPC Wins",    color:"var(--accent-green)" },
+                                            { val:`${winRate}%`,   label:"Win Rate",    color:"var(--accent-blue)" },
                                             { val:fmtGold(gold),   label:"Gold",        color:"#fcd34d" },
                                             { val:`${diamonds}💎`, label:"Diamonds",    color:"#c4b5fd" },
                                             { val:totalMyths,      label:"Myths Owned", color:"#a78bfa" },
@@ -394,7 +394,7 @@ export default function HomePage() {
                             ))}
                         </div>
                         <div style={{ padding:"10px 14px",paddingBottom:"max(12px,env(safe-area-inset-bottom))",borderTop:"1px solid rgba(255,255,255,.07)",display:"flex",gap:8,alignItems:"center" }}>
-                            <input type="text" placeholder="Enter your message..." style={{ flex:1,padding:"10px 14px",background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.12)",borderRadius:10,color:"#e8f0fe",fontSize:14,fontFamily:"Exo 2,sans-serif",outline:"none" }} />
+                            <input type="text" placeholder="Enter your message..." style={{ flex:1,padding:"10px 14px",background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.12)",borderRadius:10,color:"var(--text-primary)",fontSize:14,fontFamily:"Exo 2,sans-serif",outline:"none" }} />
                             <button style={{ padding:"10px 18px",borderRadius:10,background:"linear-gradient(135deg,#4f46e5,#6366f1)",border:"none",color:"#fff",fontFamily:"Rajdhani,sans-serif",fontWeight:700,fontSize:14,cursor:"pointer" }}>Send</button>
                         </div>
                     </div>

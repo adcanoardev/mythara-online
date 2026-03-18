@@ -226,15 +226,15 @@ export default function TeamPage() {
         <div className="fixed inset-0 flex flex-col" style={{ background:"#070b14", fontFamily:"'Exo 2',sans-serif" }}>
             {/* Topbar */}
             <div className="flex-shrink-0 flex items-center justify-between px-4 md:px-6" style={{ height:48, background:"rgba(4,8,15,0.97)", borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
-                <button onClick={() => navigate("/")} className="flex items-center gap-2 transition-opacity hover:opacity-70 active:scale-95" style={{ color:"rgba(255,255,255,0.45)", fontSize:11, fontFamily:"monospace" }}>
-                    <span style={{ fontSize:9 }}>◀</span>
+                <button onClick={() => navigate("/")} className="flex items-center gap-2 transition-opacity hover:opacity-70 active:scale-95" style={{ color:"var(--text-secondary)", fontSize: "var(--font-sm)", fontFamily:"monospace" }}>
+                    <span style={{ fontSize: "var(--font-xs)" }}>◀</span>
                     <span className="tracking-widest uppercase hidden sm:inline">City</span>
                 </button>
-                <span className="tracking-[0.22em] uppercase font-black" style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:15, color:"#e2e8f0" }}>Team</span>
+                <span className="tracking-[0.22em] uppercase font-black" style={{ fontFamily:"'Rajdhani',sans-serif", fontSize: "var(--font-lg)", color:"var(--text-primary)" }}>Team</span>
                 <div style={{ width:60 }} />
             </div>
             <div className="flex-shrink-0 flex items-center justify-between px-4 py-2 border-b" style={{ borderColor:"rgba(255,255,255,0.06)" }}>
-                <span className="text-sm font-bold" style={{ color:"rgba(255,255,255,0.6)" }}>🐾 Active Team</span>
+                <span className="text-sm font-bold" style={{ color:"var(--text-primary)" }}>🐾 Active Team</span>
                 {msg && (
                     <span
                         className="text-xs font-semibold"

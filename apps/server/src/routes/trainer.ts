@@ -54,12 +54,20 @@ router.get("/trainer/me", requireAuth, async (req, res) => {
             ? rawClears
             : [...rawClears, ...new Array(8 - rawClears.length).fill(0)];
 
+        // Guild info
+        const guildTag  = (trainer as any).guildId
+            ? (await prisma.guild.findUnique({ where: { id: (trainer as any).guildId }, select: { tag: true } }))?.tag ?? null
+            : null;
+        const guildRole = (trainer as any).guildRole ?? null;
+
         res.json({
             ...trainer,
             username: user?.username ?? null,
             rank: getRank(trainer.level),
             binderLevel,
             sanctumClears,
+            guildTag,
+            guildRole,
         });
     } catch { res.status(500).json({ error: "Internal error" }); }
 });

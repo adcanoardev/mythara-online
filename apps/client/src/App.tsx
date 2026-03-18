@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "./hooks/useAuth";
 import { api } from "./lib/api";
@@ -43,6 +43,7 @@ import RankingPage      from "./pages/RankingPage";
 import RuinsPage        from "./pages/RuinsPage";
 import ArenaPage        from "./pages/ArenaPage";
 import GuildPage        from "./pages/GuildPage";
+import ChatPanel        from "./components/ChatPanel";
 
 // Placeholder for pages not yet implemented
 function ComingSoon({ name }: { name: string }) {
@@ -55,8 +56,35 @@ function ComingSoon({ name }: { name: string }) {
   );
 }
 
+// Rutas que usan Layout (ya tienen el botón chat en el topbar)
+const LAYOUT_ROUTES = ["/profile", "/team", "/inventory", "/myths", "/ranking", "/sanctuaries"];
+
+function ChatButtonFloating({ user, onOpen }: { user: any; onOpen: () => void }) {
+  const location = useLocation();
+  const hasLayout = LAYOUT_ROUTES.some(r => location.pathname.startsWith(r));
+  if (!user || hasLayout) return null;
+  return (
+    <button
+      onClick={onOpen}
+      style={{
+        position: "fixed", top: 12, right: 12, zIndex: 500,
+        width: 38, height: 38, borderRadius: "50%",
+        background: "rgba(7,11,20,0.92)",
+        border: "1px solid rgba(123,47,255,0.35)",
+        color: "rgba(255,255,255,0.65)", fontSize: 16,
+        cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+        boxShadow: "0 0 12px rgba(123,47,255,0.2)",
+      }}
+      title="Chat"
+    >
+      💬
+    </button>
+  );
+}
+
 export default function App() {
   const { user, loading } = useAuth();
+  const [chatOpen, setChatOpen] = useState(false);
 
   if (loading)
     return (
@@ -72,8 +100,9 @@ export default function App() {
     user ? <BattleGuard>{el}</BattleGuard> : <Navigate to="/login" />;
 
   return (
-    <Routes>
-      {/* ── Auth ─────────────────────────────────────────────── */}
+    <>
+      <Routes>
+        {/* ── Auth ─────────────────────────────────────────────── */}
       <Route path="/login"      element={!user ? <LoginPage /> : <Navigate to="/" />} />
       <Route path="/onboarding" element={user ? <OnboardingPage /> : <Navigate to="/login" />} />
 
@@ -112,5 +141,12 @@ export default function App() {
       {/* ── Fallback ──────────────────────────────────────────── */}
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
+
+    {/* ── Global chat button — solo en páginas fullscreen (sin Layout) ── */}
+    <ChatButtonFloating user={user} onOpen={() => setChatOpen(true)} />
+
+    {/* ── Chat panel ── */}
+    {chatOpen && <ChatPanel onClose={() => setChatOpen(false)} />}
+    </>
   );
 }

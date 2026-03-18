@@ -5,8 +5,49 @@
 @tailwind utilities;
 
 :root {
-    --color-muted: #F7FFFB;   /* texto descriptivo, legible sobre fondos oscuros */
-    --color-subtle: #F7FFFB;  /* labels, placeholders, separadores, IDs decorativos */
+  /* ── Tipografía — escala global ──────────────────────────────
+     Cambiar aquí afecta toda la web.
+     Mínimo absoluto: 11px para labels. 13px para texto normal.
+  ────────────────────────────────────────────────────────────── */
+  --font-2xs:   11px;   /* labels monospace mínimos (antes: 8-9px) */
+  --font-xs:    12px;   /* labels secundarios       (antes: 9-10px) */
+  --font-sm:    13px;   /* texto de apoyo            (antes: 11px)  */
+  --font-base:  14px;   /* texto normal              (antes: 12px)  */
+  --font-md:    15px;   /* subtítulos                               */
+  --font-lg:    16px;   /* títulos de sección                       */
+  --font-xl:    18px;   /* títulos secundarios                      */
+  --font-2xl:   22px;   /* títulos principales (Rajdhani)           */
+  --font-display: 28px; /* títulos grandes display                  */
+
+  /* ── Texto ───────────────────────────────────────────────── */
+  --text-primary:   #e2e8f0;
+  --text-secondary: #a8b5c8;
+  --text-muted:     #8892a4;
+  --text-disabled:  #5a6a80;
+
+  /* ── Acentos legibles sobre #070b14 ─────────────────────── */
+  --accent-purple:  #a78bfa;
+  --accent-blue:    #67e8f9;
+  --accent-gold:    #fbbf24;
+  --accent-green:   #34d399;
+  --accent-red:     #f87171;
+  --accent-orange:  #fb923c;
+
+  /* ── Branding (solo borders/glows) ──────────────────────── */
+  --brand-purple: #7b2fff;
+  --brand-blue:   #4cc9f0;
+
+  /* ── Fondos y bordes ──────────────────────────────────────  */
+  --bg:            #070b14;
+  --bg-card:       rgba(255,255,255,0.03);
+  --bg-card-hover: rgba(255,255,255,0.05);
+  --border:        rgba(255,255,255,0.08);
+  --border-strong: rgba(255,255,255,0.14);
+
+  /* ── Legados ──────────────────────────────────────────────  */
+  --color-muted:  #a8b5c8;
+  --color-subtle: #8892a4;
+  --app-height:   100dvh;
 }
 
 * {
@@ -24,6 +65,7 @@ html {
 
 body {
     font-family: "Exo 2", sans-serif;
+    font-size: var(--font-base);  /* 14px base — antes implícito 16px del browser, ahora controlado */
     background-color: #070b14;
     color: #e8f0fe;
     height: 100%;
@@ -56,10 +98,7 @@ body {
     background: #F7FFFB;
 }
 
-/* ── Viewport real (seteado por JS en main.tsx o Layout) ── */
-:root {
-    --app-height: 100dvh;
-}
+/* ── Viewport real seteado por JS ── */
 
 html, body, #root {
     height: var(--app-height);
@@ -1141,3 +1180,50 @@ html, body, #root {
   0%, 100% { opacity: 0.3; transform: scale(0.85); }
   50%       { opacity: 1;   transform: scale(1.1);  }
 }
+
+/* ══════════════════════════════════════════════════════════════
+   DESIGN SYSTEM — Tipografía y utilidades globales
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Labels monospace — section headers, tags, IDs ─────────── */
+/* Antes: fontSize: 8-9px invisible → Ahora: 11-12px legible    */
+.label-mono {
+    font-family: monospace;
+    font-size: var(--font-xs);     /* 12px */
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-secondary);  /* #a8b5c8 */
+}
+.label-mono-sm {
+    font-family: monospace;
+    font-size: var(--font-2xs);    /* 11px */
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);      /* #8892a4 */
+}
+
+/* ── Texto descriptivo / body copy ─────────────────────────── */
+.t-body {
+    font-size: var(--font-base);   /* 14px */
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+.t-body-sm {
+    font-size: var(--font-sm);     /* 13px */
+    color: var(--text-secondary);
+    line-height: 1.55;
+}
+
+/* ── Cards dark ─────────────────────────────────────────────── */
+.card-dark {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+}
+.card-dark:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--border-strong);
+}
+
+/* ── Divider ─────────────────────────────────────────────────── */
+.divider { height: 1px; background: var(--border); }

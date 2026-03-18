@@ -237,7 +237,7 @@ export default function OnboardingPage() {
                             style={{
                                 background: "rgba(230,57,70,0.1)",
                                 borderColor: "rgba(230,57,70,0.3)",
-                                color: "#e63946",
+                                color: "var(--accent-red)",
                             }}
                         >
                             ❌ {error}

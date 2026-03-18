@@ -1,58 +1,144 @@
-// ─────────────────────────────────────────────────────────────
 // apps/server/src/socket.ts
-// All Socket.IO logic in one place, typed via shared events.
-// ─────────────────────────────────────────────────────────────
 
 import type { Server } from "socket.io";
 import type { ServerToClientEvents, ClientToServerEvents } from "../../../packages/shared/types.js";
-import { addPlayer, movePlayer, removePlayer, getAllPlayers, evictStale } from "./services/playerStore.js";
-import { PlayerMovePayload, PlayerStopPayload, validate } from "./validators/game.validators.js";
-import { PLAYER_STORE } from "./constants.js";
+import { prisma } from "./services/prisma.js";
+import jwt from "jsonwebtoken";
 
-type TypedServer = Server<ClientToServerEvents, ServerToClientEvents>;
+const JWT_SECRET = process.env.JWT_SECRET ?? "dev_secret";
+const MAX_MSG_LENGTH = 200;
+const HISTORY_LIMIT  = 50;
 
-export function registerSocketHandlers(io: TypedServer): void {
-    // Periodic ghost cleanup (every TTL interval)
-    setInterval(evictStale, PLAYER_STORE.TTL_MS);
+// ─── Auth middleware ──────────────────────────────────────────────────────────
 
-    io.on("connection", (socket) => {
-        const player = addPlayer(socket.id);
+function extractUserId(token: string): string | null {
+  try {
+    const payload = jwt.verify(token, JWT_SECRET) as any;
+    return payload.userId ?? null;
+  } catch { return null; }
+}
 
-        // Send existing players to the newcomer
-        socket.emit("players:init", getAllPlayers());
+// ─── Register handlers ────────────────────────────────────────────────────────
 
-        // Broadcast new player to everyone else
-        socket.broadcast.emit("players:join", player);
+export function registerSocketHandlers(
+  io: Server<ClientToServerEvents, ServerToClientEvents>
+) {
+  io.on("connection", async (socket) => {
+    // ── Auth ──────────────────────────────────────────────────────────────────
+    const token = socket.handshake.auth?.token as string | undefined;
+    if (!token) { socket.disconnect(); return; }
 
-        // ── player:move ───────────────────────────────────────
-        socket.on("player:move", (raw) => {
-            try {
-                const { x, y } = validate(PlayerMovePayload, raw);
-                const updated = movePlayer(socket.id, x, y);
-                if (!updated) return;
-                socket.broadcast.emit("players:update", { id: socket.id, x: updated.x, y: updated.y });
-            } catch {
-                // Invalid payload — silently ignore (don't crash or respond)
-            }
-        });
+    const userId = extractUserId(token);
+    if (!userId) { socket.disconnect(); return; }
 
-        // ── player:stop ───────────────────────────────────────
-        socket.on("player:stop", (raw) => {
-            try {
-                const { x, y } = validate(PlayerStopPayload, raw);
-                const updated = movePlayer(socket.id, x, y);
-                if (!updated) return;
-                // Broadcast final position so other clients snap cleanly
-                socket.broadcast.emit("players:update", { id: socket.id, x: updated.x, y: updated.y });
-            } catch {
-                // Invalid payload — silently ignore
-            }
-        });
+    // Cargar perfil básico
+    const [user, profile] = await Promise.all([
+      prisma.user.findUnique({ where: { id: userId }, select: { username: true } }),
+      prisma.trainerProfile.findUnique({
+        where: { userId },
+        select: { guildId: true, guild: { select: { tag: true } } },
+      }),
+    ]);
 
-        // ── disconnect ────────────────────────────────────────
-        socket.on("disconnect", () => {
-            removePlayer(socket.id);
-            socket.broadcast.emit("players:leave", { id: socket.id });
-        });
+    if (!user) { socket.disconnect(); return; }
+
+    const username = user.username;
+    const guildId  = profile?.guildId ?? null;
+    const guildTag = (profile?.guild as any)?.tag ?? "";
+
+    // Actualizar lastSeen
+    await prisma.trainerProfile.update({
+      where: { userId },
+      data: { lastSeen: new Date() },
+    }).catch(() => {});
+
+    // Unirse a salas
+    socket.join("global");
+    if (guildId) socket.join(`guild:${guildId}`);
+
+    // ── Global: enviar historial ──────────────────────────────────────────────
+    const globalHistory = await prisma.globalMessage.findMany({
+      orderBy: { createdAt: "desc" },
+      take: HISTORY_LIMIT,
     });
+    socket.emit("chat:history", {
+      channel: "global",
+      messages: globalHistory.reverse().map(m => ({
+        id:        m.id,
+        userId:    m.userId,
+        username:  m.username,
+        guildTag:  m.guildTag,
+        content:   m.content,
+        createdAt: m.createdAt.toISOString(),
+      })),
+    });
+
+    // ── Guild: enviar historial ───────────────────────────────────────────────
+    if (guildId) {
+      const guildHistory = await prisma.guildMessage.findMany({
+        where: { guildId },
+        orderBy: { createdAt: "desc" },
+        take: HISTORY_LIMIT,
+      });
+      socket.emit("chat:history", {
+        channel: "guild",
+        messages: guildHistory.reverse().map(m => ({
+          id:        m.id,
+          userId:    m.userId,
+          username:  m.username,
+          guildTag:  m.guildTag,
+          content:   m.content,
+          createdAt: m.createdAt.toISOString(),
+        })),
+      });
+    }
+
+    // ── Global message ────────────────────────────────────────────────────────
+    socket.on("chat:send", async ({ channel, content }) => {
+      const text = content?.trim().slice(0, MAX_MSG_LENGTH);
+      if (!text) return;
+
+      if (channel === "global") {
+        const msg = await prisma.globalMessage.create({
+          data: { userId, username, guildTag, content: text },
+        });
+        io.to("global").emit("chat:message", {
+          channel: "global",
+          message: {
+            id:        msg.id,
+            userId:    msg.userId,
+            username:  msg.username,
+            guildTag:  msg.guildTag,
+            content:   msg.content,
+            createdAt: msg.createdAt.toISOString(),
+          },
+        });
+      }
+
+      if (channel === "guild" && guildId) {
+        const msg = await prisma.guildMessage.create({
+          data: { guildId, userId, username, guildTag, content: text },
+        });
+        io.to(`guild:${guildId}`).emit("chat:message", {
+          channel: "guild",
+          message: {
+            id:        msg.id,
+            userId:    msg.userId,
+            username:  msg.username,
+            guildTag:  msg.guildTag,
+            content:   msg.content,
+            createdAt: msg.createdAt.toISOString(),
+          },
+        });
+      }
+    });
+
+    // ── Disconnect ────────────────────────────────────────────────────────────
+    socket.on("disconnect", async () => {
+      await prisma.trainerProfile.update({
+        where: { userId },
+        data: { lastSeen: new Date() },
+      }).catch(() => {});
+    });
+  });
 }

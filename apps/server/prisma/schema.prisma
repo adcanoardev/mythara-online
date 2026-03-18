@@ -66,8 +66,97 @@ model TrainerProfile {
   binderLevel        Int      @default(1)   // nivel del Binder (1-40), calculado desde xp
   sanctumClears      Int[]    @default([])  // índice i = nº victorias en Sanctum i
 
+  // Actividad
+  lastSeen  DateTime @default(now())
+
+  // Guild
+  guildId   String?
+  guildRole String?   // "Leader" | "Officer" | "Member"
+  guild     Guild?    @relation(fields: [guildId], references: [id])
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// ─── Guild ─────────────────────────────────────────────────────
+
+model Guild {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  tag         String   @unique   // max 4 chars, uppercase
+  banner      String   @default("#7b2fff")
+  level       Int      @default(1)
+  description String   @default("")
+  leaderId    String   // userId del líder (denormalizado para lectura rápida)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  xp      Int @default(0)
+  members TrainerProfile[]
+  quests  GuildQuest[]
+  messages GuildMessage[]
+}
+
+// ─── Guild Quests ───────────────────────────────────────────────
+
+enum QuestType {
+  WIN_BATTLES
+  OPEN_FRAGMENTS
+  COLLECT_MINE
+  COMPLETE_SANCTUM
+  WIN_PVP
+}
+
+model GuildQuest {
+  id          String    @id @default(cuid())
+  guildId     String
+  guild       Guild     @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  type        QuestType
+  description String
+  target      Int
+  progress    Int       @default(0)
+  date        String    // "YYYY-MM-DD" — reset diario
+  reward50    String    @default("TOKENS")
+  reward100   String    @default("TOKENS_GEMS")
+  claimed50   String[]  @default([])  // userIds que reclamaron 50%
+  claimed100  String[]  @default([])  // userIds que reclamaron 100%
+
+  contributions GuildQuestContribution[]
+
+  createdAt DateTime @default(now())
+}
+
+model GuildQuestContribution {
+  id        String     @id @default(cuid())
+  questId   String
+  quest     GuildQuest @relation(fields: [questId], references: [id], onDelete: Cascade)
+  userId    String
+  amount    Int
+  createdAt DateTime   @default(now())
+}
+
+// ─── Guild Chat ─────────────────────────────────────────────────
+
+model GuildMessage {
+  id        String   @id @default(cuid())
+  guildId   String
+  guild     Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  userId    String
+  username  String
+  guildTag  String
+  content   String
+  createdAt DateTime @default(now())
+}
+
+// ─── Global Chat ────────────────────────────────────────────────
+
+model GlobalMessage {
+  id        String   @id @default(cuid())
+  userId    String
+  username  String
+  guildTag  String   @default("")
+  content   String
+  createdAt DateTime @default(now())
 }
 
 // ─── Fichas de combate ─────────────────────────────────────────

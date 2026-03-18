@@ -56,8 +56,8 @@ const RARITY_CONFIG: Record<string, { label: string; color: string; bg: string; 
     COMMON:    { label: "COM",   color: "#94a3b8", bg: "rgba(100,116,139,.18)", border: "rgba(100,116,139,.28)" },
     RARE:      { label: "RARE",  color: "#818cf8", bg: "rgba(99,102,241,.18)",  border: "rgba(99,102,241,.28)"  },
     EPIC:      { label: "EPIC",  color: "#c084fc", bg: "rgba(192,132,252,.18)", border: "rgba(192,132,252,.28)" },
-    ELITE:     { label: "ELITE", color: "#e2e8f0", bg: "rgba(226,232,240,.18)", border: "rgba(226,232,240,.28)" },
-    LEGENDARY: { label: "LEG",   color: "#fbbf24", bg: "rgba(251,191,36,.18)",  border: "rgba(251,191,36,.28)"  },
+    ELITE:     { label: "ELITE", color: "var(--text-primary)", bg: "rgba(226,232,240,.18)", border: "rgba(226,232,240,.28)" },
+    LEGENDARY: { label: "LEG",   color: "var(--accent-gold)", bg: "rgba(251,191,36,.18)",  border: "rgba(251,191,36,.28)"  },
     MYTHIC:    { label: "MYT",   color: "#f472b6", bg: "rgba(244,114,182,.18)", border: "rgba(244,114,182,.28)" },
 };
 
@@ -150,8 +150,7 @@ function MythCard({ myth, selected, onClick }: { myth: Myth; selected: boolean; 
             </div>
             {/* Bottom info */}
             <div className="absolute bottom-0 left-0 right-0 px-1.5 pb-1.5">
-                <div className="font-black text-white leading-tight truncate"
-                    className="tvn-card-name" style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 8, textTransform: "uppercase", letterSpacing: ".04em" }}>
+                <div className="tvn-card-name font-black text-white leading-tight truncate" style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: "var(--font-2xs)", textTransform: "uppercase", letterSpacing: ".04em" }}>
                     {myth.name ?? myth.speciesId}
                 </div>
                 <div className="flex items-center justify-between mt-0.5">
@@ -162,7 +161,7 @@ function MythCard({ myth, selected, onClick }: { myth: Myth; selected: boolean; 
                         Lv.{myth.level}
                     </span>
                 </div>
-                <div style={{ fontSize: 7, fontFamily: "monospace", color: "#fbbf24" }}>⚡{power}</div>
+                <div style={{ fontSize: 7, fontFamily: "monospace", color: "var(--accent-gold)" }}>⚡{power}</div>
             </div>
         </div>
     );
@@ -190,9 +189,9 @@ function StatsPanel({ myth }: { myth: Myth }) {
                     <div key={key} className="tvn-stat-row flex items-center flex-shrink-0"
                         style={{ gap: 6, background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.06)", borderRadius: 7, padding: "3px 8px" }}>
                         <span className="tvn-stat-label font-mono flex-shrink-0"
-                            style={{ color: "rgba(255,255,255,.38)", letterSpacing: ".07em", fontSize: 9, width: 26 }}>{label}</span>
+                            style={{ color: "rgba(255,255,255,.38)", letterSpacing: ".07em", fontSize: "var(--font-xs)", width: 26 }}>{label}</span>
                         <span className="tvn-stat-value font-black flex-shrink-0"
-                            style={{ fontFamily: "'Rajdhani',sans-serif", color: "#e2e8f0", fontSize: 14, width: 26 }}>{val}</span>
+                            style={{ fontFamily: "'Rajdhani',sans-serif", color: "var(--text-primary)", fontSize: "var(--font-md)", width: 26 }}>{val}</span>
                         <div className="tvn-stat-bar flex-1 rounded-full overflow-hidden" style={{ height: 5, background: "rgba(255,255,255,.07)" }}>
                             <div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} />
                         </div>
@@ -204,17 +203,17 @@ function StatsPanel({ myth }: { myth: Myth }) {
                 <div className="flex gap-1 flex-wrap flex-1">
                     {(myth.affinities ?? []).map(a => (
                         <span key={a} className="tvn-aff-tag font-mono px-1.5 py-0.5 rounded-md"
-                            style={{ fontSize: 8, background: "rgba(99,102,241,.12)", border: "1px solid rgba(99,102,241,.25)", color: "#818cf8" }}>
+                            style={{ fontSize: "var(--font-2xs)", background: "rgba(99,102,241,.12)", border: "1px solid rgba(99,102,241,.25)", color: "#818cf8" }}>
                             {AFFINITY_ICON[a] ?? ""} {a}
                         </span>
                     ))}
                     <span className="font-mono px-1.5 py-0.5 rounded-md"
-                        style={{ fontSize: 8, background: rar.bg, color: rar.color, border: `1px solid ${rar.border}` }}>
+                        style={{ fontSize: "var(--font-2xs)", background: rar.bg, color: rar.color, border: `1px solid ${rar.border}` }}>
                         {myth.rarity}
                     </span>
                 </div>
                 <div className="tvn-power font-black flex-shrink-0 px-2 py-1 rounded-lg"
-                    style={{ fontFamily: "'Rajdhani',sans-serif", color: "#fbbf24", fontSize: 14,
+                    style={{ fontFamily: "'Rajdhani',sans-serif", color: "var(--accent-gold)", fontSize: "var(--font-md)",
                         background: "rgba(251,191,36,.07)", border: "1px solid rgba(251,191,36,.18)" }}>
                     ⚡{power.toLocaleString()}
                 </div>
@@ -239,7 +238,7 @@ function SkillsPanel({ myth }: { myth: Myth }) {
                     <div key={move.id ?? i} className="p-2.5 rounded-xl"
                         style={{ background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.07)" }}>
                         <div className="flex items-center justify-between mb-1">
-                            <span className="tvn-move-name font-black" style={{ fontFamily: "'Rajdhani',sans-serif", color: "#e2e8f0", textTransform: "uppercase", letterSpacing: ".04em" }}>
+                            <span className="tvn-move-name font-black" style={{ fontFamily: "'Rajdhani',sans-serif", color: "var(--text-primary)", textTransform: "uppercase", letterSpacing: ".04em" }}>
                                 {AFFINITY_ICON[aff] ?? ""} {move.name}
                             </span>
                             <span className="font-mono text-[8px] px-1.5 py-0.5 rounded-md"
@@ -248,12 +247,12 @@ function SkillsPanel({ myth }: { myth: Myth }) {
                             </span>
                         </div>
                         {(move.description ?? move.effect) && (
-                            <p className="tvn-move-desc font-mono leading-relaxed" style={{ color: "rgba(255,255,255,.38)", fontSize: 9 }}>
+                            <p className="tvn-move-desc font-mono leading-relaxed" style={{ color: "rgba(255,255,255,.38)", fontSize: "var(--font-xs)" }}>
                                 {move.description ?? move.effect}
                             </p>
                         )}
                         {move.power && (
-                            <p className="font-mono text-[9px] mt-1" style={{ color: "#fbbf24" }}>Power: {move.power}</p>
+                            <p className="font-mono text-[9px] mt-1" style={{ color: "var(--accent-gold)" }}>Power: {move.power}</p>
                         )}
                     </div>
                 );
@@ -289,7 +288,7 @@ function GearPanel({ myth }: { myth: Myth }) {
                         <div className="flex-1 min-w-0">
                             {equipped && enhancer ? (
                                 <>
-                                    <p className="font-black text-xs" style={{ fontFamily: "'Rajdhani',sans-serif", color: "#e2e8f0", textTransform: "uppercase" }}>
+                                    <p className="font-black text-xs" style={{ fontFamily: "'Rajdhani',sans-serif", color: "var(--text-primary)", textTransform: "uppercase" }}>
                                         {enhancer.name} Lv.{enhancer.level}
                                     </p>
                                     <p className="font-mono text-[9px]" style={{ color: "rgba(251,191,36,.7)" }}>
@@ -373,7 +372,7 @@ function FormPanel({ myth }: { myth: Myth }) {
                             boxShadow: activeForm === i ? `0 0 10px ${f.color}22` : "none",
                             cursor: "pointer", outline: "none",
                         }}>
-                        <div className="font-black" style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 10, letterSpacing: ".06em",
+                        <div className="font-black" style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: "var(--font-xs)", letterSpacing: ".06em",
                             color: activeForm === i ? f.color : "rgba(255,255,255,.3)", textTransform: "uppercase" }}>
                             {f.label}
                         </div>
@@ -397,8 +396,8 @@ function FormPanel({ myth }: { myth: Myth }) {
                             {Object.entries(active.statMods).map(([k, v]) => (
                                 <div key={k} className="flex items-center justify-between px-2 py-1 rounded-lg"
                                     style={{ background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.06)" }}>
-                                    <span className="font-mono" style={{ fontSize: 8, color: "rgba(255,255,255,.4)" }}>{k}</span>
-                                    <span className="font-black" style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 13,
+                                    <span className="font-mono" style={{ fontSize: "var(--font-2xs)", color: "rgba(255,255,255,.4)" }}>{k}</span>
+                                    <span className="font-black" style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: "var(--font-base)",
                                         color: v.startsWith("+") ? "#06d6a0" : "#ef4444" }}>{v}</span>
                                 </div>
                             ))}
@@ -431,9 +430,9 @@ function FormPanel({ myth }: { myth: Myth }) {
 // ─── TavernPage ───────────────────────────────────────────────────────────────
 // ─── Inventory items ──────────────────────────────────────────────────────────
 const INV_ITEMS = [
-    { id:"elixir",       icon:"⚗️", name:"Elixir",       rarity:"Consumable", color:"#4cc9f0", desc:"Instantly restores a Myth's HP to full. Use before a tough battle.",           source:"Laboratory · Outpost" },
-    { id:"turbo_elixir", icon:"💠", name:"Turbo Elixir", rarity:"Consumable", color:"#7b2fff", desc:"Doubles nursery training speed for 1 hour. Great for fast leveling.",           source:"Laboratory · Special Events" },
-    { id:"antidote",     icon:"🧪", name:"Antidote",     rarity:"Consumable", color:"#06d6a0", desc:"Cures all status effects: poison, burn and paralysis in one use.",              source:"Laboratory · Outpost" },
+    { id:"elixir",       icon:"⚗️", name:"Elixir",       rarity:"Consumable", color:"var(--accent-blue)", desc:"Instantly restores a Myth's HP to full. Use before a tough battle.",           source:"Laboratory · Outpost" },
+    { id:"turbo_elixir", icon:"💠", name:"Turbo Elixir", rarity:"Consumable", color:"var(--accent-purple)", desc:"Doubles nursery training speed for 1 hour. Great for fast leveling.",           source:"Laboratory · Special Events" },
+    { id:"antidote",     icon:"🧪", name:"Antidote",     rarity:"Consumable", color:"var(--accent-green)", desc:"Cures all status effects: poison, burn and paralysis in one use.",              source:"Laboratory · Outpost" },
     { id:"boost_atk",    icon:"🔥", name:"ATK Boost",    rarity:"Consumable", color:"#f97316", desc:"Increases a Myth's ATK by 20% for the duration of the next battle.",            source:"Laboratory · PvP Rewards" },
     { id:"boost_def",    icon:"🛡️", name:"DEF Boost",    rarity:"Consumable", color:"#3b82f6", desc:"Increases a Myth's DEF by 20% for the duration of the next battle.",            source:"Laboratory · Sanctuaries" },
     { id:"mega_elixir",  icon:"✨", name:"Mega Elixir",  rarity:"Consumable", color:"#fcd34d", desc:"Restores the entire team to 100% HP. Rare and powerful — save it for bosses.",  source:"Special Events · Guild Rewards" },
@@ -559,15 +558,15 @@ export default function TavernPage() {
                 style={{ height: 48, background: "rgba(4,8,15,.97)", borderBottom: "1px solid rgba(255,255,255,.06)", zIndex: 10 }}>
                 <button onClick={() => navigate("/")}
                     className="flex items-center gap-2 transition-opacity hover:opacity-70 active:scale-95"
-                    style={{ color: "rgba(255,255,255,.45)", fontSize: 11, fontFamily: "monospace" }}>
-                    <span style={{ fontSize: 9 }}>◀</span>
+                    style={{ color: "rgba(255,255,255,.45)", fontSize: "var(--font-sm)", fontFamily: "monospace" }}>
+                    <span style={{ fontSize: "var(--font-xs)" }}>◀</span>
                     <span className="tracking-widest uppercase">City</span>
                 </button>
                 <div className="flex flex-col items-center">
                     <span className="tracking-[.22em] uppercase font-black"
-                        style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 15, color: "#e2e8f0" }}>Tavern</span>
+                        style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: "var(--font-lg)", color: "var(--text-primary)" }}>Tavern</span>
                     <span className="tracking-widest uppercase"
-                        style={{ fontSize: 8, color: "rgba(255,255,255,.22)", fontFamily: "monospace" }}>My Myths · Inventory</span>
+                        style={{ fontSize: "var(--font-2xs)", color: "rgba(255,255,255,.22)", fontFamily: "monospace" }}>My Myths · Inventory</span>
                 </div>
                 <div style={{ width: 72 }} />
             </div>
@@ -585,7 +584,7 @@ export default function TavernPage() {
                             <button key={lt} onClick={() => setLeftTab(lt)}
                                 className="tvn-left-tab flex-1 py-2 font-mono uppercase tracking-widest transition-all"
                                 style={{
-                                    fontSize: 8,
+                                    fontSize: "var(--font-2xs)",
                                     borderBottom: leftTab === lt ? "2px solid #a78bfa" : "2px solid transparent",
                                     color: leftTab === lt ? "#a78bfa" : "rgba(255,255,255,.3)",
                                     background: leftTab === lt ? "rgba(167,139,250,.06)" : "transparent",
@@ -604,13 +603,13 @@ export default function TavernPage() {
                         style={{ borderBottom: "1px solid rgba(255,255,255,.05)" }}>
                         {AFFINITY_FILTERS.map(f => (
                             <button key={f} onClick={() => setAffFilter(f)}
-                                className="transition-all active:scale-95"
+                                className="tvn-filter-btn transition-all active:scale-95"
                                 style={{
-                                    padding: "2px 7px", borderRadius: 5, fontSize: 9, fontFamily: "monospace", cursor: "pointer",
+                                    padding: "2px 7px", borderRadius: 5, fontSize: "var(--font-xs)", fontFamily: "monospace", cursor: "pointer",
                                     background: affFilter === f ? "rgba(167,139,250,.18)" : "rgba(255,255,255,.03)",
                                     border: affFilter === f ? "1px solid rgba(167,139,250,.35)" : "1px solid rgba(255,255,255,.07)",
                                     color: affFilter === f ? "#a78bfa" : "rgba(255,255,255,.35)",
-                                }} className={"tvn-filter-btn transition-all active:scale-95"}>
+                                }}>
                                 {f === "ALL" ? "All" : AFFINITY_ICON[f] ?? f}
                             </button>
                         ))}
@@ -656,11 +655,10 @@ export default function TavernPage() {
                                         {item.icon}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className="font-black leading-tight truncate"
-                                            className="tvn-inv-name" style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 11, color: "#e2e8f0", textTransform: "uppercase", letterSpacing: ".04em" }}>
+                                        <p className="tvn-inv-name font-black leading-tight truncate" style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: "var(--font-sm)", color: "var(--text-primary)", textTransform: "uppercase", letterSpacing: ".04em" }}>
                                             {item.name}
                                         </p>
-                                        <p className="tvn-inv-rarity font-mono" style={{ fontSize: 8, color: `${item.color}aa`, marginTop: 1 }}>
+                                        <p className="tvn-inv-rarity font-mono" style={{ fontSize: "var(--font-2xs)", color: `${item.color}aa`, marginTop: 1 }}>
                                             {item.rarity}
                                         </p>
                                     </div>
@@ -679,15 +677,15 @@ export default function TavernPage() {
                                     </div>
                                 </div>
                                 <p className="tvn-inv-dname font-black text-center mb-0.5"
-                                    style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 13, color: selItem.color, textTransform: "uppercase", letterSpacing: ".06em" }}>
+                                    style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: "var(--font-base)", color: selItem.color, textTransform: "uppercase", letterSpacing: ".06em" }}>
                                     {selItem.name}
                                 </p>
                                 <p className="font-mono text-center mb-3"
-                                    style={{ fontSize: 8, color: "rgba(255,255,255,.3)", letterSpacing: ".1em" }}>
+                                    style={{ fontSize: "var(--font-2xs)", color: "rgba(255,255,255,.3)", letterSpacing: ".1em" }}>
                                     {selItem.rarity}
                                 </p>
                                 <p className="tvn-inv-desc font-mono leading-relaxed mb-3"
-                                    style={{ fontSize: 9, color: "rgba(255,255,255,.5)", lineHeight: 1.55 }}>
+                                    style={{ fontSize: "var(--font-xs)", color: "rgba(255,255,255,.5)", lineHeight: 1.55 }}>
                                     {selItem.desc}
                                 </p>
                                 <div className="px-2.5 py-2 rounded-xl"
@@ -695,7 +693,7 @@ export default function TavernPage() {
                                     <p className="font-mono mb-0.5" style={{ fontSize: 7, color: "rgba(255,255,255,.25)", letterSpacing: ".12em", textTransform: "uppercase" }}>
                                         Where to get
                                     </p>
-                                    <p className="tvn-inv-src font-mono" style={{ fontSize: 9, color: selItem.color }}>
+                                    <p className="tvn-inv-src font-mono" style={{ fontSize: "var(--font-xs)", color: selItem.color }}>
                                         {selItem.source}
                                     </p>
                                 </div>
@@ -766,7 +764,7 @@ export default function TavernPage() {
                                                     boxShadow: clampedForm === i ? `0 0 10px ${f.color}22` : "none",
                                                     cursor: "pointer", outline: "none",
                                                 }}>
-                                                <div className="font-black" style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 9,
+                                                <div className="font-black" style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: "var(--font-xs)",
                                                     letterSpacing: ".08em", textTransform: "uppercase",
                                                     color: clampedForm === i ? f.color : "rgba(255,255,255,.28)" }}>
                                                     {f.label}
@@ -856,29 +854,29 @@ export default function TavernPage() {
                                 <div className="flex-shrink-0 text-center px-3 pb-3">
                                     <div className="flex items-center justify-center gap-2 mb-1">
                                         <span className="font-mono px-2 py-0.5 rounded-md"
-                                            style={{ fontSize: 9, background: rar?.bg, color: rar?.color,
+                                            style={{ fontSize: "var(--font-xs)", background: rar?.bg, color: rar?.color,
                                                 border: `1px solid ${rar?.border}`, letterSpacing: ".12em", textTransform: "uppercase" }}>
                                             {selected.rarity}
                                         </span>
-                                        <span className="font-mono" style={{ fontSize: 9, color: "rgba(255,255,255,.3)" }}>
+                                        <span className="font-mono" style={{ fontSize: "var(--font-xs)", color: "rgba(255,255,255,.3)" }}>
                                             {AFFINITY_ICON[selected.affinities?.[0]]} {selected.affinities?.[0]} · Lv. {selected.level}/60
                                         </span>
                                     </div>
                                     <h2 className="font-black leading-none"
                                         style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: "clamp(18px,3vw,28px)",
-                                            color: "#e2e8f0", textTransform: "uppercase", letterSpacing: ".06em",
+                                            color: "var(--text-primary)", textTransform: "uppercase", letterSpacing: ".06em",
                                             textShadow: `0 0 30px ${activeForm.color}55`,
                                             transition: "text-shadow .4s" }}>
                                         {activeForm.displayName}
                                     </h2>
                                     <div className="flex items-center justify-center gap-2 mt-1">
                                         <div className="tvn-power font-black"
-                                            style={{ color: "#fbbf24", fontFamily: "'Rajdhani',sans-serif", fontWeight: 700, fontSize: 14 }}>
+                                            style={{ color: "var(--accent-gold)", fontFamily: "'Rajdhani',sans-serif", fontWeight: 700, fontSize: "var(--font-md)" }}>
                                             ⚡ {power.toLocaleString()} PWR
                                         </div>
                                         {selected.inParty && (
                                             <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-mono"
-                                                style={{ fontSize: 8, background: "rgba(6,214,160,.1)", border: "1px solid rgba(6,214,160,.25)", color: "#06d6a0" }}>
+                                                style={{ fontSize: "var(--font-2xs)", background: "rgba(6,214,160,.1)", border: "1px solid rgba(6,214,160,.25)", color: "var(--accent-green)" }}>
                                                 ✓ Party
                                             </div>
                                         )}
@@ -909,7 +907,7 @@ export default function TavernPage() {
                                     background: tab === t.id ? "rgba(226,232,240,.06)" : "transparent",
                                     cursor: "pointer", outline: "none",
                                 }}>
-                                <span className="tvn-vtab-icon" style={{ fontSize: 14 }}>{t.icon}</span>
+                                <span className="tvn-vtab-icon" style={{ fontSize: "var(--font-md)" }}>{t.icon}</span>
                                 <span className="tvn-vtab-label font-mono uppercase tracking-wide text-center leading-tight"
                                     style={{ fontSize: 6, color: tab === t.id ? "rgba(226,232,240,.7)" : "rgba(255,255,255,.25)" }}>
                                     {t.label}

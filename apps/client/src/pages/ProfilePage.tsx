@@ -22,11 +22,11 @@ const RARITY_MULT: Record<string, number> = {
 const PVP_RANKS = [
   { name: "Bronze",     min: 0,    color: "#cd7f32" },
   { name: "Silver",     min: 100,  color: "#c0c0c0" },
-  { name: "Gold",       min: 300,  color: "#ffd60a" },
-  { name: "Platinum",   min: 600,  color: "#4cc9f0" },
+  { name: "Gold",       min: 300,  color: "var(--accent-gold)" },
+  { name: "Platinum",   min: 600,  color: "var(--accent-blue)" },
   { name: "Diamond",    min: 1000, color: "#a78bfa" },
   { name: "Ascendant",  min: 1800, color: "#f97316" },
-  { name: "Mythic",     min: 3000, color: "#f87171" },
+  { name: "Mythic",     min: 3000, color: "var(--accent-red)" },
 ];
 
 const EMBLEMS = [
@@ -44,9 +44,9 @@ const EMBLEMS = [
 const FRAMES = [
   { id: "default",   name: "Default",   color: "#475569" },
   { id: "silver",    name: "Silver",    color: "#c0c0c0" },
-  { id: "gold",      name: "Gold",      color: "#ffd60a" },
-  { id: "legendary", name: "Legendary", color: "#fbbf24" },
-  { id: "mythic",    name: "Mythic",    color: "#f87171" },
+  { id: "gold",      name: "Gold",      color: "var(--accent-gold)" },
+  { id: "legendary", name: "Legendary", color: "var(--accent-gold)" },
+  { id: "mythic",    name: "Mythic",    color: "var(--accent-red)" },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -72,7 +72,7 @@ function StatRow({ label, value, color = "rgba(255,255,255,0.7)" }: {
   return (
     <div className="flex items-center justify-between py-1.5"
       style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-      <span className="text-xs font-mono" style={{ color: "rgba(255,255,255,0.35)" }}>{label}</span>
+      <span className="text-xs font-mono" style={{ color: "var(--text-secondary)" }}>{label}</span>
       <span className="text-xs font-bold" style={{ color }}>{value}</span>
     </div>
   );
@@ -156,10 +156,10 @@ export default function ProfilePage() {
             onClick={(e) => e.stopPropagation()}>
             <div>
               <p className="font-black tracking-widest uppercase text-sm mb-1"
-                style={{ fontFamily: "'Rajdhani',sans-serif", color: "#e2e8f0" }}>
+                style={{ fontFamily: "'Rajdhani',sans-serif", color: "var(--text-primary)" }}>
                 Change Username
               </p>
-              <p className="text-[10px] font-mono" style={{ color: "rgba(255,255,255,0.35)" }}>
+              <p className="text-[10px] font-mono" style={{ color: "var(--text-secondary)" }}>
                 Cost: <span style={{ color: "#a78bfa" }}>150 💎</span> · You have: <span style={{ color: diamonds >= 150 ? "#a78bfa" : "#f87171" }}>{diamonds} 💎</span>
               </p>
             </div>
@@ -173,7 +173,7 @@ export default function ProfilePage() {
               style={{
                 background: "rgba(255,255,255,0.04)",
                 border: "1px solid rgba(167,139,250,0.25)",
-                color: "#e2e8f0",
+                color: "var(--text-primary)",
               }}
             />
             {usernameMsg && (
@@ -188,7 +188,7 @@ export default function ProfilePage() {
             </button>
             <button onClick={() => setShowUsernameModal(false)}
               className="text-[10px] font-mono text-center transition-colors hover:opacity-60"
-              style={{ color: "rgba(255,255,255,0.3)" }}>
+              style={{ color: "var(--text-muted)" }}>
               Cancel ✕
             </button>
           </div>
@@ -204,7 +204,7 @@ export default function ProfilePage() {
             style={{ background: "#0a1020", border: "1px solid rgba(255,255,255,0.1)" }}
             onClick={(e) => e.stopPropagation()}>
             <p className="font-black tracking-widest uppercase text-sm"
-              style={{ fontFamily: "'Rajdhani',sans-serif", color: "#e2e8f0" }}>
+              style={{ fontFamily: "'Rajdhani',sans-serif", color: "var(--text-primary)" }}>
               Avatar Frame
             </p>
             <div className="flex flex-col gap-2">
@@ -217,7 +217,7 @@ export default function ProfilePage() {
                   }}>
                   <div className="w-8 h-8 rounded-full flex-shrink-0"
                     style={{ background: `${f.color}20`, border: `2px solid ${f.color}60` }} />
-                  <span className="text-sm font-bold" style={{ color: selectedFrame === f.id ? f.color : "rgba(255,255,255,0.6)" }}>
+                  <span className="text-sm font-bold" style={{ color: selectedFrame === f.id ? f.color : "var(--text-primary)" }}>
                     {f.name}
                   </span>
                   {selectedFrame === f.id && (
@@ -226,11 +226,11 @@ export default function ProfilePage() {
                 </button>
               ))}
             </div>
-            <p className="text-[9px] font-mono text-center" style={{ color: "rgba(255,255,255,0.2)" }}>
+            <p className="text-[9px] font-mono text-center" style={{ color: "var(--text-muted)" }}>
               More frames coming soon
             </p>
             <button onClick={() => setShowFramePicker(false)}
-              className="text-[10px] font-mono text-center" style={{ color: "rgba(255,255,255,0.3)" }}>
+              className="text-[10px] font-mono text-center" style={{ color: "var(--text-muted)" }}>
               Close ✕
             </button>
           </div>
@@ -258,7 +258,7 @@ export default function ProfilePage() {
             </div>
             <button onClick={() => setShowFramePicker(true)}
               className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center transition-all hover:brightness-125 active:scale-90"
-              style={{ background: frameColor, fontSize: 10 }}
+              style={{ background: frameColor, fontSize: "var(--font-xs)" }}
               title="Change frame">
               ✏
             </button>
@@ -268,7 +268,7 @@ export default function ProfilePage() {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-0.5">
               <span className="font-black text-xl md:text-2xl tracking-wide"
-                style={{ fontFamily: "'Rajdhani',sans-serif", color: "#e2e8f0" }}>
+                style={{ fontFamily: "'Rajdhani',sans-serif", color: "var(--text-primary)" }}>
                 {user?.username ?? "—"}
               </span>
               <button onClick={() => setShowUsernameModal(true)}
@@ -278,7 +278,7 @@ export default function ProfilePage() {
               </button>
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-xs font-mono" style={{ color: "rgba(255,255,255,0.4)" }}>
+              <span className="text-xs font-mono" style={{ color: "var(--text-secondary)" }}>
                 Lv. {trainer?.level ?? 1}
               </span>
               <span className="text-xs font-mono px-2 py-0.5 rounded-full font-bold"
@@ -298,7 +298,7 @@ export default function ProfilePage() {
           {/* Diamonds */}
           <div className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl"
             style={{ background: "rgba(167,139,250,0.08)", border: "1px solid rgba(167,139,250,0.2)" }}>
-            <span style={{ fontSize: 14 }}>💎</span>
+            <span style={{ fontSize: "var(--font-md)" }}>💎</span>
             <span className="font-mono font-bold text-sm tabular-nums" style={{ color: "#c4b5fd" }}>
               {diamonds}
             </span>
@@ -308,10 +308,10 @@ export default function ProfilePage() {
         {/* XP bar */}
         <div className="relative mt-3">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[9px] font-mono" style={{ color: "rgba(255,255,255,0.3)" }}>
+            <span className="text-[9px] font-mono" style={{ color: "var(--text-muted)" }}>
               XP {trainer?.xp ?? 0} / {xpForLevel(trainer?.level ?? 1)}
             </span>
-            <span className="text-[9px] font-mono" style={{ color: "rgba(255,255,255,0.3)" }}>{xpPct}%</span>
+            <span className="text-[9px] font-mono" style={{ color: "var(--text-muted)" }}>{xpPct}%</span>
           </div>
           <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
             <div className="h-full rounded-full transition-all duration-700"
@@ -331,7 +331,7 @@ export default function ProfilePage() {
         <div className="w-full md:w-48 flex-shrink-0 rounded-2xl p-4 flex flex-col mb-3 md:mb-0 overflow-hidden"
           style={{ background: "#0a1020", border: "1px solid rgba(255,255,255,0.06)" }}>
           <p className="font-black tracking-widest uppercase text-xs mb-3 flex-shrink-0"
-            style={{ fontFamily: "'Rajdhani',sans-serif", color: "rgba(255,255,255,0.5)" }}>
+            style={{ fontFamily: "'Rajdhani',sans-serif", color: "var(--text-secondary)" }}>
             Emblems
           </p>
           <div className="flex flex-col gap-1.5 flex-1 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
@@ -350,7 +350,7 @@ export default function ProfilePage() {
                       style={{ color: earned ? "#ffd60a" : "rgba(255,255,255,0.5)" }}>
                       {emblem.sanctum}
                     </p>
-                    <p className="text-[9px] font-mono" style={{ color: "rgba(255,255,255,0.25)" }}>
+                    <p className="text-[9px] font-mono" style={{ color: "var(--text-muted)" }}>
                       {earned ? "✓ Earned" : `Lv. ${emblem.level}`}
                     </p>
                   </div>
@@ -369,7 +369,7 @@ export default function ProfilePage() {
           <div className="rounded-2xl p-4 flex-shrink-0"
             style={{ background: "#0a1020", border: "1px solid rgba(255,255,255,0.06)" }}>
             <p className="font-black tracking-widest uppercase text-xs mb-3"
-              style={{ fontFamily: "'Rajdhani',sans-serif", color: "rgba(255,255,255,0.5)" }}>
+              style={{ fontFamily: "'Rajdhani',sans-serif", color: "var(--text-secondary)" }}>
               Combat
             </p>
             <div className="grid grid-cols-2 gap-x-6">
@@ -398,7 +398,7 @@ export default function ProfilePage() {
           <div className="rounded-2xl p-4 flex-1 overflow-hidden flex flex-col"
             style={{ background: "#0a1020", border: "1px solid rgba(255,255,255,0.06)" }}>
             <p className="font-black tracking-widest uppercase text-xs mb-3 flex-shrink-0"
-              style={{ fontFamily: "'Rajdhani',sans-serif", color: "rgba(255,255,255,0.5)" }}>
+              style={{ fontFamily: "'Rajdhani',sans-serif", color: "var(--text-secondary)" }}>
               Collection — {stats?.totalMyths ?? 0} Myths
             </p>
             <div className="flex flex-col gap-2 flex-1 justify-center">
@@ -428,12 +428,12 @@ export default function ProfilePage() {
         <div className="w-full md:w-56 flex-shrink-0 rounded-2xl p-4 flex flex-col mt-3 md:mt-0 overflow-hidden"
           style={{ background: "#0a1020", border: "1px solid rgba(255,255,255,0.06)" }}>
           <p className="font-black tracking-widest uppercase text-xs mb-3 flex-shrink-0"
-            style={{ fontFamily: "'Rajdhani',sans-serif", color: "rgba(255,255,255,0.5)" }}>
+            style={{ fontFamily: "'Rajdhani',sans-serif", color: "var(--text-secondary)" }}>
             Team
           </p>
           {party.length === 0 ? (
             <div className="flex-1 flex items-center justify-center">
-              <p className="text-xs font-mono text-center" style={{ color: "rgba(255,255,255,0.25)" }}>
+              <p className="text-xs font-mono text-center" style={{ color: "var(--text-muted)" }}>
                 No Myths in team
               </p>
             </div>
@@ -452,11 +452,11 @@ export default function ProfilePage() {
                           : p.art?.front ?? "❓"}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-bold truncate" style={{ color: "#e2e8f0" }}>
+                        <p className="text-xs font-bold truncate" style={{ color: "var(--text-primary)" }}>
                           {p.name ?? p.speciesId}
                         </p>
                         <div className="flex items-center gap-1.5">
-                          <span className="text-[9px] font-mono" style={{ color: "rgba(255,255,255,0.35)" }}>Lv. {p.level}</span>
+                          <span className="text-[9px] font-mono" style={{ color: "var(--text-secondary)" }}>Lv. {p.level}</span>
                           <span className="text-[8px] font-mono px-1 py-0 rounded" style={{ color: rarityColor, background: `${rarityColor}15` }}>
                             {p.rarity?.slice(0,3)}
                           </span>
@@ -468,7 +468,7 @@ export default function ProfilePage() {
                           ))}
                         </div>
                       </div>
-                      <span className="text-[9px] font-mono font-bold flex-shrink-0" style={{ color: "#fbbf24" }}>
+                      <span className="text-[9px] font-mono font-bold flex-shrink-0" style={{ color: "var(--accent-gold)" }}>
                         {power}⚡
                       </span>
                     </div>
@@ -480,7 +480,7 @@ export default function ProfilePage() {
                         ["SPD", p.speed,    "#ffd60a"],
                       ].map(([label, val, color]) => (
                         <div key={label as string} className="text-center">
-                          <p className="text-[7px] font-mono" style={{ color: "rgba(255,255,255,0.25)" }}>{label}</p>
+                          <p className="text-[7px] font-mono" style={{ color: "var(--text-muted)" }}>{label}</p>
                           <p className="text-[9px] font-bold" style={{ color: color as string }}>{val}</p>
                         </div>
                       ))}

@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef, createContext, useContext } from "react";
+import ChatPanel from "./ChatPanel";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { api } from "../lib/api";
@@ -463,6 +464,7 @@ export default function Layout({ children, sidebar, battleLocked, onBattleLocked
     };
 
     const [toasts, setToasts] = useState<Toast[]>([]);
+    const [chatOpen, setChatOpen] = useState(false);
     const timersRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
 
     const addToast = useCallback((message: string, type: ToastType = "info") => {
@@ -558,14 +560,15 @@ export default function Layout({ children, sidebar, battleLocked, onBattleLocked
                     <div className="flex items-center gap-2 flex-shrink-0">
                         {/* Chat button */}
                         <button
-                            className="flex items-center justify-center opacity-40 hover:opacity-70 transition-opacity"
+                            onClick={() => setChatOpen(true)}
+                            className="flex items-center justify-center hover:opacity-90 transition-opacity"
                             style={{
                                 width: 28, height: 28, borderRadius: "50%",
                                 background: "rgba(123,47,255,0.12)",
                                 border: "1px solid rgba(123,47,255,0.25)",
-                                fontSize: 13,
+                                fontSize: "var(--font-base)", opacity: 0.7,
                             }}
-                            title="Chat (coming soon)"
+                            title="Chat"
                         >💬</button>
 
                         <div className="flex items-center gap-2 cursor-pointer group rounded-lg px-2 py-1 hover:bg-white/5 transition-all"
@@ -698,6 +701,7 @@ export default function Layout({ children, sidebar, battleLocked, onBattleLocked
             )}
 
             <ToastContainer toasts={toasts} onRemove={removeToast}/>
+            {chatOpen && <ChatPanel onClose={() => setChatOpen(false)} />}
         </ToastContext.Provider>
     );
 }

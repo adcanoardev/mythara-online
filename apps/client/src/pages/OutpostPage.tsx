@@ -10,9 +10,9 @@ const IMAGES = {
 };
 
 const LAB_ITEMS = [
-    { id: "elixir",       icon: "⚗️", name: "Elixir",       desc: "Restores a Myth's HP to full.",            color: "#4cc9f0" },
-    { id: "turbo_elixir", icon: "💠", name: "Turbo Elixir", desc: "2× nursery speed for 1h.",                 color: "#7b2fff" },
-    { id: "antidote",     icon: "🧪", name: "Antidote",     desc: "Cures poison, burn & paralysis.",           color: "#06d6a0" },
+    { id: "elixir",       icon: "⚗️", name: "Elixir",       desc: "Restores a Myth's HP to full.",            color: "var(--accent-blue)" },
+    { id: "turbo_elixir", icon: "💠", name: "Turbo Elixir", desc: "2× nursery speed for 1h.",                 color: "var(--accent-purple)" },
+    { id: "antidote",     icon: "🧪", name: "Antidote",     desc: "Cures poison, burn & paralysis.",           color: "var(--accent-green)" },
     { id: "boost_atk",    icon: "🔥", name: "ATK Boost",    desc: "+20% ATK for next battle.",                 color: "#f97316" },
     { id: "boost_def",    icon: "🛡️", name: "DEF Boost",    desc: "+20% DEF for next battle.",                 color: "#3b82f6" },
     { id: "mega_elixir",  icon: "✨", name: "Mega Elixir",  desc: "Full HP restore for entire team.",          color: "#fcd34d" },
@@ -74,7 +74,7 @@ function ProgressBar({ ms, totalMs, color }: { ms: number; totalMs: number; colo
             <div className="h-full rounded-2xl transition-all duration-1000" style={{ width: `${pct}%`, background: color }} />
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <span className="text-xs font-mono font-bold"
-                    style={{ color: "rgba(255,255,255,0.9)", textShadow: "0 1px 4px rgba(0,0,0,0.9)" }}>
+                    style={{ color: "var(--text-secondary)", textShadow: "0 1px 4px rgba(0,0,0,0.9)" }}>
                     {msToTime(ms)}
                 </span>
             </div>
@@ -248,7 +248,7 @@ function MineCard() {
                 <span className="font-mono text-xs" style={{ color: `${accent}66`, letterSpacing: ".22em" }}>01</span>
                 {mine !== null && (
                     <span className="font-mono text-xs px-2 py-0.5 rounded-md"
-                        style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.45)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                        style={{ background: "rgba(255,255,255,0.06)", color: "var(--text-secondary)", border: "1px solid rgba(255,255,255,0.1)" }}>
                         LV {mine.level}
                     </span>
                 )}
@@ -264,7 +264,7 @@ function MineCard() {
                             <span className="text-xl flex-shrink-0">{d.icon}</span>
                             <div className="flex-1 min-w-0">
                                 <p className="font-bold text-sm text-white leading-tight">{d.label}</p>
-                                <p className="font-mono text-[10px]" style={{ color: "rgba(255,255,255,0.35)" }}>{d.note}</p>
+                                <p className="font-mono text-[10px]" style={{ color: "var(--text-secondary)" }}>{d.note}</p>
                             </div>
                         </div>
                     ))}
@@ -290,12 +290,12 @@ function MineCard() {
                     </span>
                 </div>
                 <h2 className="font-black leading-none mb-4"
-                    style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: "clamp(26px,3.5vw,36px)", color: "#e2e8f0", textShadow: `0 0 30px ${accent}55`, letterSpacing: ".04em" }}>
+                    style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: "clamp(26px,3.5vw,36px)", color: "var(--text-primary)", textShadow: `0 0 30px ${accent}55`, letterSpacing: ".04em" }}>
                     Mine
                 </h2>
                 {msg && (
                     <p className="font-mono text-xs mb-3 px-3 py-2 rounded-xl text-center"
-                        style={{ background: "rgba(6,214,160,0.1)", color: "#06d6a0", border: "1px solid rgba(6,214,160,0.2)" }}>
+                        style={{ background: "rgba(6,214,160,0.1)", color: "var(--accent-green)", border: "1px solid rgba(6,214,160,0.2)" }}>
                         ✅ {msg}
                     </p>
                 )}
@@ -304,7 +304,7 @@ function MineCard() {
                 ) : showButton ? (
                     <button onClick={handleCollect} disabled={collecting}
                         className="w-full py-3.5 rounded-2xl font-black tracking-widest uppercase transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-50"
-                        style={{ fontSize: 13, fontFamily: "'Rajdhani',sans-serif", background: `linear-gradient(135deg,#fbbf24,#f59e0b)`, color: "#1a0900", boxShadow: `0 0 24px ${accent}44` }}>
+                        style={{ fontSize: "var(--font-base)", fontFamily: "'Rajdhani',sans-serif", background: `linear-gradient(135deg,#fbbf24,#f59e0b)`, color: "#1a0900", boxShadow: `0 0 24px ${accent}44` }}>
                         {collecting ? "Collecting..." : "⛏ Collect"}
                     </button>
                 ) : (
@@ -358,12 +358,12 @@ function LabCard() {
                         onClick={e => e.stopPropagation()}>
                         <div className="text-6xl" style={{ filter: `drop-shadow(0 0 16px ${selItem.color})` }}>{selItem.icon}</div>
                         <p className="font-black text-xl text-white" style={{ fontFamily: "'Rajdhani',sans-serif", letterSpacing: ".06em" }}>{selItem.name}</p>
-                        <p className="text-sm text-center leading-relaxed" style={{ color: "rgba(255,255,255,0.55)" }}>{selItem.desc}</p>
+                        <p className="text-sm text-center leading-relaxed" style={{ color: "var(--text-secondary)" }}>{selItem.desc}</p>
                         <span className="text-xs font-mono px-3 py-1.5 rounded-full"
                             style={{ background: `${selItem.color}15`, color: selItem.color, border: `1px solid ${selItem.color}30` }}>
                             Coming soon
                         </span>
-                        <button onClick={() => setSelItem(null)} className="text-sm transition-colors" style={{ color: "rgba(255,255,255,0.3)" }}>
+                        <button onClick={() => setSelItem(null)} className="text-sm transition-colors" style={{ color: "var(--text-muted)" }}>
                             Close ✕
                         </button>
                     </div>
@@ -375,7 +375,7 @@ function LabCard() {
                     <span className="font-mono text-xs" style={{ color: `${accent}66`, letterSpacing: ".22em" }}>02</span>
                     {lab !== null && (
                         <span className="font-mono text-xs px-2 py-0.5 rounded-md"
-                            style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.45)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                            style={{ background: "rgba(255,255,255,0.06)", color: "var(--text-secondary)", border: "1px solid rgba(255,255,255,0.1)" }}>
                             LV {lab.level}
                         </span>
                     )}
@@ -383,7 +383,7 @@ function LabCard() {
 
                 {/* Items grid */}
                 <div className="flex-1 px-4 flex flex-col justify-center gap-2">
-                    <p className="font-mono text-[10px] tracking-widest mb-1" style={{ color: "rgba(255,255,255,0.22)" }}>
+                    <p className="font-mono text-[10px] tracking-widest mb-1" style={{ color: "var(--text-muted)" }}>
                         CRAFTABLE ITEMS
                     </p>
                     <div className="grid grid-cols-3 gap-2">
@@ -392,13 +392,13 @@ function LabCard() {
                                 className="flex flex-col items-center gap-1.5 rounded-xl py-2.5 px-1 transition-all hover:scale-105 active:scale-95"
                                 style={{ background: `${item.color}0d`, border: `1px solid ${item.color}28` }}>
                                 <span className="text-2xl" style={{ filter: `drop-shadow(0 0 6px ${item.color}99)` }}>{item.icon}</span>
-                                <span className="text-[9px] font-mono text-center leading-tight" style={{ color: "rgba(255,255,255,0.5)" }}>
+                                <span className="text-[9px] font-mono text-center leading-tight" style={{ color: "var(--text-secondary)" }}>
                                     {item.name}
                                 </span>
                             </button>
                         ))}
                     </div>
-                    <p className="font-mono text-[9px] text-center mt-1" style={{ color: "rgba(255,255,255,0.2)" }}>
+                    <p className="font-mono text-[9px] text-center mt-1" style={{ color: "var(--text-muted)" }}>
                         Tap any item to learn more
                     </p>
                 </div>
@@ -410,12 +410,12 @@ function LabCard() {
                         </span>
                     </div>
                     <h2 className="font-black leading-none mb-4"
-                        style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: "clamp(26px,3.5vw,36px)", color: "#e2e8f0", textShadow: `0 0 30px ${accent}55`, letterSpacing: ".04em" }}>
+                        style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: "clamp(26px,3.5vw,36px)", color: "var(--text-primary)", textShadow: `0 0 30px ${accent}55`, letterSpacing: ".04em" }}>
                         Laboratory
                     </h2>
                     {msg && (
                         <p className="font-mono text-xs mb-3 px-3 py-2 rounded-xl text-center"
-                            style={{ background: "rgba(6,214,160,0.1)", color: "#06d6a0", border: "1px solid rgba(6,214,160,0.2)" }}>
+                            style={{ background: "rgba(6,214,160,0.1)", color: "var(--accent-green)", border: "1px solid rgba(6,214,160,0.2)" }}>
                             ✅ {msg}
                         </p>
                     )}
@@ -424,7 +424,7 @@ function LabCard() {
                     ) : showButton ? (
                         <button onClick={handleCollect} disabled={collecting}
                             className="w-full py-3.5 rounded-2xl font-black tracking-widest uppercase transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-50"
-                            style={{ fontSize: 13, fontFamily: "'Rajdhani',sans-serif", background: "linear-gradient(135deg,#06d6a0,#04a57a)", color: "#001a12", boxShadow: "0 0 24px rgba(6,214,160,0.4)" }}>
+                            style={{ fontSize: "var(--font-base)", fontFamily: "'Rajdhani',sans-serif", background: "linear-gradient(135deg,#06d6a0,#04a57a)", color: "#001a12", boxShadow: "0 0 24px rgba(6,214,160,0.4)" }}>
                             {collecting ? "Collecting..." : "🧪 Collect"}
                         </button>
                     ) : (
@@ -494,16 +494,16 @@ function NurseryCard() {
                         style={{ background: "#0a1520", border: "1px solid rgba(255,214,10,0.25)", boxShadow: "0 -8px 40px rgba(0,0,0,0.6)" }}
                         onClick={e => e.stopPropagation()}>
                         <div className="px-5 py-4" style={{ borderBottom: "1px solid rgba(255,214,10,0.1)" }}>
-                            <p className="font-black text-base" style={{ fontFamily: "'Rajdhani',sans-serif", color: "#e2e8f0" }}>
+                            <p className="font-black text-base" style={{ fontFamily: "'Rajdhani',sans-serif", color: "var(--text-primary)" }}>
                                 Select Myth to Train
                             </p>
-                            <p className="font-mono text-[10px]" style={{ color: "rgba(255,255,255,0.3)" }}>
+                            <p className="font-mono text-[10px]" style={{ color: "var(--text-muted)" }}>
                                 Myths in training gain XP passively
                             </p>
                         </div>
                         <div className="max-h-72 overflow-y-auto">
                             {inParty.length > 0 && (
-                                <p className="text-[9px] font-mono px-4 py-2 tracking-widest" style={{ color: "rgba(255,255,255,0.25)" }}>PARTY</p>
+                                <p className="text-[9px] font-mono px-4 py-2 tracking-widest" style={{ color: "var(--text-muted)" }}>PARTY</p>
                             )}
                             {inParty.map((c: any) => (
                                 <button key={c.id} onClick={() => handleAssign(c.id)}
@@ -516,12 +516,12 @@ function NurseryCard() {
                                     </div>
                                     <div>
                                         <p className="font-bold text-sm text-white">{c.name ?? c.speciesId}</p>
-                                        <p className="font-mono text-[10px]" style={{ color: "rgba(255,255,255,0.35)" }}>Lv. {c.level}</p>
+                                        <p className="font-mono text-[10px]" style={{ color: "var(--text-secondary)" }}>Lv. {c.level}</p>
                                     </div>
                                 </button>
                             ))}
                             {inStorage.length > 0 && (
-                                <p className="text-[9px] font-mono px-4 py-2 tracking-widest" style={{ color: "rgba(255,255,255,0.25)" }}>STORAGE</p>
+                                <p className="text-[9px] font-mono px-4 py-2 tracking-widest" style={{ color: "var(--text-muted)" }}>STORAGE</p>
                             )}
                             {inStorage.map((c: any) => (
                                 <button key={c.id} onClick={() => handleAssign(c.id)}
@@ -534,19 +534,19 @@ function NurseryCard() {
                                     </div>
                                     <div>
                                         <p className="font-bold text-sm text-white">{c.name ?? c.speciesId}</p>
-                                        <p className="font-mono text-[10px]" style={{ color: "rgba(255,255,255,0.35)" }}>Lv. {c.level}</p>
+                                        <p className="font-mono text-[10px]" style={{ color: "var(--text-secondary)" }}>Lv. {c.level}</p>
                                     </div>
                                 </button>
                             ))}
                             {inParty.length === 0 && inStorage.length === 0 && (
-                                <p className="px-4 py-6 text-center text-sm" style={{ color: "rgba(255,255,255,0.3)" }}>
+                                <p className="px-4 py-6 text-center text-sm" style={{ color: "var(--text-muted)" }}>
                                     No myths available to train
                                 </p>
                             )}
                         </div>
                         <button onClick={() => setShowPicker(false)}
                             className="w-full py-3.5 text-sm font-mono hover:bg-white/5 transition-colors"
-                            style={{ color: "rgba(255,255,255,0.3)", borderTop: "1px solid rgba(255,214,10,0.08)" }}>
+                            style={{ color: "var(--text-muted)", borderTop: "1px solid rgba(255,214,10,0.08)" }}>
                             Cancel ✕
                         </button>
                     </div>
@@ -558,7 +558,7 @@ function NurseryCard() {
                     <span className="font-mono text-xs" style={{ color: `${accent}66`, letterSpacing: ".22em" }}>03</span>
                     {nursery !== null && (
                         <span className="font-mono text-xs px-2 py-0.5 rounded-md"
-                            style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.45)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                            style={{ background: "rgba(255,255,255,0.06)", color: "var(--text-secondary)", border: "1px solid rgba(255,255,255,0.1)" }}>
                             LV {nursery.level}
                         </span>
                     )}
@@ -575,7 +575,7 @@ function NurseryCard() {
                             </div>
                             <div>
                                 <p className="font-bold text-sm text-white mb-0.5">No myth training</p>
-                                <p className="font-mono text-[10px]" style={{ color: "rgba(255,255,255,0.3)" }}>
+                                <p className="font-mono text-[10px]" style={{ color: "var(--text-muted)" }}>
                                     Assign a myth to gain XP<br/>passively over time
                                 </p>
                             </div>
@@ -614,14 +614,14 @@ function NurseryCard() {
                                 {isMaxLevel ? (
                                     <p className="font-mono text-xs" style={{ color: `${accent}88` }}>🏆 MAX LEVEL (60)</p>
                                 ) : (
-                                    <p className="font-mono text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+                                    <p className="font-mono text-xs" style={{ color: "var(--text-secondary)" }}>
                                         Lv. {nursery.myth.level} → {nursery.myth.level + 1}
                                     </p>
                                 )}
                             </div>
                             <button onClick={handleRemove}
                                 className="font-mono text-[10px] transition-colors hover:text-white/50"
-                                style={{ color: "rgba(255,255,255,0.2)" }}>
+                                style={{ color: "var(--text-muted)" }}>
                                 Remove from nursery ✕
                             </button>
                         </div>
@@ -636,12 +636,12 @@ function NurseryCard() {
                         </span>
                     </div>
                     <h2 className="font-black leading-none mb-4"
-                        style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: "clamp(26px,3.5vw,36px)", color: "#e2e8f0", textShadow: `0 0 30px ${accent}55`, letterSpacing: ".04em" }}>
+                        style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: "clamp(26px,3.5vw,36px)", color: "var(--text-primary)", textShadow: `0 0 30px ${accent}55`, letterSpacing: ".04em" }}>
                         Nursery
                     </h2>
                     {msg && (
                         <p className="font-mono text-xs mb-3 px-3 py-2 rounded-xl text-center"
-                            style={{ background: "rgba(6,214,160,0.1)", color: "#06d6a0", border: "1px solid rgba(6,214,160,0.2)" }}>
+                            style={{ background: "rgba(6,214,160,0.1)", color: "var(--accent-green)", border: "1px solid rgba(6,214,160,0.2)" }}>
                             ✅ {msg}
                         </p>
                     )}
@@ -650,19 +650,19 @@ function NurseryCard() {
                     ) : !hasMyth ? (
                         <button onClick={() => setShowPicker(true)} disabled={assigning}
                             className="w-full py-3.5 rounded-2xl font-black tracking-widest uppercase transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-50"
-                            style={{ fontSize: 13, fontFamily: "'Rajdhani',sans-serif", background: `rgba(255,214,10,0.12)`, color: accent, border: `1.5px solid rgba(255,214,10,0.35)` }}>
+                            style={{ fontSize: "var(--font-base)", fontFamily: "'Rajdhani',sans-serif", background: `rgba(255,214,10,0.12)`, color: accent, border: `1.5px solid rgba(255,214,10,0.35)` }}>
                             {assigning ? "Assigning..." : "＋ Assign Myth"}
                         </button>
                     ) : isMaxLevel ? (
                         <button onClick={handleRemove}
                             className="w-full py-3.5 rounded-2xl font-black tracking-widest uppercase transition-all hover:brightness-110 active:scale-[0.98]"
-                            style={{ fontSize: 13, fontFamily: "'Rajdhani',sans-serif", background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.45)", border: "1px solid rgba(255,255,255,0.12)" }}>
+                            style={{ fontSize: "var(--font-base)", fontFamily: "'Rajdhani',sans-serif", background: "rgba(255,255,255,0.06)", color: "var(--text-secondary)", border: "1px solid rgba(255,255,255,0.12)" }}>
                             Return to Storage
                         </button>
                     ) : showButton ? (
                         <button onClick={handleCollect} disabled={collecting}
                             className="w-full py-3.5 rounded-2xl font-black tracking-widest uppercase transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-50"
-                            style={{ fontSize: 13, fontFamily: "'Rajdhani',sans-serif", background: "linear-gradient(135deg,#ffd60a,#f59e0b)", color: "#1a0900", boxShadow: "0 0 28px rgba(255,214,10,0.45)" }}>
+                            style={{ fontSize: "var(--font-base)", fontFamily: "'Rajdhani',sans-serif", background: "linear-gradient(135deg,#ffd60a,#f59e0b)", color: "#1a0900", boxShadow: "0 0 28px rgba(255,214,10,0.45)" }}>
                             {collecting ? "Leveling Up..." : "⬆ Level Up"}
                         </button>
                     ) : (
@@ -697,17 +697,17 @@ export default function OutpostPage() {
                 style={{ height: 52, background: "rgba(4,8,15,0.97)", borderBottom: "1px solid rgba(255,255,255,0.06)", zIndex: 10 }}>
                 <button onClick={() => navigate("/")}
                     className="flex items-center gap-2 transition-opacity hover:opacity-70 active:scale-95"
-                    style={{ color: "rgba(255,255,255,0.45)", fontSize: 12, fontFamily: "monospace" }}>
-                    <span style={{ fontSize: 10 }}>◀</span>
+                    style={{ color: "var(--text-secondary)", fontSize: "var(--font-base)", fontFamily: "monospace" }}>
+                    <span style={{ fontSize: "var(--font-xs)" }}>◀</span>
                     <span className="tracking-widest uppercase">City</span>
                 </button>
                 <div className="flex flex-col items-center">
                     <span className="tracking-[0.22em] uppercase font-black"
-                        style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 16, color: "#e2e8f0" }}>
+                        style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 16, color: "var(--text-primary)" }}>
                         Outpost
                     </span>
                     <span className="tracking-widest uppercase"
-                        style={{ fontSize: 9, color: "rgba(255,255,255,0.22)", fontFamily: "monospace" }}>
+                        style={{ fontSize: "var(--font-xs)", color: "var(--text-muted)", fontFamily: "monospace" }}>
                         Mine · Lab · Nursery
                     </span>
                 </div>

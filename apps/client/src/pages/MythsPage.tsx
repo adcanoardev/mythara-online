@@ -169,7 +169,7 @@ function MoveCard({ move }: { move: Move }) {
                 {move.type && (
                     <span
                         className="text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 opacity-80"
-                        style={{ background: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.5)" }}
+                        style={{ background: "rgba(255,255,255,0.07)", color: "var(--text-secondary)" }}
                     >
                         {MOVE_TYPE_LABEL[move.type] ?? move.type.toUpperCase()}
                     </span>

@@ -51,11 +51,11 @@ export default function InventoryPage() {
         <div className="fixed inset-0 flex flex-col" style={{ background:"#070b14", fontFamily:"'Exo 2',sans-serif" }}>
             {/* Topbar */}
             <div className="flex-shrink-0 flex items-center justify-between px-4 md:px-6" style={{ height:48, background:"rgba(4,8,15,0.97)", borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
-                <button onClick={() => navigate("/")} className="flex items-center gap-2 transition-opacity hover:opacity-70 active:scale-95" style={{ color:"rgba(255,255,255,0.45)", fontSize:11, fontFamily:"monospace" }}>
-                    <span style={{ fontSize:9 }}>◀</span>
+                <button onClick={() => navigate("/")} className="flex items-center gap-2 transition-opacity hover:opacity-70 active:scale-95" style={{ color:"var(--text-secondary)", fontSize: "var(--font-sm)", fontFamily:"monospace" }}>
+                    <span style={{ fontSize: "var(--font-xs)" }}>◀</span>
                     <span className="tracking-widest uppercase hidden sm:inline">City</span>
                 </button>
-                <span className="tracking-[0.22em] uppercase font-black" style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:15, color:"#e2e8f0" }}>Inventory</span>
+                <span className="tracking-[0.22em] uppercase font-black" style={{ fontFamily:"'Rajdhani',sans-serif", fontSize: "var(--font-lg)", color:"var(--text-primary)" }}>Inventory</span>
                 <div style={{ width:60 }} />
             </div>
 
@@ -80,10 +80,10 @@ export default function InventoryPage() {
                 {filtered.length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center gap-3">
                         <div style={{ fontSize:48 }}>📦</div>
-                        <p className="font-bold tracking-widest uppercase text-lg" style={{ fontFamily:"'Rajdhani',sans-serif", color:"rgba(255,255,255,0.4)" }}>
+                        <p className="font-bold tracking-widest uppercase text-lg" style={{ fontFamily:"'Rajdhani',sans-serif", color:"var(--text-secondary)" }}>
                             {filter === "All" ? "Inventory empty" : `No ${filter.toLowerCase()}`}
                         </p>
-                        <p style={{ fontSize:12, color:"rgba(255,255,255,0.25)" }}>
+                        <p style={{ fontSize: "var(--font-base)", color:"var(--text-muted)" }}>
                             Battle and collect from the mine to get items
                         </p>
                     </div>
@@ -101,7 +101,7 @@ export default function InventoryPage() {
                                     <span style={{ fontSize:28 }}>{icon}</span>
                                     <div>
                                         <div className="font-black text-xl" style={{ fontFamily:"'Rajdhani',sans-serif", color }}>{item.quantity}</div>
-                                        <div className="text-xs font-mono truncate" style={{ color:"rgba(255,255,255,0.4)" }}>{name}</div>
+                                        <div className="text-xs font-mono truncate" style={{ color:"var(--text-secondary)" }}>{name}</div>
                                     </div>
                                 </div>
                             );

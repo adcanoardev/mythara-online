@@ -104,4 +104,24 @@ export const api = {
     // Dex
     dex: () => request<any[]>("/dex"),
     dexById: (id: string) => request<any>(`/dex/${id}`),
+
+    // Guild
+    myGuild: () => request<any | null>("/guild/me"),
+    guildList: (search?: string) => request<any[]>(`/guild/list${search ? `?search=${encodeURIComponent(search)}` : ""}`),
+    guildById: (id: string) => request<any>(`/guild/${id}`),
+    guildCreate: (data: { name: string; tag: string; banner?: string; description?: string }) =>
+        request<any>("/guild/create", { method: "POST", body: JSON.stringify(data) }),
+    guildJoin: (guildId: string) =>
+        request<any>(`/guild/${guildId}/join`, { method: "POST" }),
+    guildLeave: () =>
+        request<any>("/guild/leave", { method: "POST" }),
+    guildKick: (userId: string) =>
+        request<any>(`/guild/member/${userId}/kick`, { method: "POST" }),
+    guildPromote: (userId: string) =>
+        request<any>(`/guild/member/${userId}/promote`, { method: "POST" }),
+    guildDemote: (userId: string) =>
+        request<any>(`/guild/member/${userId}/demote`, { method: "POST" }),
+    guildQuests: () => request<any[]>("/guild/quests"),
+    guildClaimReward: (questId: string, threshold: 50 | 100) =>
+        request<any>(`/guild/quests/${questId}/claim`, { method: "POST", body: JSON.stringify({ threshold }) }),
 };
