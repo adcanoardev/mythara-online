@@ -20,18 +20,14 @@ export default function LoadingScreen() {
     const [msgIdx, setMsgIdx] = useState(0);
 
     useEffect(() => {
-        // Progreso: sube rápido al principio, se frena al llegar a ~90, espera datos reales
-        let current = 0;
         const interval = setInterval(() => {
             setProgress(prev => {
-                // Curva: rápido hasta 70, lento hasta 92, se queda ahí esperando
                 const speed = prev < 40 ? 3.5 : prev < 70 ? 1.8 : prev < 88 ? 0.4 : 0;
                 const next = Math.min(prev + speed, 92);
                 return next;
             });
         }, 60);
 
-        // Rotar mensajes cada 900ms
         const msgInterval = setInterval(() => {
             setMsgIdx(i => (i + 1) % MESSAGES.length);
         }, 900);
@@ -42,14 +38,13 @@ export default function LoadingScreen() {
         };
     }, []);
 
-    // Cuando el parent desmonta este componente, la barra llega a 100
     useEffect(() => {
         return () => setProgress(100);
     }, []);
 
     return (
         <div
-            className="fixed inset-0 flex flex-col items-center justify-center overflow-hidden"
+            className="fixed inset-0 overflow-hidden"
             style={{ background: "#070b14", fontFamily: "'Exo 2', sans-serif", zIndex: 9999 }}
         >
             {/* Imagen de fondo */}
@@ -66,19 +61,30 @@ export default function LoadingScreen() {
                 style={{ background: "linear-gradient(to bottom, rgba(7,11,20,0.3) 0%, rgba(7,11,20,0.15) 50%, rgba(7,11,20,0.85) 100%)" }}
             />
 
-            {/* Logo centrado */}
-            <div className="relative z-10 flex flex-col items-center" style={{ marginBottom: "auto", paddingTop: "8vh" }}>
+            {/* Logo — centrado absoluto en pantalla */}
+            <div
+                className="absolute z-10 flex items-center justify-center"
+                style={{ inset: 0, bottom: "clamp(100px, 18vh, 160px)" }}
+            >
                 <img
                     src={LOGO}
                     alt="Mythara"
-                    style={{ width: "clamp(100px, 18vw, 180px)", objectFit: "contain", filter: "drop-shadow(0 0 40px rgba(123,47,255,0.6))" }}
+                    style={{
+                        width: "clamp(220px, 36vw, 420px)",
+                        objectFit: "contain",
+                        filter: "drop-shadow(0 0 60px rgba(123,47,255,0.75)) drop-shadow(0 0 120px rgba(76,201,240,0.25))",
+                    }}
                 />
             </div>
 
             {/* Barra de progreso + texto — parte inferior */}
             <div
-                className="relative z-10 flex flex-col items-center w-full"
-                style={{ padding: "0 clamp(24px, 8vw, 120px)", paddingBottom: "clamp(24px, 5vh, 60px)" }}
+                className="absolute z-10 flex flex-col items-center w-full"
+                style={{
+                    bottom: 0,
+                    padding: "0 clamp(24px, 8vw, 120px)",
+                    paddingBottom: "clamp(24px, 5vh, 60px)",
+                }}
             >
                 {/* Texto dinámico */}
                 <p
