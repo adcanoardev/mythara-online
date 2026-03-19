@@ -107,7 +107,7 @@ export default function HomePage() {
     const diamonds    = t?.diamonds    ?? 0;
     const npcTokens   = t?.npcTokens   ?? 0;
     const pvpTokens   = t?.pvpTokens   ?? 0;
-    const avatar      = trainer?.avatar ?? "male_1";
+    const avatar      = trainer?.avatar ?? "avatar_male_1";
     const username    = t?.username    ?? "Binder";
     const xp          = t?.xp          ?? 0;
     const xpMax       = Math.floor(100 * Math.pow(binderLevel, 1.8));
@@ -117,7 +117,7 @@ export default function HomePage() {
     const party       = t?.party       ?? [];
     const totalPower  = party.reduce((acc: number, m: any) => acc + calcPower(m), 0);
     // Frame siempre desde TrainerContext — fuente de verdad compartida con ProfilePage
-    const selFrame    = t?.avatarFrame ?? "frame_1";
+    const selFrame    = t?.avatarFrame ?? null;
 
     const nexus = DISTRICTS.find(d => d.id === "nexus")!;
 
@@ -143,7 +143,7 @@ export default function HomePage() {
                 .bar-btn:active .bar-icon-ring{transform:scale(.88)}
                 .bar-icon-ring-battle{width:48px!important;height:48px!important;background:linear-gradient(160deg,rgba(239,68,68,.65),rgba(153,27,27,.85))!important;border:2px solid rgba(239,68,68,.75)!important;box-shadow:0 0 16px rgba(239,68,68,.45),0 3px 12px rgba(0,0,0,.6)!important}
                 .avatar-btn:active{transform:scale(.94)}
-
+                @media (max-width:767px){.home-avatar-mobile{transform:scale(0.72);transform-origin:left center}}
             `}</style>
 
             {/* ── TOP HUD ── */}
@@ -159,15 +159,17 @@ export default function HomePage() {
                 <div className="pointer-events-auto flex-shrink-0" style={{ display:"flex", alignItems:"center", gap:0 }}>
 
                     {/* AVATAR + MARCO — componente reutilizable */}
+                    <div className="home-avatar-mobile">
                     <AvatarWithFrame
                         avatar={avatar}
-                        frameId={selFrame}
-                        size={160}
-                        padding={27} 
+                        frameId={selFrame || undefined}
+                        size={120}
+                        padding={22} 
                         level={t?.level ?? 1}
                         onClick={() => navigate("/profile")}
                         className="avatar-btn"
                     />
+                    </div>
 
                     {/* DATOS — a la derecha del avatar */}
                     <div style={{ marginLeft: 0, display:"flex", flexDirection:"column", gap:5, minWidth:0 }}>
@@ -177,8 +179,8 @@ export default function HomePage() {
                             {username}
                         </div>
                         {/* Barra XP */}
-                        <div style={{ position:"relative", height:18, width:160, background:"rgba(0,0,0,0.5)", borderRadius:3, overflow:"hidden", border:"1px solid rgba(76,201,240,0.3)" }}>
-                            <div style={{ width:`${xpPct}%`, height:"100%", background:"linear-gradient(90deg,#4cc9f0,#7b2fff)", transition:"width 0.5s" }} />
+                        <div style={{ position:"relative", height:18, width:160, background:"rgba(255,255,255,0.08)", borderRadius:3, overflow:"hidden", border:"1px solid rgba(76,201,240,0.5)", boxShadow:"0 0 8px rgba(76,201,240,0.15)" }}>
+                            <div style={{ width:`${xpPct}%`, height:"100%", background:"linear-gradient(90deg,#4cc9f0,#7b2fff)", transition:"width 0.5s", boxShadow:"2px 0 8px rgba(76,201,240,0.5)" }} />
                             <div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, fontFamily:"Rajdhani,sans-serif", fontWeight:700, letterSpacing:".1em", color:"#e2e8f0", textShadow:"0 1px 3px rgba(0,0,0,0.9)" }}>
                                 {Math.round(xpPct)}% XP
                             </div>
@@ -275,7 +277,6 @@ export default function HomePage() {
                 ))}
             </div>
 
-            {/* ── AVATAR MODAL ── */}
             {/* ── CHAT OVERLAY ── */}
             {chatOpen && <ChatPanel onClose={() => setChatOpen(false)} />}
         </div>

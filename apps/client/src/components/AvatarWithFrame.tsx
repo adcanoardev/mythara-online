@@ -7,8 +7,10 @@
 
 import React from "react";
 
-const AVATAR_CDN = "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@8788a27ffc7fdfbb47b3379de8219f24117be8aa/avatars";
-const FRAME_CDN  = "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@20c2494c976794775042d559db3df66687914944/frames";
+const AVATAR_CDN =
+    "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@8788a27ffc7fdfbb47b3379de8219f24117be8aa/avatars";
+const FRAME_CDN =
+    "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@20c2494c976794775042d559db3df66687914944/frames";
 
 export function avatarUrl(av: string): string {
     const id = av.startsWith("avatar_") ? av : `avatar_${av}`;
@@ -46,7 +48,7 @@ export default function AvatarWithFrame({
     className = "",
 }: AvatarWithFrameProps) {
     // El padding por defecto es ~10% del tamaño para que el frame se vea bien
-    const p = padding ?? Math.round(size * 0.10);
+    const p = padding ?? Math.round(size * 0.1);
 
     const Tag = onClick ? "button" : "div";
 
@@ -67,27 +69,44 @@ export default function AvatarWithFrame({
             }}
         >
             {/* z1 — Avatar: inset = padding, así el frame lo rodea */}
-            <div style={{
-                position: "absolute",
-                top: p, left: p, right: p, bottom: p,
-                borderRadius: 6,
-                overflow: "hidden",
-                background: "linear-gradient(160deg,#1a1a2e,#0d1025)",
-                zIndex: 1,
-            }}>
+            <div
+                style={{
+                    position: "absolute",
+                    top: p,
+                    left: p,
+                    right: p,
+                    bottom: p,
+                    borderRadius: 6,
+                    overflow: "hidden",
+                    background: "linear-gradient(160deg,#1a1a2e,#0d1025)",
+                    zIndex: 1,
+                }}
+            >
                 {/* Fallback emoji */}
-                <div style={{
-                    position: "absolute", inset: 0,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: Math.round(size * 0.35),
-                }}>🧙</div>
+                <div
+                    style={{
+                        position: "absolute",
+                        inset: 0,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: Math.round(size * 0.35),
+                    }}
+                >
+                    🧙
+                </div>
                 <img
                     src={avatarUrl(avatar)}
-                    onError={e => { (e.target as HTMLImageElement).style.display = "none"; }}
+                    onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = "none";
+                    }}
                     style={{
-                        position: "absolute", inset: 0,
-                        width: "100%", height: "100%",
-                        objectFit: "cover", objectPosition: "top",
+                        position: "absolute",
+                        inset: 0,
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        objectPosition: "top",
                         display: "block",
                     }}
                     alt=""
@@ -112,25 +131,27 @@ export default function AvatarWithFrame({
 
             {/* z3 — Nivel badge encima del frame */}
             {level !== undefined && (
-                <div style={{
-                    position: "absolute",
-                    top: Math.round(p * 0.3),
-                    left: Math.round(p * 0.3),
-                    zIndex: 3,
-                    width: Math.round(size * 0.22),
-                    height: Math.round(size * 0.22),
-                    background: "linear-gradient(135deg,#78350f,#fbbf24)",
-                    border: "2px solid #020810",
-                    borderRadius: 5,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontFamily: "Rajdhani,sans-serif",
-                    fontWeight: 700,
-                    fontSize: Math.round(size * 0.115),
-                    color: "#020810",
-                    lineHeight: 1,
-                }}>
+                <div
+                    style={{
+                        position: "absolute",
+                        top: Math.round(p * 0.3),
+                        left: Math.round(p * 0.3),
+                        zIndex: 3,
+                        width: Math.round(size * 0.22),
+                        height: Math.round(size * 0.22),
+                        background: "linear-gradient(135deg,#78350f,#fbbf24)",
+                        border: "2px solid #020810",
+                        borderRadius: 5,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontFamily: "Rajdhani,sans-serif",
+                        fontWeight: 700,
+                        fontSize: Math.round(size * 0.115),
+                        color: "#020810",
+                        lineHeight: 1,
+                    }}
+                >
                     {level}
                 </div>
             )}

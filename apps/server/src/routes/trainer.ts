@@ -111,18 +111,23 @@ router.post("/trainer/avatar", requireAuth, async (req, res) => {
         }
 
         // Validar marco — servidor es la fuente de verdad
+        // avatarFrame === null → quitar frame (guardar null en BD)
+        // avatarFrame === "none" → igual, quitar frame
         if (avatarFrame !== undefined) {
-            if (!ALL_FRAME_KEYS.includes(avatarFrame)) {
-                return res.status(400).json({ error: "Marco no valido" });
+            if (avatarFrame === null || avatarFrame === "none") {
+                updates.avatarFrame = null;
+            } else {
+                if (!ALL_FRAME_KEYS.includes(avatarFrame)) {
+                    return res.status(400).json({ error: "Marco no valido" });
+                }
+                const unlocked: string[] = (profile as any).unlockedFrames?.length
+                    ? (profile as any).unlockedFrames
+                    : ["none", "frame_1", "frame_2", "frame_3", "frame_4", "frame_5", "frame_6", "frame_7"];
+                if (!unlocked.includes(avatarFrame)) {
+                    return res.status(403).json({ error: "Marco no desbloqueado. Visitala Tienda." });
+                }
+                updates.avatarFrame = avatarFrame;
             }
-            // unlockedFrames viene de BD, nunca del cliente
-            const unlocked: string[] = (profile as any).unlockedFrames?.length
-                ? (profile as any).unlockedFrames
-                : ["none", "frame_1", "frame_2", "frame_3", "frame_4", "frame_5", "frame_6", "frame_7"];
-            if (!unlocked.includes(avatarFrame)) {
-                return res.status(403).json({ error: "Marco no desbloqueado. Visitala Tienda." });
-            }
-            updates.avatarFrame = avatarFrame;
         }
 
         if (Object.keys(updates).length === 0) {

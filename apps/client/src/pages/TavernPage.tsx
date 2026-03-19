@@ -1,7 +1,38 @@
 // apps/client/src/pages/TavernPage.tsx
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { api } from "../lib/api";
 import PageTopbar from "../components/PageTopbar";
+
+// ─── Hook: número animado que cuenta suavemente entre valores ─────────────────
+function useAnimatedNumber(target: number, duration = 350): number {
+    const [display, setDisplay] = useState(target);
+    const startRef = useRef(target);
+    const startTimeRef = useRef<number | null>(null);
+    const rafRef = useRef<number | null>(null);
+
+    useEffect(() => {
+        const from = display;
+        const to = target;
+        if (from === to) return;
+        startRef.current = from;
+        startTimeRef.current = null;
+
+        const ease = (t: number) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+
+        const tick = (now: number) => {
+            if (!startTimeRef.current) startTimeRef.current = now;
+            const elapsed = now - startTimeRef.current;
+            const progress = Math.min(elapsed / duration, 1);
+            setDisplay(Math.round(from + (to - from) * ease(progress)));
+            if (progress < 1) rafRef.current = requestAnimationFrame(tick);
+        };
+
+        rafRef.current = requestAnimationFrame(tick);
+        return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
+    }, [target, duration]);
+
+    return display;
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface DistortionEntry {
@@ -105,11 +136,13 @@ function calcPower(m: Myth): number {
 }
 
 // ─── MythCard (left grid) ─────────────────────────────────────────────────────
+const AFFINITY_CDN = "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@7613486785dc2b2089f6d345e1281e9316c1d982/affinity";
+
 function MythCard({ myth, selected, onClick }: { myth: Myth; selected: boolean; onClick: () => void }) {
     const rar = RARITY_CONFIG[myth.rarity] ?? RARITY_CONFIG.COMMON;
     const aff = myth.affinities?.[0] ?? "";
     const artUrl = mythArtUrl(myth);
-    const power = calcPower(myth);
+    const affIconUrl = aff ? `${AFFINITY_CDN}/${aff.toLowerCase()}_affinity_icon.webp` : null;
 
     return (
         <div onClick={onClick}
@@ -122,7 +155,7 @@ function MythCard({ myth, selected, onClick }: { myth: Myth; selected: boolean; 
                 background: "linear-gradient(135deg,#0d1525,#070f1a)",
                 transform: selected ? "scale(1.04)" : "scale(1)",
             }}>
-            {/* Art background */}
+            {/* Art */}
             {artUrl ? (
                 <img src={artUrl} alt={myth.name ?? myth.speciesId}
                     className="absolute inset-0 w-full h-full object-cover object-top"
@@ -130,38 +163,62 @@ function MythCard({ myth, selected, onClick }: { myth: Myth; selected: boolean; 
                     onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
             ) : (
                 <div className="absolute inset-0 flex items-center justify-center"
-                    style={{ fontSize: 36, opacity: 0.4 }}>
-                    {AFFINITY_ICON[aff] ?? "❓"}
+                    style={{ fontSize: 36, opacity: 0.4 }}>❓</div>
+            )}
+
+            {/* Gradient overlay */}
+            <div className="absolute inset-0"
+                style={{ background: "linear-gradient(180deg, transparent 35%, rgba(4,8,15,.97) 82%)" }} />
+
+            {/* Party dot */}
+            {myth.inParty && (
+                <div className="absolute top-1.5 right-1.5">
+                    <span className="w-2 h-2 rounded-full block"
+                        style={{ background: "#06d6a0", boxShadow: "0 0 6px #06d6a0" }} />
                 </div>
             )}
-            {/* Gradient overlay bottom */}
-            <div className="absolute inset-0"
-                style={{ background: "linear-gradient(180deg, transparent 30%, rgba(4,8,15,.96) 80%)" }} />
-            {/* Top badges */}
-            <div className="absolute top-1.5 left-1.5 right-1.5 flex justify-between items-start">
-                <span className="font-mono text-[7px] font-bold px-1.5 py-0.5 rounded"
-                    style={{ background: rar.bg, color: rar.color, border: `1px solid ${rar.border}` }}>
-                    {rar.label}
-                </span>
-                {myth.inParty && (
-                    <span className="w-2 h-2 rounded-full"
-                        style={{ background: "#06d6a0", boxShadow: "0 0 6px #06d6a0", display: "block" }} />
-                )}
-            </div>
+
             {/* Bottom info */}
             <div className="absolute bottom-0 left-0 right-0 px-1.5 pb-1.5">
-                <div className="tvn-card-name font-black text-white leading-tight truncate" style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: "var(--font-2xs)", textTransform: "uppercase", letterSpacing: ".04em" }}>
+                {/* Nombre */}
+                <div style={{
+                    fontFamily: "'Rajdhani', sans-serif",
+                    fontWeight: 800,
+                    fontSize: 11,
+                    textTransform: "uppercase",
+                    letterSpacing: ".05em",
+                    color: "#e2e8f0",
+                    lineHeight: 1.1,
+                    marginBottom: 3,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                }}>
                     {myth.name ?? myth.speciesId}
                 </div>
-                <div className="flex items-center justify-between mt-0.5">
-                    <span style={{ fontSize: 7, fontFamily: "monospace", color: "rgba(255,255,255,.45)" }}>
-                        {AFFINITY_ICON[aff]} {aff}
-                    </span>
-                    <span style={{ fontSize: 7, fontFamily: "monospace", color: "rgba(255,255,255,.4)" }}>
+                {/* Icono afinidad (izq) + Nivel (der) */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    {affIconUrl ? (
+                        <img src={affIconUrl} alt={aff}
+                            style={{ width: 14, height: 14, objectFit: "contain" }}
+                            onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                    ) : (
+                        <span style={{ fontSize: 10 }}>{AFFINITY_ICON[aff] ?? ""}</span>
+                    )}
+                    <span style={{
+                        fontFamily: "'Rajdhani', sans-serif",
+                        fontWeight: 700,
+                        fontSize: 10,
+                        color: rar.color,
+                        background: rar.bg,
+                        border: `1px solid ${rar.border}`,
+                        borderRadius: 4,
+                        padding: "1px 4px",
+                        letterSpacing: ".04em",
+                    }}>
                         Lv.{myth.level}
                     </span>
                 </div>
-                <div style={{ fontSize: 7, fontFamily: "monospace", color: "var(--accent-gold)" }}>⚡{power}</div>
             </div>
         </div>
     );
@@ -180,31 +237,54 @@ function StatsPanel({ myth }: { myth: Myth }) {
     const rar = RARITY_CONFIG[myth.rarity] ?? RARITY_CONFIG.COMMON;
     const power = calcPower(myth);
 
+    const animHp   = useAnimatedNumber(myth.maxHp,         350);
+    const animAtk  = useAnimatedNumber(myth.attack,        350);
+    const animDef  = useAnimatedNumber(myth.defense,       350);
+    const animSpd  = useAnimatedNumber(myth.speed,         350);
+    const animAcc  = useAnimatedNumber(myth.accuracy ?? 100, 350);
+    const animCrit = useAnimatedNumber(myth.critChance ?? 0, 350);
+
+    const ANIMATED: Record<string, number> = {
+        maxHp: animHp, attack: animAtk, defense: animDef,
+        speed: animSpd, accuracy: animAcc, critChance: animCrit,
+    };
+
     return (
         <div className="flex flex-col p-2 overflow-hidden h-full" style={{ gap: 3 }}>
-            {STAT_CONFIG.map(({ key, label, max, color }) => {
-                const val = (myth as any)[key] ?? 0;
-                const pct = Math.min(100, (val / max) * 100);
+            {STAT_CONFIG.map(({ key, label, max, color }, idx) => {
+                const animated = ANIMATED[key] ?? 0;
+                const raw = (myth as any)[key] ?? 0;
+                const pct = Math.min(100, (raw / max) * 100);
                 return (
                     <div key={key} className="tvn-stat-row flex items-center flex-shrink-0"
-                        style={{ gap: 6, background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.06)", borderRadius: 7, padding: "3px 8px" }}>
+                        style={{
+                            gap: 6, background: "rgba(255,255,255,.03)",
+                            border: "1px solid rgba(255,255,255,.06)", borderRadius: 7, padding: "3px 8px",
+                            animation: `tvnStatIn 0.35s cubic-bezier(0.16,1,0.3,1) ${idx * 0.045}s both`,
+                        }}>
                         <span className="tvn-stat-label font-mono flex-shrink-0"
                             style={{ color: "rgba(255,255,255,.38)", letterSpacing: ".07em", fontSize: "var(--font-xs)", width: 26 }}>{label}</span>
                         <span className="tvn-stat-value font-black flex-shrink-0"
-                            style={{ fontFamily: "'Rajdhani',sans-serif", color: "var(--text-primary)", fontSize: "var(--font-md)", width: 26 }}>{val}</span>
+                            style={{ fontFamily: "'Rajdhani',sans-serif", color: "var(--text-primary)", fontSize: "var(--font-md)", width: 26, transition: "color .3s" }}>{animated}</span>
                         <div className="tvn-stat-bar flex-1 rounded-full overflow-hidden" style={{ height: 5, background: "rgba(255,255,255,.07)" }}>
-                            <div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} />
+                            <div className="h-full rounded-full" style={{
+                                width: `${pct}%`, background: color,
+                                transition: "width 0.45s cubic-bezier(0.16,1,0.3,1)",
+                            }} />
                         </div>
                     </div>
                 );
             })}
-            {/* Affinity + Rarity + Power — inline at bottom, no scroll */}
+            {/* Affinity + Rarity + Power */}
             <div className="flex items-center justify-between flex-shrink-0 mt-1" style={{ gap: 4 }}>
                 <div className="flex gap-1 flex-wrap flex-1">
                     {(myth.affinities ?? []).map(a => (
                         <span key={a} className="tvn-aff-tag font-mono px-1.5 py-0.5 rounded-md"
-                            style={{ fontSize: "var(--font-2xs)", background: "rgba(99,102,241,.12)", border: "1px solid rgba(99,102,241,.25)", color: "#818cf8" }}>
-                            {AFFINITY_ICON[a] ?? ""} {a}
+                            style={{ fontSize: "var(--font-2xs)", background: "rgba(99,102,241,.12)", border: "1px solid rgba(99,102,241,.25)", color: "#818cf8", display: "inline-flex", alignItems: "center", gap: 3 }}>
+                            <img src={`${AFFINITY_CDN}/${a.toLowerCase()}_affinity_icon.webp`} alt={a}
+                                style={{ width: 11, height: 11, objectFit: "contain" }}
+                                onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                            {a}
                         </span>
                     ))}
                     <span className="font-mono px-1.5 py-0.5 rounded-md"
@@ -224,35 +304,92 @@ function StatsPanel({ myth }: { myth: Myth }) {
 
 function SkillsPanel({ myth }: { myth: Myth }) {
     const moves = myth.moves ?? [];
-    const CD_LABEL: Record<number, string> = { 0: "Basic · CD:0", 2: "Skill · CD:2" };
+    const MOVE_META = [
+        { label: "BASIC",    badge: "CD 0",  badgeColor: "#64748b", borderColor: "rgba(100,116,139,.3)" },
+        { label: "SKILL",    badge: "CD 2",  badgeColor: "#818cf8", borderColor: "rgba(129,140,248,.35)" },
+        { label: "ULTIMATE", badge: "CD 4+", badgeColor: "#f472b6", borderColor: "rgba(244,114,182,.4)" },
+    ];
     return (
-        <div className="flex flex-col gap-2 p-3 overflow-y-auto h-full" style={{ scrollbarWidth: "none" }}>
-            <p className="font-mono text-[8px] tracking-widest mb-1" style={{ color: "rgba(255,255,255,.2)" }}>MOVES</p>
+        <div className="flex flex-col gap-2 p-2 overflow-y-auto h-full" style={{ scrollbarWidth: "none" }}>
             {moves.length === 0 && (
-                <p className="font-mono text-[10px] text-center mt-4" style={{ color: "rgba(255,255,255,.25)" }}>No move data</p>
+                <p className="font-mono text-[10px] text-center mt-8" style={{ color: "rgba(255,255,255,.25)" }}>No move data</p>
             )}
             {moves.map((move, i) => {
                 const aff = move.affinity ?? "";
-                const cdLabel = i === 0 ? "Basic · CD:0" : i === 1 ? "Skill · CD:2" : `Ultimate · CD:${move.cooldown}+`;
+                const meta = MOVE_META[i] ?? { label: `FORM ${i+1}`, badge: `CD${move.cooldown}`, badgeColor: "#a78bfa", borderColor: "rgba(167,139,250,.35)" };
+                const affIconUrl = aff ? `${AFFINITY_CDN}/${aff.toLowerCase()}_affinity_icon.webp` : null;
                 return (
-                    <div key={move.id ?? i} className="p-2.5 rounded-xl"
-                        style={{ background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.07)" }}>
-                        <div className="flex items-center justify-between mb-1">
-                            <span className="tvn-move-name font-black" style={{ fontFamily: "'Rajdhani',sans-serif", color: "var(--text-primary)", textTransform: "uppercase", letterSpacing: ".04em" }}>
-                                {AFFINITY_ICON[aff] ?? ""} {move.name}
+                    <div key={move.id ?? i}
+                        className="tvn-move-row rounded-2xl overflow-hidden flex-shrink-0"
+                        style={{
+                            background: "rgba(255,255,255,.03)",
+                            border: `1px solid ${meta.borderColor}`,
+                            padding: "10px 12px",
+                        }}>
+                        {/* Header: tipo indicator + nombre + badge */}
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                            {/* Tipo */}
+                            <div style={{
+                                display: "flex", alignItems: "center", gap: 4,
+                                background: "rgba(255,255,255,.05)",
+                                borderRadius: 6, padding: "3px 7px",
+                                border: "1px solid rgba(255,255,255,.08)",
+                                flexShrink: 0,
+                            }}>
+                                {affIconUrl && (
+                                    <img src={affIconUrl} alt={aff}
+                                        style={{ width: 14, height: 14, objectFit: "contain" }}
+                                        onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                                )}
+                                <span style={{ fontFamily: "monospace", fontSize: 9, color: "rgba(255,255,255,.5)", letterSpacing: ".08em" }}>{aff}</span>
+                            </div>
+                            {/* Nombre */}
+                            <span className="tvn-move-name font-black flex-1"
+                                style={{ fontFamily: "'Rajdhani',sans-serif", color: "var(--text-primary)", textTransform: "uppercase", letterSpacing: ".05em" }}>
+                                {move.name}
                             </span>
-                            <span className="font-mono text-[8px] px-1.5 py-0.5 rounded-md"
-                                style={{ background: "rgba(167,139,250,.12)", color: "#a78bfa", border: "1px solid rgba(167,139,250,.2)" }}>
-                                {cdLabel}
+                            {/* CD badge */}
+                            <span style={{
+                                fontFamily: "'Rajdhani',sans-serif", fontWeight: 700,
+                                fontSize: 11, letterSpacing: ".1em", textTransform: "uppercase",
+                                color: meta.badgeColor,
+                                background: `${meta.badgeColor}18`,
+                                border: `1px solid ${meta.badgeColor}40`,
+                                borderRadius: 6, padding: "2px 8px",
+                                flexShrink: 0,
+                            }}>
+                                {meta.badge}
                             </span>
                         </div>
+                        {/* Tipo label */}
+                        <div style={{ marginBottom: 5 }}>
+                            <span style={{
+                                fontFamily: "'Rajdhani',sans-serif", fontWeight: 700,
+                                fontSize: 9, letterSpacing: ".18em", textTransform: "uppercase",
+                                color: meta.badgeColor, opacity: 0.7,
+                            }}>{meta.label}</span>
+                        </div>
+                        {/* Descripción */}
                         {(move.description ?? move.effect) && (
-                            <p className="tvn-move-desc font-mono leading-relaxed" style={{ color: "rgba(255,255,255,.38)", fontSize: "var(--font-xs)" }}>
+                            <p className="tvn-move-desc font-mono leading-relaxed"
+                                style={{ color: "rgba(255,255,255,.5)", fontSize: "var(--font-xs)", lineHeight: 1.5, marginBottom: move.power ? 6 : 0 }}>
                                 {move.description ?? move.effect}
                             </p>
                         )}
+                        {/* Power — grande y destacado */}
                         {move.power && (
-                            <p className="font-mono text-[9px] mt-1" style={{ color: "var(--accent-gold)" }}>Power: {move.power}</p>
+                            <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4 }}>
+                                <span style={{ fontFamily: "monospace", fontSize: 9, color: "rgba(255,255,255,.3)", letterSpacing: ".1em" }}>POWER</span>
+                                <span style={{
+                                    fontFamily: "'Rajdhani',sans-serif", fontWeight: 900,
+                                    fontSize: "clamp(18px,2.5vw,26px)",
+                                    color: "var(--accent-gold)",
+                                    letterSpacing: ".04em",
+                                    textShadow: "0 0 16px rgba(251,191,36,.4)",
+                                }}>
+                                    {move.power}
+                                </span>
+                            </div>
                         )}
                     </div>
                 );
@@ -448,9 +585,17 @@ export default function TavernPage() {
     const [tab, setTab] = useState<Tab>("stats");
     const [affFilter, setAffFilter] = useState("ALL");
     const [leftTab, setLeftTab] = useState<"myths" | "inventory">("myths");
-    const [selItem, setSelItem] = useState<typeof INV_ITEMS[0] | null>(INV_ITEMS[0]);
+    const [selItem, setSelItem] = useState<typeof INV_ITEMS[0] | null>(null);
+    const [showInventory, setShowInventory] = useState(false);
     const [selectedForm, setSelectedForm] = useState(0);
     const [distortionFlash, setDistortionFlash] = useState(false);
+    const [formKey, setFormKey] = useState(0);
+    const [flashPos, setFlashPos] = useState<{ x: number; y: number } | null>(null);
+    const artContainerRef = useRef<HTMLDivElement>(null); // incrementa al cambiar forma → re-anima nombre/tipo
+    // Overlays
+    const [expandedView, setExpandedView] = useState(false);
+    const [expandAffFilter, setExpandAffFilter] = useState("ALL");
+    const [expandRarFilter, setExpandRarFilter] = useState("ALL");
 
     // Normaliza un creature del backend: moves/distortion/stats pueden venir
     // directos o anidados en speciesData segun la version del backend
@@ -491,13 +636,44 @@ export default function TavernPage() {
     );
 
     const rar = selected ? (RARITY_CONFIG[selected.rarity] ?? RARITY_CONFIG.COMMON) : null;
-    const artUrl = selected ? mythArtUrl(selected) : "";         // portrait — for left grid cards
+    const artUrl = selected ? mythArtUrl(selected) : "";
     const power = selected ? calcPower(selected) : 0;
+
+    // Calcular activeMyth al nivel del componente para que sea accesible desde el panel derecho
+    const activeMyth: Myth | null = (() => {
+        if (!selected) return null;
+        const distForms = selected.distortion ?? [];
+        const clampedForm = Math.min(selectedForm, distForms.length);
+        if (clampedForm === 0) return selected;
+        const distFormData = distForms[clampedForm - 1];
+        if (!distFormData) return selected;
+        const formAffinities: string[] = distFormData.affinities?.length
+            ? distFormData.affinities
+            : selected.affinities ?? [];
+        return {
+            ...selected,
+            affinities: formAffinities,
+            rarity: distFormData.rarity ?? selected.rarity,
+            maxHp:      distFormData.baseStats?.hp  ?? selected.maxHp,
+            attack:     distFormData.baseStats?.atk ?? selected.attack,
+            defense:    distFormData.baseStats?.def ?? selected.defense,
+            speed:      distFormData.baseStats?.spd ?? selected.speed,
+            moves:      distFormData.moves?.length ? distFormData.moves : selected.moves,
+        };
+    })();
 
     return (
         <div className="fixed inset-0 flex flex-col overflow-hidden"
             style={{ background: "#070b14", fontFamily: "'Exo 2',sans-serif" }}>
             <style>{`
+                @keyframes tvnFadeSlideUp {
+                    from { opacity: 0; transform: translateY(10px); }
+                    to   { opacity: 1; transform: translateY(0); }
+                }
+                @keyframes tvnStatIn {
+                    from { opacity: 0; transform: translateX(-6px); }
+                    to   { opacity: 1; transform: translateX(0); }
+                }
                 @media (min-width: 768px) {
                     .tvn-card-name  { font-size: 13px !important; }
                     .tvn-stat-label { font-size: 13px !important; }
@@ -575,25 +751,68 @@ export default function TavernPage() {
                     style={{ width: "clamp(160px,30%,260px)", borderRight: "1px solid rgba(255,255,255,.05)" }}>
 
                     {/* ── Left tabs: Myths / Inventory ── */}
-                    <div className="flex flex-shrink-0" style={{ borderBottom: "1px solid rgba(255,255,255,.06)" }}>
-                        {(["myths","inventory"] as const).map(lt => (
-                            <button key={lt} onClick={() => setLeftTab(lt)}
-                                className="tvn-left-tab flex-1 py-2 font-mono uppercase tracking-widest transition-all"
+                    <div className="flex flex-shrink-0 items-center" style={{ borderBottom: "1px solid rgba(255,255,255,.06)" }}>
+                        <button onClick={() => setLeftTab("myths")}
+                            className="tvn-left-tab flex-1 py-2 font-mono uppercase tracking-widest transition-all"
+                            style={{
+                                fontSize: "var(--font-2xs)",
+                                borderBottomWidth: 2, borderBottomStyle: "solid",
+                                borderBottomColor: leftTab === "myths" ? "#a78bfa" : "transparent",
+                                color: leftTab === "myths" ? "#a78bfa" : "rgba(255,255,255,.3)",
+                                background: leftTab === "myths" ? "rgba(167,139,250,.06)" : "transparent",
+                                cursor: "pointer", border: "none", outline: "none",
+                            }}>
+                            🐉 Myths
+                        </button>
+                        <button onClick={() => setShowInventory(true)}
+                            className="tvn-left-tab flex-1 py-2 font-mono uppercase tracking-widest transition-all"
+                            style={{
+                                fontSize: "var(--font-2xs)",
+                                borderBottomWidth: 2, borderBottomStyle: "solid",
+                                borderBottomColor: "transparent",
+                                color: "rgba(255,255,255,.3)",
+                                background: "transparent",
+                                cursor: "pointer", border: "none", outline: "none",
+                            }}>
+                            🎒 Inventory
+                        </button>
+                        {/* Botón expand — visible */}
+                        {leftTab === "myths" && (
+                            <button
+                                onClick={() => setExpandedView(true)}
                                 style={{
-                                    fontSize: "var(--font-2xs)",
-                                    borderBottom: leftTab === lt ? "2px solid #a78bfa" : "2px solid transparent",
-                                    color: leftTab === lt ? "#a78bfa" : "rgba(255,255,255,.3)",
-                                    background: leftTab === lt ? "rgba(167,139,250,.06)" : "transparent",
-                                    cursor: "pointer", border: "none", outline: "none",
-                                    borderBottomWidth: 2, borderBottomStyle: "solid",
-                                    borderBottomColor: leftTab === lt ? "#a78bfa" : "transparent",
-                                }}>
-                                {lt === "myths" ? "🐉 Myths" : "🎒 Inventory"}
+                                    padding: "4px 8px",
+                                    background: "rgba(167,139,250,.12)",
+                                    border: "1px solid rgba(167,139,250,.3)",
+                                    borderRadius: 6,
+                                    cursor: "pointer",
+                                    color: "#a78bfa",
+                                    fontFamily: "'Rajdhani', sans-serif",
+                                    fontWeight: 700,
+                                    fontSize: 9,
+                                    letterSpacing: ".1em",
+                                    textTransform: "uppercase",
+                                    flexShrink: 0,
+                                    marginRight: 6,
+                                    whiteSpace: "nowrap",
+                                    transition: "all 0.15s",
+                                }}
+                                onMouseEnter={e => {
+                                    e.currentTarget.style.background = "rgba(167,139,250,.22)";
+                                    e.currentTarget.style.borderColor = "rgba(167,139,250,.6)";
+                                }}
+                                onMouseLeave={e => {
+                                    e.currentTarget.style.background = "rgba(167,139,250,.12)";
+                                    e.currentTarget.style.borderColor = "rgba(167,139,250,.3)";
+                                }}
+                            >
+                                ⛶ Expand
                             </button>
-                        ))}
+                        )}
                     </div>
 
-                    {leftTab === "myths" ? (<>
+                    {/* Grid myths — siempre visible */}
+                    <>
                     {/* Affinity filter */}
                     <div className="flex gap-1.5 flex-wrap p-2 flex-shrink-0"
                         style={{ borderBottom: "1px solid rgba(255,255,255,.05)" }}>
@@ -632,79 +851,18 @@ export default function TavernPage() {
                         style={{ color: "rgba(255,255,255,.22)", borderTop: "1px solid rgba(255,255,255,.05)" }}>
                         {myths.length} myths · {myths.filter(m => m.inParty).length} in party 🟢
                     </div>
-                    </>) : (
-                    /* ── INVENTORY view ── */
-                    <div className="flex-1 flex overflow-hidden min-h-0">
-                        {/* Items list */}
-                        <div className="flex flex-col overflow-y-auto flex-1" style={{ scrollbarWidth: "none" }}>
-                            {INV_ITEMS.map(item => (
-                                <button key={item.id} onClick={() => setSelItem(item)}
-                                    className="flex items-center gap-3 px-3 py-2.5 transition-all text-left flex-shrink-0"
-                                    style={{
-                                        borderBottom: "1px solid rgba(255,255,255,.04)",
-                                        background: selItem?.id === item.id ? `${item.color}0e` : "transparent",
-                                        borderLeft: selItem?.id === item.id ? `2px solid ${item.color}` : "2px solid transparent",
-                                        cursor: "pointer",
-                                    }}>
-                                    <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-xl"
-                                        style={{ background: `${item.color}12`, border: `1px solid ${item.color}28`, filter: `drop-shadow(0 0 6px ${item.color}55)` }}>
-                                        {item.icon}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="tvn-inv-name font-black leading-tight truncate" style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: "var(--font-sm)", color: "var(--text-primary)", textTransform: "uppercase", letterSpacing: ".04em" }}>
-                                            {item.name}
-                                        </p>
-                                        <p className="tvn-inv-rarity font-mono" style={{ fontSize: "var(--font-2xs)", color: `${item.color}aa`, marginTop: 1 }}>
-                                            {item.rarity}
-                                        </p>
-                                    </div>
-                                </button>
-                            ))}
-                        </div>
-                        {/* Item detail */}
-                        {selItem && (
-                            <div className="flex flex-col p-3 overflow-y-auto"
-                                style={{ width: "55%", borderLeft: "1px solid rgba(255,255,255,.06)", scrollbarWidth: "none" }}>
-                                {/* Big icon */}
-                                <div className="flex items-center justify-center mb-3">
-                                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center"
-                                        style={{ background: `${selItem.color}12`, border: `1px solid ${selItem.color}30`, fontSize: 38, filter: `drop-shadow(0 0 14px ${selItem.color}77)` }}>
-                                        {selItem.icon}
-                                    </div>
-                                </div>
-                                <p className="tvn-inv-dname font-black text-center mb-0.5"
-                                    style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: "var(--font-base)", color: selItem.color, textTransform: "uppercase", letterSpacing: ".06em" }}>
-                                    {selItem.name}
-                                </p>
-                                <p className="font-mono text-center mb-3"
-                                    style={{ fontSize: "var(--font-2xs)", color: "rgba(255,255,255,.3)", letterSpacing: ".1em" }}>
-                                    {selItem.rarity}
-                                </p>
-                                <p className="tvn-inv-desc font-mono leading-relaxed mb-3"
-                                    style={{ fontSize: "var(--font-xs)", color: "rgba(255,255,255,.5)", lineHeight: 1.55 }}>
-                                    {selItem.desc}
-                                </p>
-                                <div className="px-2.5 py-2 rounded-xl"
-                                    style={{ background: `${selItem.color}0a`, border: `1px solid ${selItem.color}22` }}>
-                                    <p className="font-mono mb-0.5" style={{ fontSize: 7, color: "rgba(255,255,255,.25)", letterSpacing: ".12em", textTransform: "uppercase" }}>
-                                        Where to get
-                                    </p>
-                                    <p className="tvn-inv-src font-mono" style={{ fontSize: "var(--font-xs)", color: selItem.color }}>
-                                        {selItem.source}
-                                    </p>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                    )}
+                    </>
                 </div>
 
                 {/* ── CENTER: selected myth art ── */}
                 <div className="flex-1 flex flex-col relative overflow-hidden min-w-0">
-                    {/* Ambient glow */}
+                    {/* Ambient glow — rareza del form activo */}
                     {selected && (
                         <div className="absolute inset-0 pointer-events-none"
-                            style={{ background: `radial-gradient(ellipse 70% 75% at 50% 55%, ${RARITY_GLOW[selected.rarity]} 0%, transparent 70%)` }} />
+                            style={{
+                                background: `radial-gradient(ellipse 70% 75% at 50% 55%, ${RARITY_GLOW[activeMyth?.rarity ?? selected.rarity] ?? RARITY_GLOW[selected.rarity]} 0%, transparent 70%)`,
+                                transition: "background 0.4s",
+                            }} />
                     )}
                     {/* Grid texture */}
                     <div className="absolute inset-0 pointer-events-none"
@@ -719,24 +877,41 @@ export default function TavernPage() {
                                 label: "BASE",
                                 sublabel: "Original",
                                 color: rar?.color ?? "#e2e8f0",
-                                artUrl: mythFrontUrl(selected.art),   // front for center display
+                                artUrl: mythFrontUrl(selected.art),
                                 displayName: selected.name ?? selected.speciesId,
+                                affinities: selected.affinities ?? [],
+                                rarity: selected.rarity,
                             },
                             ...distForms.map((d, i) => {
                                 const dArt = d.art;
-                                const dArtUrl = mythFrontUrl(dArt); // front for center display
+                                const dArtUrl = mythFrontUrl(dArt);
+                                // La última distorsión tiene 2 afinidades y rareza distinta
+                                const isLast = i === distForms.length - 1;
+                                const formAffinities: string[] = isLast && d.affinities?.length
+                                    ? d.affinities
+                                    : d.affinities?.length
+                                        ? d.affinities
+                                        : selected.affinities ?? [];
+                                const formRarity = d.rarity ?? selected.rarity;
+                                const formColor = FORM_COLORS[i + 1] ?? "#a78bfa";
                                 return {
                                     label: `FORM ${i + 2}`,
                                     sublabel: d.name,
-                                    color: FORM_COLORS[i + 1] ?? "#a78bfa",
+                                    color: (RARITY_CONFIG[formRarity]?.color ?? formColor),
                                     artUrl: dArtUrl,
                                     displayName: d.name,
+                                    affinities: formAffinities,
+                                    rarity: formRarity,
                                 };
                             }),
                         ];
                         const clampedForm = Math.min(selectedForm, allForms.length - 1);
                         const activeForm = allForms[clampedForm];
-                        const activeGlow = RARITY_GLOW[selected.rarity] ?? "rgba(226,232,240,.4)";
+                        const activeGlow = RARITY_GLOW[activeMyth?.rarity ?? selected.rarity] ?? "rgba(226,232,240,.4)";
+
+                        // Actualizar glow del centro dinámicamente
+                        const glowEl = document.getElementById("tvn-center-glow");
+                        if (glowEl) glowEl.style.background = `radial-gradient(ellipse 70% 75% at 50% 55%, ${activeGlow} 0%, transparent 70%)`;
 
                         return (
                             <div className="flex flex-col h-full">
@@ -746,11 +921,21 @@ export default function TavernPage() {
                                         {allForms.map((f, i) => (
                                             <button key={i} onClick={() => {
                                                     if (i === clampedForm) return;
+                                                    // Capturar centro exacto del contenedor del art
+                                                    if (artContainerRef.current) {
+                                                        const rect = artContainerRef.current.getBoundingClientRect();
+                                                        setFlashPos({
+                                                            x: rect.left + rect.width / 2,
+                                                            y: rect.top + rect.height / 2,
+                                                        });
+                                                    }
                                                     setDistortionFlash(true);
                                                     setTimeout(() => {
                                                         setSelectedForm(i);
+                                                        setFormKey(k => k + 1);
                                                         setDistortionFlash(false);
-                                                    }, 420);
+                                                        setFlashPos(null);
+                                                    }, 700);
                                                 }}
                                                 className="flex-1 rounded-lg transition-all active:scale-95"
                                                 style={{
@@ -787,7 +972,7 @@ export default function TavernPage() {
                                         transition: "border-color .4s" }} />
 
                                 {/* Art — cambia según la forma */}
-                                <div className="flex-1 flex items-center justify-center relative min-h-0">
+                                <div ref={artContainerRef} className="flex-1 flex items-center justify-center relative min-h-0">
                                     {activeForm.artUrl ? (
                                         <img
                                             key={activeForm.artUrl}
@@ -811,61 +996,158 @@ export default function TavernPage() {
                                             {AFFINITY_ICON[selected.affinities?.[0]] ?? "❓"}
                                         </div>
                                     )}
-                                    {/* Super Saiyan distortion flash overlay */}
-                                    {distortionFlash && (
-                                        <div className="absolute inset-0 pointer-events-none flex items-center justify-center" style={{ zIndex: 20 }}>
-                                            {/* Outer energy burst */}
-                                            <div className="absolute rounded-full" style={{
-                                                width: "100%", height: "100%",
-                                                background: "radial-gradient(ellipse 60% 80% at 50% 50%, rgba(167,139,250,0) 0%, rgba(167,139,250,0.5) 40%, rgba(232,121,249,0.35) 65%, transparent 100%)",
-                                                animation: "distortionBurst 0.42s ease-out forwards",
-                                            }} />
-                                            {/* Inner core flash */}
-                                            <div className="absolute rounded-full" style={{
-                                                width: 120, height: 180,
-                                                background: "radial-gradient(ellipse at 50% 60%, rgba(255,255,255,0.95) 0%, rgba(167,139,250,0.9) 25%, rgba(232,121,249,0.6) 55%, transparent 80%)",
-                                                animation: "distortionCore 0.42s ease-out forwards",
-                                                filter: "blur(2px)",
-                                            }} />
-                                            {/* Energy streaks */}
-                                            {[...Array(8)].map((_, i) => (
-                                                <div key={i} className="absolute" style={{
-                                                    width: 2,
-                                                    height: `${40 + i * 12}px`,
-                                                    background: "linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(167,139,250,0.7) 50%, transparent 100%)",
-                                                    top: "50%",
-                                                    left: "50%",
-                                                    transformOrigin: "50% 0%",
-                                                    transform: `translate(-50%, -100%) rotate(${i * 45}deg)`,
-                                                    animation: `distortionStreak 0.42s ease-out forwards`,
-                                                    animationDelay: `${i * 0.02}s`,
-                                                    filter: "blur(0.5px)",
+                                    {/* ── DISTORTION FLASH — onda de choque, posicionada exactamente en el art ── */}
+                                    {distortionFlash && flashPos && (
+                                        <div className="fixed pointer-events-none" style={{
+                                            zIndex: 40,
+                                            top: 0, left: 0, width: "100vw", height: "100vh",
+                                        }}>
+                                            {/* Punto de origen exacto: centro del contenedor del art */}
+                                            <div style={{
+                                                position: "absolute",
+                                                top: flashPos.y,
+                                                left: flashPos.x,
+                                                width: 0,
+                                                height: 0,
+                                            }}>
+                                                {/* Flash central — destello blanco instantáneo */}
+                                                <div style={{
+                                                    position: "absolute",
+                                                    width: 120, height: 120,
+                                                    borderRadius: "50%",
+                                                    transform: "translate(-50%, -50%)",
+                                                    background: "radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(200,150,255,0.7) 35%, transparent 70%)",
+                                                    animation: "dFlash 0.25s ease-out forwards",
+                                                    filter: "blur(2px)",
                                                 }} />
-                                            ))}
+
+                                                {/* Onda 1 — grande, lila */}
+                                                <div style={{
+                                                    position: "absolute",
+                                                    width: 20, height: 20,
+                                                    borderRadius: "50%",
+                                                    transform: "translate(-50%, -50%)",
+                                                    border: "3px solid rgba(167,139,250,0.9)",
+                                                    boxShadow: "0 0 20px rgba(167,139,250,0.6), inset 0 0 10px rgba(123,47,255,0.3)",
+                                                    animation: "dWave 0.65s cubic-bezier(0.1,0.8,0.3,1) forwards",
+                                                }} />
+
+                                                {/* Onda 2 — mediana, rosa, delay */}
+                                                <div style={{
+                                                    position: "absolute",
+                                                    width: 20, height: 20,
+                                                    borderRadius: "50%",
+                                                    transform: "translate(-50%, -50%)",
+                                                    border: "2px solid rgba(232,121,249,0.8)",
+                                                    boxShadow: "0 0 14px rgba(232,121,249,0.5)",
+                                                    animation: "dWave 0.6s cubic-bezier(0.1,0.8,0.3,1) 0.08s forwards",
+                                                }} />
+
+                                                {/* Onda 3 — pequeña, blanca, más delay */}
+                                                <div style={{
+                                                    position: "absolute",
+                                                    width: 20, height: 20,
+                                                    borderRadius: "50%",
+                                                    transform: "translate(-50%, -50%)",
+                                                    border: "1.5px solid rgba(255,255,255,0.6)",
+                                                    animation: "dWave 0.55s cubic-bezier(0.1,0.8,0.3,1) 0.15s forwards",
+                                                }} />
+
+                                                {/* Glow radial que se expande y desvanece */}
+                                                <div style={{
+                                                    position: "absolute",
+                                                    width: 60, height: 60,
+                                                    borderRadius: "50%",
+                                                    transform: "translate(-50%, -50%)",
+                                                    background: "radial-gradient(circle, rgba(167,139,250,0.5) 0%, rgba(123,47,255,0.2) 50%, transparent 75%)",
+                                                    animation: "dGlow 0.65s ease-out forwards",
+                                                }} />
+
+                                                {/* 6 partículas que salen disparadas */}
+                                                {[...Array(6)].map((_, i) => {
+                                                    const angle = (i / 6) * 360;
+                                                    const rad = angle * Math.PI / 180;
+                                                    const dist = 70 + (i % 2) * 30;
+                                                    return (
+                                                        <div key={i} style={{
+                                                            position: "absolute",
+                                                            width: i % 2 === 0 ? 5 : 3,
+                                                            height: i % 2 === 0 ? 5 : 3,
+                                                            borderRadius: "50%",
+                                                            transform: "translate(-50%, -50%)",
+                                                            background: i % 3 === 0
+                                                                ? "rgba(255,255,255,0.95)"
+                                                                : i % 3 === 1
+                                                                    ? "rgba(167,139,250,0.9)"
+                                                                    : "rgba(232,121,249,0.9)",
+                                                            boxShadow: `0 0 8px rgba(167,139,250,0.8)`,
+                                                            animation: "dParticle 0.6s cubic-bezier(0.2,0.8,0.4,1) forwards",
+                                                            animationDelay: `${i * 0.02}s`,
+                                                            "--px": `${Math.cos(rad) * dist}px`,
+                                                            "--py": `${Math.sin(rad) * dist}px`,
+                                                        } as React.CSSProperties} />
+                                                    );
+                                                })}
+                                            </div>
                                         </div>
                                     )}
                                 </div>
 
-                                {/* Info bottom — flex-shrink-0 garantiza que nunca se corte */}
+                                {/* Info bottom */}
                                 <div className="flex-shrink-0 text-center px-3 pb-3">
-                                    <div className="flex items-center justify-center gap-2 mb-1">
-                                        <span className="font-mono px-2 py-0.5 rounded-md"
-                                            style={{ fontSize: "var(--font-xs)", background: rar?.bg, color: rar?.color,
-                                                border: `1px solid ${rar?.border}`, letterSpacing: ".12em", textTransform: "uppercase" }}>
-                                            {selected.rarity}
-                                        </span>
-                                        <span className="font-mono" style={{ fontSize: "var(--font-xs)", color: "rgba(255,255,255,.3)" }}>
-                                            {AFFINITY_ICON[selected.affinities?.[0]]} {selected.affinities?.[0]} · Lv. {selected.level}/60
-                                        </span>
+                                    {/* Nombre + tipo + rareza — animated con formKey */}
+                                    <div key={formKey} style={{
+                                        animation: "tvnFadeSlideUp 0.4s cubic-bezier(0.16,1,0.3,1) both",
+                                    }}>
+                                        <h2 className="font-black leading-none mb-2"
+                                            style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: "clamp(20px,3.5vw,32px)",
+                                                color: "var(--text-primary)", textTransform: "uppercase", letterSpacing: ".06em",
+                                                textShadow: `0 0 30px ${activeForm.color}55`,
+                                                transition: "text-shadow .4s" }}>
+                                            {activeForm.displayName}
+                                        </h2>
+                                        {/* Nivel · Afinidades · Rareza */}
+                                        <div className="flex items-center justify-center gap-3 flex-wrap">
+                                            <span style={{
+                                                fontFamily: "'Rajdhani',sans-serif", fontWeight: 800,
+                                                fontSize: "clamp(14px,2vw,20px)", color: "#a78bfa", letterSpacing: ".08em",
+                                            }}>
+                                                Lv. {selected.level}
+                                            </span>
+                                            <span style={{ color: "rgba(255,255,255,.2)", fontSize: 16 }}>·</span>
+                                            {/* Afinidades */}
+                                            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                                {(activeForm.affinities ?? []).map((aff: string) => (
+                                                    <span key={aff} style={{
+                                                        display: "inline-flex", alignItems: "center", gap: 5,
+                                                        fontFamily: "'Rajdhani',sans-serif", fontWeight: 800,
+                                                        fontSize: "clamp(14px,2vw,20px)",
+                                                        color: "rgba(255,255,255,.75)", letterSpacing: ".08em",
+                                                    }}>
+                                                        <img
+                                                            src={`${AFFINITY_CDN}/${aff.toLowerCase()}_affinity_icon.webp`}
+                                                            alt={aff}
+                                                            style={{ width: "clamp(16px,2vw,22px)", height: "clamp(16px,2vw,22px)", objectFit: "contain" }}
+                                                            onError={e => { (e.target as HTMLImageElement).style.display = "none"; }}
+                                                        />
+                                                        {aff}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                            <span style={{ color: "rgba(255,255,255,.2)", fontSize: 16 }}>·</span>
+                                            <span style={{
+                                                fontFamily: "'Rajdhani',sans-serif", fontWeight: 800,
+                                                fontSize: "clamp(14px,2vw,20px)",
+                                                color: RARITY_CONFIG[activeForm.rarity]?.color ?? activeForm.color,
+                                                letterSpacing: ".08em",
+                                                transition: "color .4s",
+                                            }}>
+                                                {activeForm.rarity}
+                                            </span>
+                                        </div>
                                     </div>
-                                    <h2 className="font-black leading-none"
-                                        style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: "clamp(18px,3vw,28px)",
-                                            color: "var(--text-primary)", textTransform: "uppercase", letterSpacing: ".06em",
-                                            textShadow: `0 0 30px ${activeForm.color}55`,
-                                            transition: "text-shadow .4s" }}>
-                                        {activeForm.displayName}
-                                    </h2>
-                                    <div className="flex items-center justify-center gap-2 mt-1">
+                                    {/* PWR + Party badge */}
+                                    <div className="flex items-center justify-center gap-2 mt-2">
                                         <div className="tvn-power font-black"
                                             style={{ color: "var(--accent-gold)", fontFamily: "'Rajdhani',sans-serif", fontWeight: 700, fontSize: "var(--font-md)" }}>
                                             ⚡ {power.toLocaleString()} PWR
@@ -891,31 +1173,39 @@ export default function TavernPage() {
                 <div className="tvn-right flex overflow-hidden flex-shrink-0"
                     style={{ width: "clamp(200px,32%,320px)", borderLeft: "1px solid rgba(255,255,255,.05)" }}>
                     {/* Vertical tabs */}
-                    <div className="tvn-vtabs-col flex flex-col flex-shrink-0 pt-2 gap-0.5"
+                    <div className="tvn-vtabs-col flex flex-col flex-shrink-0 pt-2 gap-1"
                         style={{ width: 44, borderRight: "1px solid rgba(255,255,255,.05)" }}>
-                        {VTABS.map(t => (
-                            <button key={t.id} onClick={() => setTab(t.id)}
-                                className="tvn-vtab-btn flex flex-col items-center gap-1 py-3 transition-all"
-                                style={{
-                                    borderTop: "none", borderBottom: "none", borderLeft: "none",
-                                    borderRightWidth: 2, borderRightStyle: "solid",
-                                    borderRightColor: tab === t.id ? "#e2e8f0" : "transparent",
-                                    background: tab === t.id ? "rgba(226,232,240,.06)" : "transparent",
-                                    cursor: "pointer", outline: "none",
-                                }}>
-                                <span className="tvn-vtab-icon" style={{ fontSize: "var(--font-md)" }}>{t.icon}</span>
-                                <span className="tvn-vtab-label font-mono uppercase tracking-wide text-center leading-tight"
-                                    style={{ fontSize: 6, color: tab === t.id ? "rgba(226,232,240,.7)" : "rgba(255,255,255,.25)" }}>
-                                    {t.label}
-                                </span>
-                            </button>
-                        ))}
+                        {VTABS.map(t => {
+                            const TAB_COLORS: Record<string, string> = {
+                                stats:  "#67e8f9",
+                                skills: "#f87171",
+                                gear:   "#fbbf24",
+                            };
+                            const tc = TAB_COLORS[t.id] ?? "#e2e8f0";
+                            return (
+                                <button key={t.id} onClick={() => setTab(t.id)}
+                                    className="tvn-vtab-btn flex flex-col items-center gap-1 py-3 transition-all"
+                                    style={{
+                                        borderTop: "none", borderBottom: "none", borderLeft: "none",
+                                        borderRightWidth: 2, borderRightStyle: "solid",
+                                        borderRightColor: tab === t.id ? tc : "transparent",
+                                        background: tab === t.id ? `${tc}12` : "transparent",
+                                        cursor: "pointer", outline: "none",
+                                    }}>
+                                    <span className="tvn-vtab-icon" style={{ fontSize: "var(--font-md)" }}>{t.icon}</span>
+                                    <span className="tvn-vtab-label font-mono uppercase tracking-wide text-center leading-tight"
+                                        style={{ fontSize: 6, color: tab === t.id ? tc : "rgba(255,255,255,.25)", fontWeight: tab === t.id ? 700 : 400 }}>
+                                        {t.label}
+                                    </span>
+                                </button>
+                            );
+                        })}
                     </div>
-                    {/* Panel content */}
+                    {/* Panel content — usa activeMyth para que cambie con la distorsión */}
                     <div className="flex-1 overflow-hidden">
-                        {selected ? (
-                            tab === "stats"  ? <StatsPanel myth={selected} /> :
-                            tab === "skills" ? <SkillsPanel myth={selected} /> :
+                        {selected && activeMyth ? (
+                            tab === "stats"  ? <StatsPanel myth={activeMyth} /> :
+                            tab === "skills" ? <SkillsPanel myth={activeMyth} /> :
                                               <GearPanel myth={selected} />
                         ) : (
                             <div className="flex items-center justify-center h-full">
@@ -925,6 +1215,215 @@ export default function TavernPage() {
                     </div>
                 </div>
             </div>
+
+            {/* ── OVERLAY: Vista expandida de todos los myths ── */}
+            {expandedView && (() => {
+                const RARITIES = ["ALL", "COMMON", "RARE", "EPIC", "ELITE", "LEGENDARY", "MYTHIC"];
+                const expandFiltered = myths.filter(m => {
+                    const affOk = expandAffFilter === "ALL" || (m.affinities ?? []).includes(expandAffFilter);
+                    const rarOk = expandRarFilter === "ALL" || m.rarity === expandRarFilter;
+                    return affOk && rarOk;
+                });
+                return (
+                    <div
+                        className="fixed inset-0 z-50 flex flex-col"
+                        style={{ background: "#070b14", fontFamily: "'Exo 2', sans-serif" }}
+                    >
+                        {/* Header del overlay */}
+                        <div className="flex-shrink-0 flex items-center justify-between px-5 py-3"
+                            style={{ borderBottom: "1px solid rgba(255,255,255,.07)", background: "rgba(4,8,15,0.8)" }}>
+                            <div>
+                                <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 800, fontSize: 18, color: "#e2e8f0", letterSpacing: ".1em", textTransform: "uppercase" }}>
+                                    All Myths
+                                </span>
+                                <span style={{ fontSize: 11, color: "rgba(255,255,255,.3)", fontFamily: "monospace", marginLeft: 10 }}>
+                                    {expandFiltered.length} / {myths.length}
+                                </span>
+                            </div>
+                            <button
+                                onClick={() => setExpandedView(false)}
+                                style={{
+                                    padding: "6px 16px",
+                                    borderRadius: 8,
+                                    background: "rgba(255,255,255,.06)",
+                                    border: "1px solid rgba(255,255,255,.12)",
+                                    color: "#e2e8f0",
+                                    fontFamily: "'Rajdhani',sans-serif",
+                                    fontWeight: 700,
+                                    fontSize: 13,
+                                    letterSpacing: ".1em",
+                                    textTransform: "uppercase",
+                                    cursor: "pointer",
+                                }}
+                            >
+                                ✕ Close
+                            </button>
+                        </div>
+
+                        {/* Filtros */}
+                        <div className="flex-shrink-0 flex flex-wrap gap-3 px-4 py-2"
+                            style={{ borderBottom: "1px solid rgba(255,255,255,.05)", background: "rgba(4,8,15,0.5)" }}>
+                            {/* Afinidad */}
+                            <div className="flex gap-1.5 flex-wrap items-center">
+                                <span style={{ fontSize: 10, color: "rgba(255,255,255,.3)", fontFamily: "monospace", marginRight: 2 }}>TYPE</span>
+                                {AFFINITY_FILTERS.map(f => (
+                                    <button key={f} onClick={() => setExpandAffFilter(f)}
+                                        style={{
+                                            padding: "2px 8px", borderRadius: 5, fontSize: 11, fontFamily: "monospace", cursor: "pointer",
+                                            background: expandAffFilter === f ? "rgba(167,139,250,.18)" : "rgba(255,255,255,.03)",
+                                            border: expandAffFilter === f ? "1px solid rgba(167,139,250,.35)" : "1px solid rgba(255,255,255,.07)",
+                                            color: expandAffFilter === f ? "#a78bfa" : "rgba(255,255,255,.35)",
+                                        }}>
+                                        {f === "ALL" ? "All" : `${AFFINITY_ICON[f] ?? ""} ${f}`}
+                                    </button>
+                                ))}
+                            </div>
+                            {/* Rareza */}
+                            <div className="flex gap-1.5 flex-wrap items-center">
+                                <span style={{ fontSize: 10, color: "rgba(255,255,255,.3)", fontFamily: "monospace", marginRight: 2 }}>RARITY</span>
+                                {RARITIES.map(r => {
+                                    const rc = r !== "ALL" ? RARITY_CONFIG[r] : null;
+                                    return (
+                                        <button key={r} onClick={() => setExpandRarFilter(r)}
+                                            style={{
+                                                padding: "2px 8px", borderRadius: 5, fontSize: 11, fontFamily: "monospace", cursor: "pointer",
+                                                background: expandRarFilter === r ? (rc?.bg ?? "rgba(167,139,250,.18)") : "rgba(255,255,255,.03)",
+                                                border: expandRarFilter === r ? `1px solid ${rc?.border ?? "rgba(167,139,250,.35)"}` : "1px solid rgba(255,255,255,.07)",
+                                                color: expandRarFilter === r ? (rc?.color ?? "#a78bfa") : "rgba(255,255,255,.35)",
+                                            }}>
+                                            {r === "ALL" ? "All" : rc?.label ?? r}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Grid de myths */}
+                        <div className="flex-1 overflow-y-auto p-4"
+                            style={{
+                                display: "grid",
+                                gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))",
+                                gap: 8,
+                                alignContent: "start",
+                                scrollbarWidth: "none",
+                            }}>
+                            {expandFiltered.map(m => (
+                                <MythCard key={m.id} myth={m} selected={selected?.id === m.id}
+                                    onClick={() => {
+                                        setSelected(m);
+                                        setTab("stats");
+                                        setSelectedForm(0);
+                                        setDistortionFlash(false);
+                                        setExpandedView(false);
+                                    }} />
+                            ))}
+                            {expandFiltered.length === 0 && (
+                                <div style={{ gridColumn: "1/-1", textAlign: "center", paddingTop: 48, color: "rgba(255,255,255,.2)", fontFamily: "monospace", fontSize: 12 }}>
+                                    No myths match the current filters
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                );
+            })()}
+
+            {/* ── MODAL: Inventario ── */}
+            {showInventory && (
+                <div className="fixed inset-0 z-50 flex flex-col"
+                    style={{ background: "rgba(7,11,20,0.97)", fontFamily: "'Exo 2', sans-serif" }}
+                    onClick={() => { setShowInventory(false); setSelItem(null); }}>
+                    {/* Header */}
+                    <div className="flex-shrink-0 flex items-center justify-between px-5 py-3"
+                        style={{ borderBottom: "1px solid rgba(255,255,255,.07)", background: "rgba(4,8,15,0.9)" }}
+                        onClick={e => e.stopPropagation()}>
+                        <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 800, fontSize: 18, color: "#e2e8f0", letterSpacing: ".12em", textTransform: "uppercase" }}>
+                            🎒 Inventory
+                        </span>
+                        <button onClick={() => { setShowInventory(false); setSelItem(null); }}
+                            style={{
+                                padding: "6px 16px", borderRadius: 8,
+                                background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.12)",
+                                color: "#e2e8f0", fontFamily: "'Rajdhani',sans-serif", fontWeight: 700,
+                                fontSize: 13, letterSpacing: ".1em", textTransform: "uppercase", cursor: "pointer",
+                            }}>
+                            ✕ Close
+                        </button>
+                    </div>
+
+                    {/* Content — lista items + detalle */}
+                    <div className="flex-1 flex overflow-hidden min-h-0" onClick={e => e.stopPropagation()}>
+                        {/* Lista de items */}
+                        <div className="flex-1 overflow-y-auto p-4" style={{ scrollbarWidth: "none" }}>
+                            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 10 }}>
+                                {INV_ITEMS.map(item => (
+                                    <button key={item.id}
+                                        onClick={() => setSelItem(selItem?.id === item.id ? null : item)}
+                                        style={{
+                                            display: "flex", alignItems: "center", gap: 14,
+                                            padding: "12px 16px", borderRadius: 14, textAlign: "left",
+                                            background: selItem?.id === item.id ? `${item.color}10` : "rgba(255,255,255,.025)",
+                                            border: selItem?.id === item.id ? `1px solid ${item.color}55` : "1px solid rgba(255,255,255,.07)",
+                                            cursor: "pointer", transition: "all 0.15s",
+                                            boxShadow: selItem?.id === item.id ? `0 0 20px ${item.color}20` : "none",
+                                        }}>
+                                        {/* Icono */}
+                                        <div style={{
+                                            width: 48, height: 48, borderRadius: 12, flexShrink: 0,
+                                            display: "flex", alignItems: "center", justifyContent: "center",
+                                            fontSize: 26, background: `${item.color}14`,
+                                            border: `1px solid ${item.color}30`,
+                                            filter: `drop-shadow(0 0 8px ${item.color}55)`,
+                                        }}>
+                                            {item.icon}
+                                        </div>
+                                        {/* Info principal */}
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
+                                                <span style={{
+                                                    fontFamily: "'Rajdhani',sans-serif", fontWeight: 800,
+                                                    fontSize: 15, color: "#e2e8f0",
+                                                    textTransform: "uppercase", letterSpacing: ".06em",
+                                                }}>
+                                                    {item.name}
+                                                </span>
+                                                <span style={{
+                                                    fontFamily: "monospace", fontSize: 9,
+                                                    color: `${item.color}cc`, letterSpacing: ".1em",
+                                                    textTransform: "uppercase",
+                                                }}>
+                                                    {item.rarity}
+                                                </span>
+                                            </div>
+                                            {/* Descripción */}
+                                            <p style={{ fontSize: 12, color: "rgba(255,255,255,.45)", fontFamily: "monospace", lineHeight: 1.45 }}>
+                                                {item.desc}
+                                            </p>
+                                            {/* Dónde conseguir */}
+                                            <div style={{ marginTop: 6, display: "flex", alignItems: "center", gap: 6 }}>
+                                                <span style={{ fontSize: 9, color: "rgba(255,255,255,.25)", fontFamily: "monospace", letterSpacing: ".1em", textTransform: "uppercase" }}>
+                                                    DROP
+                                                </span>
+                                                <span style={{ fontSize: 11, color: item.color, fontFamily: "monospace" }}>
+                                                    {item.source}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        {/* Cantidad placeholder */}
+                                        <div style={{
+                                            flexShrink: 0, width: 36, height: 36, borderRadius: 8,
+                                            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                                            background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)",
+                                        }}>
+                                            <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 800, fontSize: 16, color: "#e2e8f0" }}>0</span>
+                                            <span style={{ fontSize: 7, color: "rgba(255,255,255,.3)", fontFamily: "monospace" }}>QTY</span>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

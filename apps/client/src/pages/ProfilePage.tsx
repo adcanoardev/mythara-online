@@ -1,5 +1,6 @@
 // apps/client/src/pages/ProfilePage.tsx
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
 import { useAuth } from "../hooks/useAuth";
 import { useTrainer } from "../context/TrainerContext";
@@ -91,8 +92,9 @@ function StatRow({ label, value, color = "rgba(255,255,255,0.7)" }: {
 
 // ─── ProfilePage ─────────────────────────────────────────────────────────────
 export default function ProfilePage() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { trainer: ctxTrainer, guildTag, reload: reloadTrainer } = useTrainer();
+  const navigate = useNavigate();
   const [trainer, setTrainer] = useState<any>(null);
   const [party, setParty] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
@@ -105,7 +107,7 @@ export default function ProfilePage() {
 
   // Frame — SIN estado local, siempre desde TrainerContext (fuente de verdad)
   const [showFramePicker, setShowFramePicker] = useState(false);
-  const selectedFrame = ctxTrainer?.avatarFrame ?? "frame_1";
+  const selectedFrame = ctxTrainer?.avatarFrame ?? null;
 
   useEffect(() => {
     Promise.all([
@@ -134,14 +136,14 @@ export default function ProfilePage() {
     : 0;
 
   const diamonds = trainer?.diamonds ?? 0;
-  const frameColor = FRAMES.find((f) => f.id === selectedFrame)?.color ?? "#94a3b8";
+  const frameColor = FRAMES.find((f) => f.id === selectedFrame)?.color ?? "rgba(255,255,255,0.15)";
   const frameUrl   = FRAMES.find((f) => f.id === selectedFrame)?.url ?? "";
 
-  async function handleFrameChange(frameId: string) {
+  async function handleFrameChange(frameId: string | null) {
     setShowFramePicker(false);
     try {
       await api.updateFrame(frameId);
-      reloadTrainer(); // TrainerContext se actualiza → selectedFrame se recalcula solo
+      reloadTrainer();
     } catch {}
   }
 
@@ -226,40 +228,74 @@ export default function ProfilePage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
           style={{ background: "rgba(0,0,0,0.8)" }}
           onClick={() => setShowFramePicker(false)}>
-          <div className="relative rounded-2xl w-full max-w-xs p-5 flex flex-col gap-4"
-            style={{ background: "#0a1020", border: "1px solid rgba(255,255,255,0.1)" }}
+          <div className="relative rounded-2xl w-full max-w-xs p-5 flex flex-col gap-3"
+            style={{ background: "#0a1020", border: "1px solid rgba(255,255,255,0.1)", maxHeight: "80dvh" }}
             onClick={(e) => e.stopPropagation()}>
-            <p className="font-black tracking-widest uppercase text-sm"
+
+            <p className="font-black tracking-widest uppercase text-sm flex-shrink-0"
               style={{ fontFamily: "'Rajdhani',sans-serif", color: "var(--text-primary)" }}>
               Avatar Frame
             </p>
-            <div className="flex flex-col gap-2">
-              {FRAMES.map((f) => (
-                <button key={f.id} onClick={() => handleFrameChange(f.id)}
+
+            {/* Lista scrollable */}
+            <div className="overflow-y-auto flex-1" style={{ scrollbarWidth: "none" }}>
+              {/* Móvil: grid 2 columnas */}
+              <div className="grid grid-cols-2 gap-2 md:hidden">
+                <button onClick={() => handleFrameChange(null)}
+                  className="flex flex-col items-center gap-2 p-3 rounded-xl transition-all"
+                  style={{
+                    background: selectedFrame === null ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.03)",
+                    border: `1px solid ${selectedFrame === null ? "rgba(255,255,255,0.4)" : "rgba(255,255,255,0.07)"}`,
+                  }}>
+                  <AvatarWithFrame avatar={trainer?.avatar ?? "avatar_male_1"} frameId={undefined} size={48} />
+                  <span className="text-xs font-bold" style={{ color: selectedFrame === null ? "#e2e8f0" : "#8892a4" }}>No Frame</span>
+                  {selectedFrame === null && <span className="text-[9px] font-mono" style={{ color: "#e2e8f0" }}>ACTIVE</span>}
+                </button>
+                {FRAMES.map((f) => (
+                  <button key={f.id} onClick={() => handleFrameChange(f.id)}
+                    className="flex flex-col items-center gap-2 p-3 rounded-xl transition-all"
+                    style={{
+                      background: selectedFrame === f.id ? `${f.color}12` : "rgba(255,255,255,0.03)",
+                      border: `1px solid ${selectedFrame === f.id ? f.color + "50" : "rgba(255,255,255,0.07)"}`,
+                    }}>
+                    <AvatarWithFrame avatar={trainer?.avatar ?? "avatar_male_1"} frameId={f.id} size={48} />
+                    <span className="text-xs font-bold" style={{ color: selectedFrame === f.id ? f.color : "#e2e8f0" }}>{f.name}</span>
+                    {selectedFrame === f.id && <span className="text-[9px] font-mono" style={{ color: f.color }}>ACTIVE</span>}
+                  </button>
+                ))}
+              </div>
+              {/* Desktop: lista vertical */}
+              <div className="hidden md:flex flex-col gap-2">
+                <button onClick={() => handleFrameChange(null)}
                   className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all"
                   style={{
-                    background: selectedFrame === f.id ? `${f.color}12` : "rgba(255,255,255,0.03)",
-                    border: `1px solid ${selectedFrame === f.id ? f.color + "50" : "rgba(255,255,255,0.07)"}`,
+                    background: selectedFrame === null ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.03)",
+                    border: `1px solid ${selectedFrame === null ? "rgba(255,255,255,0.4)" : "rgba(255,255,255,0.07)"}`,
                   }}>
-                  <AvatarWithFrame
-                    avatar={trainer?.avatar ?? "male_1"}
-                    frameId={f.id}
-                    size={44}
-                  />
-                  <span className="text-sm font-bold" style={{ color: selectedFrame === f.id ? f.color : "#e2e8f0" }}>
-                    {f.name}
-                  </span>
-                  {selectedFrame === f.id && (
-                    <span className="ml-auto text-[9px] font-mono" style={{ color: f.color }}>ACTIVE</span>
-                  )}
+                  <AvatarWithFrame avatar={trainer?.avatar ?? "avatar_male_1"} frameId={undefined} size={44} />
+                  <span className="text-sm font-bold" style={{ color: selectedFrame === null ? "#e2e8f0" : "#8892a4" }}>No Frame</span>
+                  {selectedFrame === null && <span className="ml-auto text-[9px] font-mono" style={{ color: "#e2e8f0" }}>ACTIVE</span>}
                 </button>
-              ))}
+                {FRAMES.map((f) => (
+                  <button key={f.id} onClick={() => handleFrameChange(f.id)}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all"
+                    style={{
+                      background: selectedFrame === f.id ? `${f.color}12` : "rgba(255,255,255,0.03)",
+                      border: `1px solid ${selectedFrame === f.id ? f.color + "50" : "rgba(255,255,255,0.07)"}`,
+                    }}>
+                    <AvatarWithFrame avatar={trainer?.avatar ?? "avatar_male_1"} frameId={f.id} size={44} />
+                    <span className="text-sm font-bold" style={{ color: selectedFrame === f.id ? f.color : "#e2e8f0" }}>{f.name}</span>
+                    {selectedFrame === f.id && <span className="ml-auto text-[9px] font-mono" style={{ color: f.color }}>ACTIVE</span>}
+                  </button>
+                ))}
+              </div>
             </div>
-            <p className="text-[9px] font-mono text-center" style={{ color: "var(--text-muted)" }}>
+
+            <p className="text-[9px] font-mono text-center flex-shrink-0" style={{ color: "var(--text-muted)" }}>
               More frames coming soon
             </p>
             <button onClick={() => setShowFramePicker(false)}
-              className="text-[10px] font-mono text-center" style={{ color: "var(--text-muted)" }}>
+              className="text-[10px] font-mono text-center flex-shrink-0" style={{ color: "var(--text-muted)" }}>
               Close ✕
             </button>
           </div>
@@ -278,7 +314,7 @@ export default function ProfilePage() {
           {/* AVATAR — más pequeño en móvil */}
           <div className="flex-shrink-0">
             <AvatarWithFrame
-              avatar={trainer?.avatar ?? "male_1"}
+              avatar={trainer?.avatar ?? "avatar_male_1"}
               frameId={selectedFrame}
               size={90}
               padding={15}
@@ -331,6 +367,48 @@ export default function ProfilePage() {
               </div>
             </div>
           </div>
+
+          {/* Botones — pegados a la derecha del banner */}
+          <div className="flex-shrink-0 flex flex-col gap-2 ml-2">
+            <button
+              onClick={() => navigate("/account")}
+              style={{
+                padding: "7px 14px",
+                borderRadius: 8,
+                border: "1px solid rgba(255,255,255,0.12)",
+                background: "rgba(255,255,255,0.06)",
+                color: "#e2e8f0",
+                fontFamily: "'Rajdhani', sans-serif",
+                fontWeight: 700,
+                fontSize: 11,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                cursor: "pointer",
+                whiteSpace: "nowrap",
+              }}
+            >
+              ⚙ Settings
+            </button>
+            <button
+              onClick={() => logout()}
+              style={{
+                padding: "7px 14px",
+                borderRadius: 8,
+                border: "1px solid rgba(248,113,113,0.3)",
+                background: "rgba(248,113,113,0.08)",
+                color: "#f87171",
+                fontFamily: "'Rajdhani', sans-serif",
+                fontWeight: 700,
+                fontSize: 11,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                cursor: "pointer",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Logout
+            </button>
+          </div>
         </div>
       </div>
 
@@ -344,7 +422,30 @@ export default function ProfilePage() {
             style={{ fontFamily: "'Rajdhani',sans-serif", color: "var(--text-secondary)" }}>
             Emblems
           </p>
-          <div className="flex flex-col gap-1.5 flex-1 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
+
+          {/* Móvil: grid 4x2 con iconos compactos */}
+          <div className="grid grid-cols-4 gap-2 md:hidden">
+            {EMBLEMS.map((emblem, i) => {
+              const earned = trainer?.medals?.includes(i);
+              return (
+                <div key={i} className="flex flex-col items-center gap-1 rounded-xl p-2 transition-all"
+                  style={{
+                    background: earned ? "rgba(255,214,10,0.05)" : "rgba(255,255,255,0.02)",
+                    border: `1px solid ${earned ? "rgba(255,214,10,0.2)" : "rgba(255,255,255,0.05)"}`,
+                    opacity: earned ? 1 : 0.4,
+                  }}>
+                  <span className={`text-xl ${earned ? "" : "grayscale"}`}>{emblem.icon}</span>
+                  <p className="text-[9px] font-bold text-center leading-tight"
+                    style={{ color: earned ? "#ffd60a" : "rgba(255,255,255,0.4)" }}>
+                    {emblem.sanctum}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Desktop: lista vertical */}
+          <div className="hidden md:flex flex-col gap-1.5 flex-1 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
             {EMBLEMS.map((emblem, i) => {
               const earned = trainer?.medals?.includes(i);
               return (
@@ -404,8 +505,8 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Collection */}
-          <div className="rounded-2xl p-4 flex-1 overflow-hidden flex flex-col"
+          {/* Collection — solo desktop */}
+          <div className="hidden md:flex rounded-2xl p-4 flex-1 overflow-hidden flex-col"
             style={{ background: "#0a1020", border: "1px solid rgba(255,255,255,0.06)" }}>
             <p className="font-black tracking-widest uppercase text-xs mb-3 flex-shrink-0"
               style={{ fontFamily: "'Rajdhani',sans-serif", color: "var(--text-secondary)" }}>
@@ -432,74 +533,6 @@ export default function ProfilePage() {
               <StatRow label="Total XP earned" value={(stats?.totalXp ?? 0).toLocaleString()} color="#4cc9f0" />
             </div>
           </div>
-        </div>
-
-        {/* Col 3 — Team */}
-        <div className="w-full md:w-56 flex-shrink-0 rounded-2xl p-4 flex flex-col mt-3 md:mt-0 overflow-hidden"
-          style={{ background: "#0a1020", border: "1px solid rgba(255,255,255,0.06)" }}>
-          <p className="font-black tracking-widest uppercase text-xs mb-3 flex-shrink-0"
-            style={{ fontFamily: "'Rajdhani',sans-serif", color: "var(--text-secondary)" }}>
-            Team
-          </p>
-          {party.length === 0 ? (
-            <div className="flex-1 flex items-center justify-center">
-              <p className="text-xs font-mono text-center" style={{ color: "var(--text-muted)" }}>
-                No Myths in team
-              </p>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-2 flex-1 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
-              {party.map((p: any) => {
-                const power = calcPower(p);
-                const rarityColor = RARITY_COLORS[p.rarity] ?? "#64748b";
-                return (
-                  <div key={p.id} className="rounded-xl p-2.5"
-                    style={{ background: "rgba(255,255,255,0.03)", border: `1px solid rgba(255,255,255,0.06)` }}>
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <div className="text-2xl flex-shrink-0">
-                        {typeof p.art?.front === "string" && p.art.front.startsWith("http")
-                          ? <img src={p.art.front} className="w-8 h-8 object-contain" alt="" />
-                          : p.art?.front ?? "❓"}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-bold truncate" style={{ color: "var(--text-primary)" }}>
-                          {p.name ?? p.speciesId}
-                        </p>
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-[9px] font-mono" style={{ color: "var(--text-secondary)" }}>Lv. {p.level}</span>
-                          <span className="text-[8px] font-mono px-1 py-0 rounded" style={{ color: rarityColor, background: `${rarityColor}15` }}>
-                            {p.rarity?.slice(0,3)}
-                          </span>
-                          {(p.affinities ?? []).map((aff: string) => (
-                            <span key={aff} className="text-[8px] font-mono px-1 rounded"
-                              style={{ color: AFFINITY_COLORS[aff] ?? "#4cc9f0", background: `${AFFINITY_COLORS[aff] ?? "#4cc9f0"}15` }}>
-                              {aff.slice(0,2)}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                      <span className="text-[9px] font-mono font-bold flex-shrink-0" style={{ color: "var(--accent-gold)" }}>
-                        {power}⚡
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-4 gap-x-1 gap-y-0.5">
-                      {[
-                        ["HP",  p.maxHp,    "#4cc9f0"],
-                        ["ATK", p.attack,   "#f87171"],
-                        ["DEF", p.defense,  "#06d6a0"],
-                        ["SPD", p.speed,    "#ffd60a"],
-                      ].map(([label, val, color]) => (
-                        <div key={label as string} className="text-center">
-                          <p className="text-[7px] font-mono" style={{ color: "var(--text-muted)" }}>{label}</p>
-                          <p className="text-[9px] font-bold" style={{ color: color as string }}>{val}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
         </div>
       </div>
     </div>

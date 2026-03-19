@@ -59,7 +59,7 @@ model TrainerProfile {
   diamonds           Int      @default(0)
 
   // Cosmetico - validado siempre en servidor
-  avatarFrame        String   @default("none")
+  avatarFrame        String?
   unlockedFrames     String[] @default([])
 
   // Progresión Sanctums

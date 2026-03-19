@@ -44,7 +44,10 @@ import RuinsPage        from "./pages/RuinsPage";
 import ArenaPage        from "./pages/ArenaPage";
 import GuildPage        from "./pages/GuildPage";
 import MarketPage       from "./pages/MarketPage";
+import AccountSettingsPage from "./pages/AccountSettingsPage";
 import ChatPanel        from "./components/ChatPanel";
+import LoadingScreen    from "./components/LoadingScreen";
+import { useTrainer }   from "./context/TrainerContext";
 
 // Placeholder for pages not yet implemented
 function ComingSoon({ name }: { name: string }) {
@@ -61,17 +64,17 @@ function ComingSoon({ name }: { name: string }) {
 function ChatButtonFloating({ user, onOpen }: { user: any; onOpen: () => void }) {
   const location = useLocation();
   // No mostrar en páginas que ya tienen el botón integrado en su topbar
-  const pagesWithOwnChat = ["/", "/tavern", "/outpost", "/guild", "/arena", "/ruins", "/market", "/battle"];
+  const pagesWithOwnChat = ["/", "/tavern", "/outpost", "/guild", "/arena", "/ruins", "/market", "/battle", "/login", "/onboarding"];
   const hasOwnChat = pagesWithOwnChat.some(r => location.pathname === r || (r !== "/" && location.pathname.startsWith(r)));
   if (!user || hasOwnChat) return null;
   return (
     <button
       onClick={onOpen}
       style={{
-        position: "fixed", top: 12, right: 12, zIndex: 500,
-        width: 38, height: 38, borderRadius: "50%",
+        position: "fixed", top: 4, right: 12, zIndex: 500,
+        width: 40, height: 38, borderRadius: "30%",
         background: "rgba(7,11,20,0.92)",
-        border: "1px solid rgba(123,47,255,0.35)",
+        border: "2px solid rgba(123,47,255,0.35)",
         color: "rgba(255,255,255,0.65)", fontSize: 16,
         cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
         boxShadow: "0 0 12px rgba(123,47,255,0.2)",
@@ -85,16 +88,20 @@ function ChatButtonFloating({ user, onOpen }: { user: any; onOpen: () => void })
 
 export default function App() {
   const { user, loading } = useAuth();
+  const { trainerReady } = useTrainer();
   const [chatOpen, setChatOpen] = useState(false);
+  const [minTimePassed, setMinTimePassed] = useState(false);
 
-  if (loading)
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-bg">
-        <div className="font-display text-2xl text-yellow tracking-widest animate-pulse">
-          LOADING...
-        </div>
-      </div>
-    );
+  useEffect(() => {
+    const t = setTimeout(() => setMinTimePassed(true), 800);
+    return () => clearTimeout(t);
+  }, []);
+
+  // Mostrar pantalla de carga mientras:
+  // - auth carga, O
+  // - el usuario existe pero el trainer aún no tiene datos, O
+  // - no han pasado 800ms mínimos
+  if (loading || (user && !trainerReady) || !minTimePassed) return <LoadingScreen />;
 
   // Helper: require auth + wrap with BattleGuard
   const guard = (el: React.ReactNode) =>
@@ -134,6 +141,7 @@ export default function App() {
       <Route path="/inn"         element={<Navigate to="/outpost" />} />
       <Route path="/sanctuaries" element={guard(<SanctuariesPage />)} />
       <Route path="/profile"     element={guard(<ProfilePage />)} />
+      <Route path="/account"     element={guard(<AccountSettingsPage />)} />
       <Route path="/team"        element={guard(<TeamPage />)} />
       <Route path="/inventory"   element={guard(<InventoryPage />)} />
       <Route path="/myths"       element={guard(<MythsPage />)} />

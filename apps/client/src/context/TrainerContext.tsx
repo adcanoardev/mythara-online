@@ -8,6 +8,7 @@ interface TrainerContextValue {
     fragments: number;
     guildTag: string | null;
     guildRole: string | null;
+    trainerReady: boolean;   // true tras el primer load exitoso
     reload: () => void;
     reset: () => void;
 }
@@ -18,6 +19,7 @@ const TrainerContext = createContext<TrainerContextValue>({
     fragments: 0,
     guildTag: null,
     guildRole: null,
+    trainerReady: false,
     reload: () => {},
     reset: () => {},
 });
@@ -28,9 +30,13 @@ export function TrainerProvider({ children }: { children: React.ReactNode }) {
     const [fragments, setFragments] = useState<number>(0);
     const [guildTag, setGuildTag] = useState<string | null>(null);
     const [guildRole, setGuildRole] = useState<string | null>(null);
+    const [trainerReady, setTrainerReady] = useState(false);
 
     const load = useCallback(async () => {
-        if (!getToken()) return; // ← sin token, no hay fetch
+        if (!getToken()) {
+            setTrainerReady(true); // sin token → no hay datos que esperar
+            return;
+        }
         try {
             const [t, tk, inv] = await Promise.all([api.trainer(), api.tokens(), api.inventory()]);
             setTrainer(t);
@@ -40,6 +46,9 @@ export function TrainerProvider({ children }: { children: React.ReactNode }) {
             setGuildTag((t as any).guildTag ?? null);
             setGuildRole((t as any).guildRole ?? null);
         } catch {}
+        finally {
+            setTrainerReady(true); // siempre marca como listo, incluso si falla
+        }
     }, []);
 
     const reset = useCallback(() => {
@@ -48,20 +57,42 @@ export function TrainerProvider({ children }: { children: React.ReactNode }) {
         setFragments(0);
         setGuildTag(null);
         setGuildRole(null);
+        setTrainerReady(false);
     }, []);
 
     useEffect(() => {
         load();
         const interval = setInterval(load, 30_000);
         window.addEventListener("sidebar:reload", load);
+
+        // Cuando cambia el usuario (login/register/logout) → reset + reload
+        const onAuthChanged = (e: Event) => {
+            const { type } = (e as CustomEvent).detail;
+            if (type === "logout") {
+                // Logout: limpiar todo y marcar ready (no hay datos que esperar)
+                setTrainer(null);
+                setTokens(null);
+                setFragments(0);
+                setGuildTag(null);
+                setGuildRole(null);
+                setTrainerReady(true);
+            } else {
+                // Login/register: resetear ready y recargar con el nuevo token
+                setTrainerReady(false);
+                load();
+            }
+        };
+        window.addEventListener("auth:changed", onAuthChanged);
+
         return () => {
             clearInterval(interval);
             window.removeEventListener("sidebar:reload", load);
+            window.removeEventListener("auth:changed", onAuthChanged);
         };
     }, [load]);
 
     return (
-        <TrainerContext.Provider value={{ trainer, tokens, fragments, guildTag, guildRole, reload: load, reset }}>
+        <TrainerContext.Provider value={{ trainer, tokens, fragments, guildTag, guildRole, trainerReady, reload: load, reset }}>
             {children}
         </TrainerContext.Provider>
     );

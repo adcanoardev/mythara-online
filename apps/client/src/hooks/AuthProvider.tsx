@@ -23,6 +23,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         saveToken(token);
         const me = await api.me();
         setUser(me);
+        window.dispatchEvent(new CustomEvent("auth:changed", { detail: { type: "login" } }));
     }
 
     async function register(username: string, email: string, password: string) {
@@ -30,11 +31,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         saveToken(token);
         const me = await api.me();
         setUser(me);
+        window.dispatchEvent(new CustomEvent("auth:changed", { detail: { type: "register" } }));
     }
 
     function logout() {
         clearToken();
         setUser(null);
+        window.dispatchEvent(new CustomEvent("auth:changed", { detail: { type: "logout" } }));
     }
 
     return <AuthContext.Provider value={{ user, loading, login, register, logout }}>{children}</AuthContext.Provider>;

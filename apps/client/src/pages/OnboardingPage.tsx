@@ -98,34 +98,24 @@ export default function OnboardingPage() {
 
       {/* ── LEFT SIDEBAR — nav & branding ── */}
       <div
-        className="relative flex-shrink-0 flex flex-col justify-between py-8 px-6"
+        className="relative flex-shrink-0 flex flex-col"
         style={{
           width: 220,
           borderRight: "1px solid rgba(255,255,255,0.06)",
           background: "rgba(4,8,15,0.6)",
         }}
       >
-        {/* Logo */}
-        <div>
-          <div className="flex items-center gap-2 mb-10">
-            <img
-              src="https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@20c2494c976794775042d559db3df66687914944/logo/mythara_logo.webp"
-              alt="Mythara"
-              style={{ width: 36, height: 36, objectFit: "contain" }}
-            />
-            <span style={{
-              fontFamily: "'Rajdhani', sans-serif",
-              fontWeight: 700,
-              fontSize: 18,
-              letterSpacing: "0.18em",
-              background: "linear-gradient(135deg, #a78bfa, #67e8f9)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-            }}>MYTHARA</span>
-          </div>
+        {/* Logo — arriba, padding propio */}
+        <div className="flex items-center justify-center flex-shrink-0" style={{ padding: "20px 16px 16px" }}>
+          <img
+            src="https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@20c2494c976794775042d559db3df66687914944/logo/mythara_logo.webp"
+            alt="Mythara"
+            style={{ width: "100%", maxWidth: 150, objectFit: "contain" }}
+          />
+        </div>
 
-          {/* Step nav */}
-          <div className="flex flex-col gap-2">
+        {/* Steps — justo debajo del logo */}
+        <div className="flex flex-col gap-2 px-1">
             {STEPS.map((s, i) => {
               const meta    = STEP_META[s];
               const done    = i < stepIdx;
@@ -177,14 +167,14 @@ export default function OnboardingPage() {
 
                   <div>
                     <div style={{
-                      fontSize: 13,
+                      fontSize: 14,
                       fontWeight: 700,
                       fontFamily: "'Rajdhani', sans-serif",
                       letterSpacing: "0.06em",
                       color: current ? "#e2e8f0" : done ? "#a78bfa" : "#5a6a80",
                     }}>{meta.label}</div>
                     <div style={{
-                      fontSize: 11,
+                      fontSize: 12,
                       color: current ? "#8892a4" : "#3a4a5a",
                     }}>{meta.hint}</div>
                   </div>
@@ -192,12 +182,6 @@ export default function OnboardingPage() {
               );
             })}
           </div>
-        </div>
-
-        {/* Bottom copy */}
-        <p style={{ fontSize: 11, color: "#3a4a5a", lineHeight: 1.6 }}>
-          Your choices shape your journey.<br />Choose wisely, Binder.
-        </p>
       </div>
 
       {/* ── MAIN CONTENT ── */}
@@ -212,14 +196,14 @@ export default function OnboardingPage() {
 
         {/* Header */}
         <div
-          className="flex-shrink-0 flex items-center justify-between px-8"
+          className="flex-shrink-0 flex items-center justify-between px-6"
           style={{
             height: 52,
             borderBottom: "1px solid rgba(255,255,255,0.05)",
             background: "rgba(4,8,15,0.5)",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span style={{ fontSize: 18 }}>{STEP_META[step].icon}</span>
             <span style={{
               fontFamily: "'Rajdhani', sans-serif",
@@ -231,18 +215,16 @@ export default function OnboardingPage() {
             }}>{STEP_META[step].label}</span>
           </div>
 
-          {/* Progress dots */}
+          {/* Progress dots — derecha */}
           <div style={{ display: "flex", gap: 6 }}>
             {STEPS.map((_, i) => (
               <div key={i} style={{
                 width: i <= stepIdx ? 20 : 6,
                 height: 6,
                 borderRadius: 3,
-                background: i < stepIdx
+                background: i <= stepIdx
                   ? "linear-gradient(90deg,#7b2fff,#4cc9f0)"
-                  : i === stepIdx
-                    ? "linear-gradient(90deg,#7b2fff,#4cc9f0)"
-                    : "rgba(255,255,255,0.1)",
+                  : "rgba(255,255,255,0.1)",
                 transition: "all 0.3s",
               }} />
             ))}
@@ -250,11 +232,11 @@ export default function OnboardingPage() {
         </div>
 
         {/* Step content area */}
-        <div className="flex-1 overflow-hidden flex flex-col min-h-0 px-8 py-6">
+        <div className="flex-1 overflow-hidden flex flex-col min-h-0 px-8 py-4">
 
           {/* ── STEP 1: Gender ── */}
           {step === "gender" && (
-            <div className="flex-1 flex flex-col justify-center max-w-lg mx-auto w-full">
+            <div className="flex-1 flex flex-col justify-center w-full" style={{ maxWidth: 480, margin: "0 auto" }}>
               <h2 style={{
                 fontFamily: "'Rajdhani', sans-serif",
                 fontSize: 22,
@@ -263,42 +245,66 @@ export default function OnboardingPage() {
                 color: "#e2e8f0",
                 marginBottom: 6,
               }}>Who will you be?</h2>
-              <p style={{ fontSize: 13, color: "#8892a4", marginBottom: 28 }}>
+              <p style={{ fontSize: 13, color: "#8892a4", marginBottom: 14 }}>
                 Choose the identity of your Binder.
               </p>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 {(["male", "female"] as const).map((g) => (
                   <button
                     key={g}
                     onClick={() => setGender(g)}
                     style={{
-                      padding: "32px 24px",
-                      borderRadius: 16,
+                      padding: 0,
+                      borderRadius: 14,
                       border: gender === g
-                        ? "2px solid #4cc9f0"
+                        ? "2px solid #fbbf24"
                         : "2px solid rgba(255,255,255,0.07)",
                       background: gender === g
-                        ? "rgba(76,201,240,0.08)"
+                        ? "rgba(251,191,36,0.08)"
                         : "rgba(255,255,255,0.02)",
                       boxShadow: gender === g
-                        ? "0 0 24px rgba(76,201,240,0.15)"
+                        ? "0 0 24px rgba(251,191,36,0.2)"
                         : "none",
                       cursor: "pointer",
                       transition: "all 0.2s",
                       display: "flex",
                       flexDirection: "column",
                       alignItems: "center",
-                      gap: 12,
+                      overflow: "hidden",
+                      gap: 0,
                     }}
                   >
-                    <span style={{ fontSize: 48 }}>{g === "male" ? "👦" : "👧"}</span>
+                    {/* Imagen — se adapta al espacio disponible */}
+                    <div style={{
+                      width: "100%",
+                      /* móvil landscape ~380-430px alto:
+                         - header 54px, accent 2px, py-6 (top 24px), título ~28px, subtítulo ~20px, gap 14px, label 34px, footer ~56px, gap 12px
+                         = ~244px fijos → sobran ~136-186px para imagen
+                         En desktop máximo 200px */
+                      height: "clamp(80px, calc(100dvh - 280px), 200px)",
+                      overflow: "hidden",
+                      borderRadius: "12px 12px 0 0",
+                      background: "linear-gradient(160deg,#1a1a2e,#0d1025)",
+                      position: "relative",
+                    }}>
+                      <img
+                        src={`${AVATAR_CDN}/avatar_${g}_1.webp`}
+                        alt={g}
+                        style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top center", display: "block" }}
+                      />
+                      <div style={{
+                        position: "absolute", bottom: 0, left: 0, right: 0, height: "35%",
+                        background: "linear-gradient(to top, rgba(7,11,20,0.8), transparent)",
+                      }} />
+                    </div>
                     <span style={{
                       fontFamily: "'Rajdhani', sans-serif",
                       fontWeight: 700,
-                      fontSize: 15,
+                      fontSize: 13,
                       letterSpacing: "0.14em",
                       textTransform: "uppercase",
-                      color: gender === g ? "#67e8f9" : "#8892a4",
+                      color: gender === g ? "#fbbf24" : "#8892a4",
+                      padding: "8px 0 10px",
                     }}>{g === "male" ? "Male" : "Female"}</span>
                   </button>
                 ))}
@@ -311,14 +317,14 @@ export default function OnboardingPage() {
             <div className="flex-1 flex flex-col min-h-0">
               <h2 style={{
                 fontFamily: "'Rajdhani', sans-serif",
-                fontSize: 22,
+                fontSize: 26,
                 fontWeight: 700,
                 letterSpacing: "0.08em",
                 color: "#e2e8f0",
-                marginBottom: 6,
+                marginBottom: 8,
                 flexShrink: 0,
               }}>Choose your appearance</h2>
-              <p style={{ fontSize: 13, color: "#8892a4", marginBottom: 20, flexShrink: 0 }}>
+              <p style={{ fontSize: 15, color: "#8892a4", marginBottom: 20, flexShrink: 0 }}>
                 This is how the world will see you.
               </p>
               <div
@@ -369,7 +375,7 @@ export default function OnboardingPage() {
                       fontWeight: 700,
                       fontSize: 12,
                       letterSpacing: "0.08em",
-                      color: avatar === av.id ? "#fbbf24" : "#8892a4",
+                      color: avatar === av.id ? "#67e8f9" : "#8892a4",
                       padding: "6px 0 8px",
                     }}>{av.name}</span>
                   </button>
@@ -383,14 +389,14 @@ export default function OnboardingPage() {
             <div className="flex-1 flex flex-col min-h-0">
               <h2 style={{
                 fontFamily: "'Rajdhani', sans-serif",
-                fontSize: 22,
+                fontSize: 26,
                 fontWeight: 700,
                 letterSpacing: "0.08em",
                 color: "#e2e8f0",
-                marginBottom: 6,
+                marginBottom: 4,
                 flexShrink: 0,
               }}>Choose your first Myth</h2>
-              <p style={{ fontSize: 13, color: "#8892a4", marginBottom: 20, flexShrink: 0 }}>
+              <p style={{ fontSize: 15, color: "#8892a4", marginBottom: 12, flexShrink: 0 }}>
                 Your starter will be your companion from the very beginning.
               </p>
               <div
@@ -399,23 +405,28 @@ export default function OnboardingPage() {
                   overflowY: "auto",
                   scrollbarWidth: "none",
                   display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
-                  gap: 12,
+                  gridTemplateColumns: "repeat(auto-fill, minmax(110px, 1fr))",
+                  gap: 10,
                   alignContent: "start",
                 }}
               >
                 {(data?.starters ?? []).map((s: any) => {
-                  const color = s.affinities?.[0]
-                    ? (AFFINITY_COLORS[s.affinities[0]] ?? "#e2e8f0")
-                    : "#e2e8f0";
+                  const aff = s.affinities?.[0];
+                  const color = aff ? (AFFINITY_COLORS[aff] ?? "#e2e8f0") : "#e2e8f0";
                   const sel = starter === s.id;
+                  const mythId = String(s.id).padStart(3, "0");
+                  const mythSlug = s.name?.toLowerCase().replace(/\s+/g, "_") ?? "unknown";
+                  const portraitUrl = `https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@7613486785dc2b2089f6d345e1281e9316c1d982/myths/${mythId}/${mythSlug}_portrait.png`;
+                  const affinityIconUrl = aff
+                    ? `https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@7613486785dc2b2089f6d345e1281e9316c1d982/affinity/${aff.toLowerCase()}_affinity_icon.webp`
+                    : null;
                   return (
                     <button
                       key={s.id}
                       onClick={() => setStarter(s.id)}
                       style={{
-                        padding: "20px 12px 16px",
-                        borderRadius: 16,
+                        padding: 0,
+                        borderRadius: 14,
                         border: sel
                           ? `2px solid ${color}`
                           : "2px solid rgba(255,255,255,0.07)",
@@ -430,39 +441,88 @@ export default function OnboardingPage() {
                         display: "flex",
                         flexDirection: "column",
                         alignItems: "center",
-                        gap: 8,
+                        gap: 0,
                         textAlign: "center",
+                        overflow: "hidden",
                       }}
                     >
-                      <span style={{
-                        fontSize: 44,
-                        filter: sel ? `drop-shadow(0 0 10px ${color})` : "none",
-                        transition: "filter 0.2s",
+                      {/* Portrait — altura fija para que el badge siempre sea visible */}
+                      <div style={{
+                        width: "100%",
+                        height: "clamp(70px, 12vw, 110px)",
+                        overflow: "hidden",
+                        borderRadius: "12px 12px 0 0",
+                        background: "linear-gradient(160deg,#1a1a2e,#0d1025)",
+                        position: "relative",
+                        flexShrink: 0,
                       }}>
-                        {s.art?.portrait ?? "❓"}
-                      </span>
-                      <span style={{
-                        fontFamily: "'Rajdhani', sans-serif",
-                        fontWeight: 700,
-                        fontSize: 13,
-                        letterSpacing: "0.06em",
-                        color: sel ? "#e2e8f0" : "#8892a4",
-                      }}>{s.name}</span>
-                      {s.affinities?.[0] && (
+                        <img
+                          src={portraitUrl}
+                          alt={s.name}
+                          style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top center", display: "block" }}
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = "none";
+                          }}
+                        />
+                        {sel && (
+                          <div style={{
+                            position: "absolute",
+                            inset: 0,
+                            background: `radial-gradient(circle at 50% 80%, ${color}22 0%, transparent 70%)`,
+                          }} />
+                        )}
+                      </div>
+
+                      {/* Name + affinity badge — siempre visible */}
+                      <div style={{
+                        padding: "6px 6px 8px",
+                        width: "100%",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: 4,
+                        flexShrink: 0,
+                      }}>
                         <span style={{
-                          fontSize: 11,
+                          fontFamily: "'Rajdhani', sans-serif",
                           fontWeight: 700,
-                          letterSpacing: "0.1em",
-                          textTransform: "uppercase",
-                          color,
-                          background: `${color}18`,
-                          padding: "2px 8px",
-                          borderRadius: 4,
-                          border: `1px solid ${color}30`,
-                        }}>
-                          {s.affinities[0]}
-                        </span>
-                      )}
+                          fontSize: 12,
+                          letterSpacing: "0.06em",
+                          color: sel ? "#e2e8f0" : "#8892a4",
+                          lineHeight: 1.2,
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          maxWidth: "100%",
+                        }}>{s.name}</span>
+
+                        {aff && (
+                          <span style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 3,
+                            fontSize: 10,
+                            fontWeight: 700,
+                            letterSpacing: "0.08em",
+                            textTransform: "uppercase",
+                            color,
+                            background: `${color}18`,
+                            padding: "2px 6px 2px 3px",
+                            borderRadius: 4,
+                            border: `1px solid ${color}30`,
+                            whiteSpace: "nowrap",
+                          }}>
+                            {affinityIconUrl && (
+                              <img
+                                src={affinityIconUrl}
+                                alt={aff}
+                                style={{ width: 12, height: 12, objectFit: "contain", flexShrink: 0 }}
+                              />
+                            )}
+                            {aff}
+                          </span>
+                        )}
+                      </div>
                     </button>
                   );
                 })}
