@@ -600,7 +600,7 @@ export default function TavernPage() {
     const [expandRarFilter, setExpandRarFilter] = useState("ALL");
     const [sortBy, setSortBy] = useState<"level_rarity" | "level" | "rarity" | "power" | "name">("level_rarity");
 
-    // ─── Orden compartido — se aplica en panel izquierdo Y en expand ──
+    // ─── Orden compartido — panel izquierdo + expand ───────────
     const RARITY_RANK: Record<string, number> = { COMMON:0, RARE:1, EPIC:2, ELITE:3, LEGENDARY:4, MYTHIC:5 };
     function applySort(list: Myth[]): Myth[] {
         return [...list].sort((a, b) => {
@@ -849,29 +849,25 @@ export default function TavernPage() {
                             </button>
                         ))}
                     </div>
-                    {/* Sort selector — compacto, shared con expand */}
+                    {/* Sort bar — compacto, compartido con expand */}
                     <div className="flex-shrink-0 flex items-center gap-1.5 px-2 py-1.5"
-                        style={{ borderBottom: "1px solid rgba(255,255,255,.05)", background: "rgba(0,0,0,0.15)" }}>
+                        style={{ borderBottom: "1px solid rgba(255,255,255,.05)", background: "rgba(0,0,0,.12)" }}>
                         <span style={{ fontSize: 9, color: "rgba(255,255,255,.25)", fontFamily: "monospace", letterSpacing: ".1em", flexShrink: 0 }}>SORT</span>
                         {([
-                            { id: "level_rarity", label: "Lv+Rar" },
+                            { id: "level_rarity", label: "Lv·Rar" },
                             { id: "level",        label: "Level"  },
                             { id: "rarity",       label: "Rarity" },
                             { id: "power",        label: "PWR"    },
                             { id: "name",         label: "Name"   },
                         ] as const).map(opt => (
-                            <button key={opt.id} onClick={() => setSortBy(opt.id)}
-                                style={{
-                                    padding: "1px 5px", borderRadius: 4,
-                                    fontSize: 9, fontFamily: "monospace", cursor: "pointer",
-                                    background: sortBy === opt.id ? "rgba(167,139,250,.2)" : "transparent",
-                                    border: sortBy === opt.id ? "1px solid rgba(167,139,250,.4)" : "1px solid transparent",
-                                    color: sortBy === opt.id ? "#a78bfa" : "rgba(255,255,255,.28)",
-                                    whiteSpace: "nowrap",
-                                    transition: "all 0.12s",
-                                }}>
-                                {opt.label}
-                            </button>
+                            <button key={opt.id} onClick={() => setSortBy(opt.id)} style={{
+                                padding: "1px 5px", borderRadius: 4, fontSize: 9,
+                                fontFamily: "monospace", cursor: "pointer", whiteSpace: "nowrap",
+                                background: sortBy === opt.id ? "rgba(167,139,250,.2)" : "transparent",
+                                border: sortBy === opt.id ? "1px solid rgba(167,139,250,.4)" : "1px solid transparent",
+                                color: sortBy === opt.id ? "#a78bfa" : "rgba(255,255,255,.28)",
+                                transition: "all 0.12s",
+                            }}>{opt.label}</button>
                         ))}
                     </div>
                     {/* Scroll wrapper — flex-1 aquí, no en el grid */}
@@ -964,45 +960,84 @@ export default function TavernPage() {
                             <div className="flex flex-col h-full">
                                 {/* ── Distortion sub-tabs — only show if myth has distortions ── */}
                                 {allForms.length > 1 && (
-                                    <div className="flex gap-1.5 px-3 pt-2.5 pb-0 flex-shrink-0">
-                                        {allForms.map((f, i) => (
-                                            <button key={i} onClick={() => {
-                                                    if (i === clampedForm) return;
-                                                    // Capturar centro exacto del contenedor del art
-                                                    if (artContainerRef.current) {
-                                                        const rect = artContainerRef.current.getBoundingClientRect();
-                                                        setFlashPos({
-                                                            x: rect.left + rect.width / 2,
-                                                            y: rect.top + rect.height / 2,
-                                                        });
-                                                    }
-                                                    setDistortionFlash(true);
-                                                    setTimeout(() => {
-                                                        setSelectedForm(i);
-                                                        setFormKey(k => k + 1);
-                                                        setDistortionFlash(false);
-                                                        setFlashPos(null);
-                                                    }, 700);
-                                                }}
-                                                className="flex-1 rounded-lg transition-all active:scale-95"
-                                                style={{
-                                                    padding: "4px 2px",
-                                                    background: clampedForm === i ? `${f.color}20` : "rgba(255,255,255,.03)",
-                                                    border: clampedForm === i ? `1px solid ${f.color}55` : "1px solid rgba(255,255,255,.07)",
-                                                    boxShadow: clampedForm === i ? `0 0 10px ${f.color}22` : "none",
-                                                    cursor: "pointer", outline: "none",
-                                                }}>
-                                                <div className="font-black" style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: "var(--font-xs)",
-                                                    letterSpacing: ".08em", textTransform: "uppercase",
-                                                    color: clampedForm === i ? f.color : "rgba(255,255,255,.28)" }}>
-                                                    {f.label}
-                                                </div>
-                                                <div className="font-mono" style={{ fontSize: 6,
-                                                    color: clampedForm === i ? `${f.color}88` : "rgba(255,255,255,.18)", marginTop: 1 }}>
-                                                    {f.sublabel}
-                                                </div>
-                                            </button>
-                                        ))}
+                                    <div className="flex-shrink-0 px-3 pt-2.5 pb-1">
+                                        {/* Label DISTORTION */}
+                                        <div style={{
+                                            display: "flex", alignItems: "center", gap: 5, marginBottom: 5,
+                                        }}>
+                                            <div style={{
+                                                width: 2, height: 10, borderRadius: 1,
+                                                background: "linear-gradient(to bottom, #a78bfa, #7b2fff)",
+                                                flexShrink: 0,
+                                            }} />
+                                            <span style={{
+                                                fontSize: 9, fontFamily: "monospace",
+                                                letterSpacing: ".18em", textTransform: "uppercase",
+                                                color: "#a78bfa", fontWeight: 700,
+                                            }}>Distortion Forms</span>
+                                            <div style={{ flex: 1, height: 1, background: "linear-gradient(to right, rgba(167,139,250,.25), transparent)" }} />
+                                        </div>
+                                        {/* Botones */}
+                                        <div className="flex gap-1.5">
+                                            {allForms.map((f, i) => (
+                                                <button key={i} onClick={() => {
+                                                        if (i === clampedForm) return;
+                                                        if (artContainerRef.current) {
+                                                            const rect = artContainerRef.current.getBoundingClientRect();
+                                                            setFlashPos({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
+                                                        }
+                                                        setDistortionFlash(true);
+                                                        setTimeout(() => {
+                                                            setSelectedForm(i);
+                                                            setFormKey(k => k + 1);
+                                                            setDistortionFlash(false);
+                                                            setFlashPos(null);
+                                                        }, 700);
+                                                    }}
+                                                    className="flex-1 rounded-lg transition-all active:scale-95"
+                                                    style={{
+                                                        padding: "6px 4px",
+                                                        background: clampedForm === i
+                                                            ? `${f.color}28`
+                                                            : "rgba(255,255,255,.06)",
+                                                        border: clampedForm === i
+                                                            ? `1px solid ${f.color}88`
+                                                            : "1px solid rgba(255,255,255,.14)",
+                                                        boxShadow: clampedForm === i
+                                                            ? `0 0 12px ${f.color}30, inset 0 1px 0 ${f.color}20`
+                                                            : "none",
+                                                        cursor: "pointer", outline: "none",
+                                                        position: "relative",
+                                                    }}>
+                                                    {/* Dot indicator activo */}
+                                                    {clampedForm === i && (
+                                                        <div style={{
+                                                            position: "absolute", top: 4, right: 4,
+                                                            width: 4, height: 4, borderRadius: "50%",
+                                                            background: f.color,
+                                                            boxShadow: `0 0 6px ${f.color}`,
+                                                        }} />
+                                                    )}
+                                                    <div style={{
+                                                        fontFamily: "'Rajdhani',sans-serif",
+                                                        fontWeight: 800, fontSize: "var(--font-xs)",
+                                                        letterSpacing: ".08em", textTransform: "uppercase",
+                                                        color: clampedForm === i ? f.color : "rgba(255,255,255,.55)",
+                                                        transition: "color .2s",
+                                                    }}>
+                                                        {f.label}
+                                                    </div>
+                                                    <div style={{
+                                                        fontFamily: "monospace", fontSize: 8,
+                                                        color: clampedForm === i ? `${f.color}bb` : "rgba(255,255,255,.3)",
+                                                        marginTop: 1, transition: "color .2s",
+                                                        whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                                                    }}>
+                                                        {f.sublabel}
+                                                    </div>
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
                                 )}
 
@@ -1218,7 +1253,7 @@ export default function TavernPage() {
 
                 {/* ── RIGHT: vtabs + panel ── */}
                 <div className="tvn-right flex overflow-hidden flex-shrink-0"
-                    style={{ width: "clamp(200px,32%,320px)", borderLeft: "1px solid rgba(255,255,255,.05)" }}>
+                    style={{ width: "clamp(200px,32%,320px)", minWidth: "clamp(200px,32%,320px)", borderLeft: "1px solid rgba(255,255,255,.05)" }}>
                     {/* Vertical tabs */}
                     <div className="tvn-vtabs-col flex flex-col flex-shrink-0 pt-2 gap-1"
                         style={{ width: 44, borderRight: "1px solid rgba(255,255,255,.05)" }}>
@@ -1250,9 +1285,9 @@ export default function TavernPage() {
                     </div>
                     {/* Panel content — usa activeMyth para que cambie con la distorsión */}
                     <div className="flex-1 overflow-hidden">
-                        {selected && activeMyth ? (
-                            tab === "stats"  ? <StatsPanel myth={activeMyth} /> :
-                            tab === "skills" ? <SkillsPanel myth={activeMyth} /> :
+                        {selected ? (
+                            tab === "stats"  ? <StatsPanel myth={activeMyth ?? selected} /> :
+                            tab === "skills" ? <SkillsPanel myth={activeMyth ?? selected} /> :
                                               <GearPanel myth={selected} />
                         ) : (
                             <div className="flex items-center justify-center h-full">
@@ -1343,7 +1378,7 @@ export default function TavernPage() {
                                     );
                                 })}
                             </div>
-                            {/* Sort — mismo estado que el panel izquierdo */}
+                            {/* Sort — mismo estado que panel izquierdo */}
                             <div className="flex gap-1.5 flex-wrap items-center">
                                 <span style={{ fontSize: 10, color: "rgba(255,255,255,.3)", fontFamily: "monospace", marginRight: 2 }}>SORT</span>
                                 {([
@@ -1353,21 +1388,17 @@ export default function TavernPage() {
                                     { id: "power",        label: "Power"       },
                                     { id: "name",         label: "Name"        },
                                 ] as const).map(opt => (
-                                    <button key={opt.id} onClick={() => setSortBy(opt.id)}
-                                        style={{
-                                            padding: "2px 8px", borderRadius: 5, fontSize: 11, fontFamily: "monospace", cursor: "pointer",
-                                            background: sortBy === opt.id ? "rgba(167,139,250,.18)" : "rgba(255,255,255,.03)",
-                                            border: sortBy === opt.id ? "1px solid rgba(167,139,250,.35)" : "1px solid rgba(255,255,255,.07)",
-                                            color: sortBy === opt.id ? "#a78bfa" : "rgba(255,255,255,.35)",
-                                            transition: "all 0.12s",
-                                        }}>
-                                        {opt.label}
-                                    </button>
+                                    <button key={opt.id} onClick={() => setSortBy(opt.id)} style={{
+                                        padding: "2px 8px", borderRadius: 5, fontSize: 11,
+                                        fontFamily: "monospace", cursor: "pointer",
+                                        background: sortBy === opt.id ? "rgba(167,139,250,.18)" : "rgba(255,255,255,.03)",
+                                        border: sortBy === opt.id ? "1px solid rgba(167,139,250,.35)" : "1px solid rgba(255,255,255,.07)",
+                                        color: sortBy === opt.id ? "#a78bfa" : "rgba(255,255,255,.35)",
+                                        transition: "all 0.12s",
+                                    }}>{opt.label}</button>
                                 ))}
                             </div>
                         </div>
-
-                        {/* Grid de myths */}
                         <div style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden", scrollbarWidth: "none" }}>
                             <div style={{
                                 display: "grid",
@@ -1379,7 +1410,9 @@ export default function TavernPage() {
                                 {expandFiltered.map(m => (
                                     <MythCard key={m.id} myth={m} selected={selected?.id === m.id}
                                         onClick={() => {
-                                            setSelected(m);
+                                            // Usamos el myth de myths[] (ya normalizado) en lugar del de la lista filtrada
+                                            const fresh = myths.find(x => x.id === m.id) ?? m;
+                                            setSelected(fresh);
                                             setTab("stats");
                                             setSelectedForm(0);
                                             setDistortionFlash(false);

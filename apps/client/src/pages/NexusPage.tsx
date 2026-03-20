@@ -10,7 +10,7 @@ import { api } from "../lib/api";
 
 type Rarity = "COMMON" | "RARE" | "EPIC" | "ELITE" | "LEGENDARY" | "MYTHIC";
 interface PityData { essences: number; pityRare: number; pityEpic: number; pityElite: number; pityLegendary: number; }
-interface PullResult { speciesId: string; name: string; rarity: Rarity; affinities: string[]; level: number; maxHp: number; attack: number; defense: number; speed: number; instanceId: string; isPityGuarantee: boolean; }
+interface PullResult { speciesId: string; name: string; rarity: Rarity; affinities: string[]; level: number; maxHp: number; attack: number; defense: number; speed: number; instanceId: string; isPityGuarantee: boolean; moves?: { name: string; power?: number; cooldown: number; affinity: string; }[]; }
 
 // ─── Rarity config ────────────────────────────────────────────
 
@@ -470,17 +470,283 @@ function EssenceIcon({ size = 18, style }: { size?: number; style?: React.CSSPro
     );
 }
 
+// ─── LegendaryReveal — pantalla épica fullscreen para LEGENDARY/MYTHIC ────────
+// Usada tanto en x1 como en x5 cuando toca rareza alta
 
+type LgPhase = "bolts" | "emerge" | "info";
+
+function LegendaryReveal({ result, onBack, fromMulti = false }: { result: PullResult; onBack: () => void; fromMulti?: boolean }) {
+    const [phase, setPhase] = useState<LgPhase>("bolts");
+    const [showBurst, setShowBurst] = useState(false);
+    const rs = RS[result.rarity];
+    const slug = toSlug(result.name);
+    const isMythic = result.rarity === "MYTHIC";
+
+    // Secuencia: rayos 1.2s → emerge con burst → info 1.8s después
+    useEffect(() => {
+        const t1 = setTimeout(() => { setPhase("emerge"); setShowBurst(true); }, 1800);
+        const t2 = setTimeout(() => setPhase("info"), 3600);
+        return () => { clearTimeout(t1); clearTimeout(t2); };
+    }, []);
+
+    // Rayos horizontales y verticales
+    const hBolts = [
+        { top: "28%", dur: "1.8s", delay: "0s",    width: "100%", color: rs.border, opacity: 0.9 },
+        { top: "48%", dur: "1.8s", delay: "0.12s", width: "80%",  color: "#ffffff", opacity: 0.7 },
+        { top: "62%", dur: "1.8s", delay: "0.07s", width: "100%", color: rs.border, opacity: 0.6 },
+        { top: "18%", dur: "1.8s", delay: "0.22s", width: "60%",  color: rs.color,  opacity: 0.5 },
+        { top: "78%", dur: "1.8s", delay: "0.18s", width: "70%",  color: rs.border, opacity: 0.4 },
+    ];
+    const vBolts = [
+        { left: "25%", dur: "1.8s", delay: "0.05s", height: "100%", color: rs.border, opacity: 0.7 },
+        { left: "50%", dur: "1.8s", delay: "0s",    height: "100%", color: "#ffffff", opacity: 0.85 },
+        { left: "75%", dur: "1.8s", delay: "0.14s", height: "80%",  color: rs.border, opacity: 0.55 },
+        { left: "38%", dur: "1.8s", delay: "0.2s",  height: "60%",  color: rs.color,  opacity: 0.4 },
+    ];
+
+    const isInfo = phase === "info";
+
+    return (
+        <div style={{
+            position: "fixed", inset: 0, zIndex: 200, overflow: "hidden",
+            background: "#000000", fontFamily: "'Exo 2',sans-serif",
+        }}>
+            {/* ── Fondo con color de rareza ── */}
+            <div style={{
+                position: "absolute", inset: 0,
+                background: `radial-gradient(ellipse at 50% 50%, ${rs.bgR.replace(/[\d.]+\)$/, "0.55)")} 0%, ${rs.bgR.replace(/[\d.]+\)$/, "0.2)")} 35%, rgba(0,0,0,0.98) 70%)`,
+                transition: "opacity 1s",
+                opacity: phase === "bolts" ? 0.6 : 1,
+            }} />
+
+            {/* ── Flash blanco al inicio ── */}
+            {phase === "bolts" && (
+                <div style={{
+                    position: "absolute", inset: 0, zIndex: 10,
+                    background: `radial-gradient(circle at 50% 50%, ${rs.glow.replace(/[\d.]+\)$/, "0.35)")} 0%, transparent 60%)`,
+                    animation: "lgFlash 1.8s ease-out forwards",
+                }} />
+            )}
+
+            {/* ── RAYOS HORIZONTALES ── */}
+            {phase === "bolts" && hBolts.map((b, i) => (
+                <div key={i} style={{
+                    position: "absolute", top: b.top, left: i % 2 === 0 ? 0 : "auto",
+                    right: i % 2 === 1 ? 0 : "auto",
+                    width: b.width, height: "1px",
+                    background: `linear-gradient(${i % 2 === 0 ? "to right" : "to left"}, transparent 0%, ${b.color} 20%, #ffffff 50%, ${b.color} 80%, transparent 100%)`,
+                    boxShadow: `0 0 8px ${b.color}, 0 0 20px ${b.color}55`,
+                    opacity: b.opacity,
+                    animation: `lgBolt ${b.dur} ${b.delay} ease-out forwards`,
+                    transformOrigin: i % 2 === 0 ? "left center" : "right center",
+                    zIndex: 5,
+                }} />
+            ))}
+
+            {/* ── RAYOS VERTICALES ── */}
+            {phase === "bolts" && vBolts.map((b, i) => (
+                <div key={i} style={{
+                    position: "absolute", left: b.left,
+                    top: i % 2 === 0 ? 0 : "auto", bottom: i % 2 === 1 ? 0 : "auto",
+                    width: "1px", height: b.height,
+                    background: `linear-gradient(${i % 2 === 0 ? "to bottom" : "to top"}, transparent 0%, ${b.color} 20%, #ffffff 50%, ${b.color} 80%, transparent 100%)`,
+                    boxShadow: `0 0 8px ${b.color}, 0 0 20px ${b.color}55`,
+                    opacity: b.opacity,
+                    animation: `lgBoltV ${b.dur} ${b.delay} ease-out forwards`,
+                    transformOrigin: i % 2 === 0 ? "center top" : "center bottom",
+                    zIndex: 5,
+                }} />
+            ))}
+
+            {/* ── Ondas expansivas en el centro ── */}
+            {phase === "bolts" && [0,1,2].map(i => (
+                <div key={i} style={{
+                    position: "absolute", top: "50%", left: "50%",
+                    borderRadius: "50%", border: `${i === 0 ? 3 : i === 1 ? 2 : 1.5}px solid ${i === 1 ? "#ffffff" : rs.border}`,
+                    boxShadow: `0 0 ${20 + i*10}px ${rs.glow.replace(/[\d.]+\)$/, "0.6)")}`,
+                    animation: `lgRing ${1.4 + i * 0.15}s ${i * 0.08}s ease-out forwards`,
+                    zIndex: 6, transform: "translate(-50%,-50%)",
+                    width: 0, height: 0,
+                }} />
+            ))}
+
+            {/* ── Burst Three.js ── */}
+            {showBurst && <FullScreenBurst color={rs.hex} onDone={() => setShowBurst(false)} />}
+
+            {/* ── Mito emerge desde el centro ── */}
+            {(phase === "emerge" || phase === "info") && (
+                <div style={{
+                    position: "absolute", inset: 0, zIndex: 10,
+                    display: "flex", flexDirection: "column", alignItems: "center",
+                    justifyContent: isInfo ? "flex-start" : "center",
+                    paddingTop: isInfo ? "clamp(16px,4vh,40px)" : 0,
+                    transition: "justify-content 0.5s",
+                }}>
+                    {/* Imagen del myth */}
+                    <div style={{
+                        position: "relative",
+                        animation: phase === "emerge" ? "rvEmerge 0.8s cubic-bezier(0.34,1.56,0.64,1) both" : undefined,
+                        flexShrink: 0,
+                    }}>
+                        {/* Aura de rareza */}
+                        <div style={{
+                            position: "absolute", inset: "-50px", borderRadius: "50%",
+                            background: `radial-gradient(circle, ${rs.bgR.replace(/[\d.]+\)$/, "0.7)")} 0%, transparent 70%)`,
+                            animation: "nxGlow 2s ease-in-out infinite",
+                        }} />
+                        <img src={mythFrontUrl(result.speciesId, slug)} alt={result.name}
+                            style={{
+                                width: isInfo ? "clamp(90px,16vw,160px)" : "clamp(130px,22vw,220px)",
+                                height: isInfo ? "clamp(110px,20vw,200px)" : "clamp(155px,26vw,265px)",
+                                objectFit: "contain", position: "relative", zIndex: 1,
+                                filter: `drop-shadow(0 0 50px ${rs.glow}) drop-shadow(0 0 100px ${rs.glow.replace(/[\d.]+\)$/, "0.5)")})`,
+                                transition: "width 0.5s ease, height 0.5s ease",
+                            }}
+                            onError={(e) => { const t = e.target as HTMLImageElement; t.style.display="none"; }}
+                        />
+                    </div>
+
+                    {/* Info panel — solo en fase info */}
+                    {isInfo && (
+                        <div style={{
+                            width: "100%", maxWidth: "clamp(340px,90vw,700px)",
+                            display: "flex", flexDirection: "column", alignItems: "center",
+                            gap: "clamp(6px,1.5vh,12px)",
+                            padding: "0 clamp(16px,4vw,40px)",
+                        }}>
+                            {/* Rarity badge */}
+                            <div style={{
+                                padding: "4px 20px", borderRadius: 5,
+                                fontSize: "var(--font-2xs)", fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase",
+                                background: rs.bg, border: `1px solid ${rs.border}`,
+                                color: rs.color, boxShadow: `0 0 20px ${rs.glow.replace(/[\d.]+\)$/, "0.6)")}`,
+                                animation: "rvInfo 0.4s ease both",
+                            }}>★ {rs.label}{result.isPityGuarantee ? "  ✨" : ""}</div>
+
+                            {/* Name — animado con glow pulsante */}
+                            <p style={{
+                                fontFamily: "'Rajdhani',sans-serif", fontWeight: 900,
+                                fontSize: "clamp(26px,5.5vw,56px)", lineHeight: 1,
+                                color: rs.color, letterSpacing: "0.05em",
+                                animation: "nxNameRev 0.6s 0.1s ease both, lgNameGlow 2s 0.7s ease-in-out infinite",
+                                opacity: 0,
+                                ["--nc" as any]: rs.border,
+                            }}>{result.name}</p>
+
+                            {/* Affinities */}
+                            <div style={{ display: "flex", gap: 8, animation: "rvInfo 0.4s 0.2s ease both", opacity: 0 }}>
+                                {result.affinities.map(a => (
+                                    <img key={a} src={affinityUrl(a)} alt={a}
+                                        style={{ width: 24, height: 24, objectFit: "contain", filter: "drop-shadow(0 0 6px rgba(255,255,255,0.5))" }}
+                                        onError={(e) => { (e.target as HTMLImageElement).style.display="none"; }} />
+                                ))}
+                            </div>
+
+                            {/* Stats */}
+                            <div style={{ display: "flex", gap: 6, animation: "rvInfo 0.4s 0.28s ease both", opacity: 0 }}>
+                                {[["HP", result.maxHp], ["ATK", result.attack], ["DEF", result.defense], ["SPD", result.speed]].map(([k, v]) => (
+                                    <div key={k as string} style={{
+                                        background: "rgba(0,0,0,0.5)", border: `1px solid ${rs.border}55`,
+                                        borderRadius: 8, padding: "5px 10px",
+                                        display: "flex", flexDirection: "column", alignItems: "center", minWidth: 44,
+                                        boxShadow: `inset 0 0 8px ${rs.border}22`,
+                                    }}>
+                                        <span style={{ fontSize: "var(--font-2xs)", color: "#8892a4", textTransform: "uppercase", letterSpacing: "0.06em" }}>{k}</span>
+                                        <span style={{ fontSize: "var(--font-sm)", fontWeight: 800, color: "#ffffff" }}>{v}</span>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Divider */}
+                            <div style={{
+                                width: "100%", height: 1,
+                                background: `linear-gradient(to right, transparent, ${rs.border}55, transparent)`,
+                                animation: "rvInfo 0.4s 0.36s ease both", opacity: 0,
+                            }} />
+
+                            {/* Moves */}
+                            {result.moves && result.moves.length > 0 && (
+                                <div style={{
+                                    width: "100%", display: "flex", flexDirection: "column", gap: 5,
+                                    animation: "rvInfo 0.5s 0.4s ease both", opacity: 0,
+                                }}>
+                                    <p style={{ fontSize: "var(--font-2xs)", color: "#8892a4", textTransform: "uppercase", letterSpacing: "0.14em", fontFamily: "monospace", marginBottom: 2 }}>Moves</p>
+                                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                                        {result.moves.map((move: any, mi: number) => (
+                                            <div key={mi} style={{
+                                                background: "rgba(0,0,0,0.55)",
+                                                border: `1px solid ${rs.border}40`,
+                                                borderLeft: `3px solid ${rs.border}`,
+                                                borderRadius: "0 8px 8px 0",
+                                                padding: "5px 12px",
+                                                display: "flex", alignItems: "center", gap: 8,
+                                                animation: `lgMoveIn 0.3s ${0.44 + mi * 0.06}s ease both`,
+                                                opacity: 0,
+                                                minWidth: "clamp(120px,28%,180px)",
+                                                flex: "1 1 clamp(120px,28%,180px)",
+                                            }}>
+                                                <div>
+                                                    <div style={{ fontSize: "var(--font-xs)", fontWeight: 700, color: rs.color, fontFamily: "'Rajdhani',sans-serif", letterSpacing: "0.04em" }}>{move.name}</div>
+                                                    {move.power && <div style={{ fontSize: "var(--font-2xs)", color: "#8892a4", fontFamily: "monospace" }}>PWR {move.power} · CD {move.cooldown}t</div>}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* "No moves" fallback — mostrar placeholder elegante */}
+                            {(!result.moves || result.moves.length === 0) && (
+                                <div style={{
+                                    width: "100%", padding: "8px 12px", borderRadius: 8,
+                                    background: "rgba(0,0,0,0.3)", border: `1px solid ${rs.border}22`,
+                                    animation: "rvInfo 0.4s 0.4s ease both", opacity: 0,
+                                    textAlign: "center",
+                                }}>
+                                    <span style={{ fontSize: "var(--font-2xs)", color: "#5a6a80", fontFamily: "monospace", letterSpacing: "0.1em" }}>MOVES UNLOCKED IN BATTLE</span>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* ── Botones laterales ── */}
+            {isInfo && (
+                <>
+                    <button onClick={onBack} style={{
+                        position: "absolute", left: "clamp(12px,3vw,36px)", top: "50%", transform: "translateY(-50%)",
+                        padding: "12px 20px", borderRadius: 9, fontSize: "var(--font-xs)", fontWeight: 600,
+                        cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.18)",
+                        color: "#e2e8f0", zIndex: 30, animation: "rvInfo 0.4s 0.65s ease both", opacity: 0,
+                    }}>← {fromMulti ? "Results" : "Back"}</button>
+                    <button onClick={onBack} style={{
+                        position: "absolute", right: "clamp(12px,3vw,36px)", top: "50%", transform: "translateY(-50%)",
+                        padding: "12px 22px", borderRadius: 9, fontSize: "var(--font-xs)", fontWeight: 700,
+                        cursor: "pointer", letterSpacing: "0.06em",
+                        background: rs.bg, border: `1px solid ${rs.border}`, color: rs.color,
+                        boxShadow: `0 0 20px ${rs.glow.replace(/[\d.]+\)$/, "0.5)")}`,
+                        zIndex: 30, animation: "rvInfo 0.4s 0.7s ease both", opacity: 0,
+                    }}>Collect ✓</button>
+                </>
+            )}
+        </div>
+    );
+}
 
 type RevealPhase = "flash" | "pillar" | "emerge" | "info";
 
 function RevealSingle({ result, onBack }: { result: PullResult; onBack: () => void }) {
+    const rank = ["COMMON","RARE","EPIC","ELITE","LEGENDARY","MYTHIC"].indexOf(result.rarity);
+
+    // LEGENDARY y MYTHIC → pantalla épica con rayos + moves
+    if (rank >= 4) return <LegendaryReveal result={result} onBack={onBack} />;
+
     const [phase, setPhase] = useState<RevealPhase>("flash");
     const [burstDone, setBurstDone] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const rs = RS[result.rarity];
     const slug = toSlug(result.name);
-    const rank = ["COMMON","RARE","EPIC","ELITE","LEGENDARY","MYTHIC"].indexOf(result.rarity);
 
     // Phase sequence: flash → pillar (suspense) → emerge → info
     useEffect(() => {
@@ -698,7 +964,14 @@ function RevealMulti({ results, onBack }: { results: PullResult[]; onBack: () =>
     const [activeIdx, setActiveIdx] = useState<number>(-1);
     const [burstInfo, setBurstInfo] = useState<{ color: number; x: number; y: number; key: number } | null>(null);
     const [done, setDone] = useState(false);
+    const [showLegendary, setShowLegendary] = useState<PullResult | null>(null);
     const wrapRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+    // Encuentra el resultado de mayor rareza (LEGENDARY/MYTHIC primero)
+    const RANK: Record<string,number> = { COMMON:0,RARE:1,EPIC:2,ELITE:3,LEGENDARY:4,MYTHIC:5 };
+    const legendaryResult = results
+        .filter(r => RANK[r.rarity] >= 4)
+        .sort((a,b) => RANK[b.rarity] - RANK[a.rarity])[0] ?? null;
 
     useEffect(() => {
         let cancelled = false;
@@ -725,11 +998,22 @@ function RevealMulti({ results, onBack }: { results: PullResult[]; onBack: () =>
                 await new Promise(r => setTimeout(r, 380));
             }
             await new Promise(r => setTimeout(r, 900));
-            if (!cancelled) setDone(true);
+            if (cancelled) return;
+            // Si hay legendary/mythic → mostramos la pantalla épica primero
+            if (legendaryResult) {
+                setShowLegendary(legendaryResult);
+            } else {
+                setDone(true);
+            }
         }
         run();
         return () => { cancelled = true; };
     }, []);
+
+    // Pantalla épica de legendary — al cerrar va al SUMMONS
+    if (showLegendary) {
+        return <LegendaryReveal result={showLegendary} fromMulti onBack={() => { setShowLegendary(null); setDone(true); }} />;
+    }
 
     if (done) {
         return (
@@ -757,37 +1041,110 @@ function RevealMulti({ results, onBack }: { results: PullResult[]; onBack: () =>
     }
 
     return (
-        <div style={{ position: "fixed", inset: 0, zIndex: 200, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "clamp(20px,4vh,40px)", overflow: "hidden", fontFamily: "'Exo 2',sans-serif", background: "#070b14" }}>
+        <div style={{ position: "fixed", inset: 0, zIndex: 200, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "clamp(16px,3vh,32px)", overflow: "hidden", fontFamily: "'Exo 2',sans-serif", background: "#070b14" }}>
             <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 50% 50%, rgba(123,47,255,0.1) 0%, transparent 65%)", zIndex: 0, pointerEvents: "none" }} />
             {burstInfo && <FullScreenBurst key={burstInfo.key} color={burstInfo.color} x={burstInfo.x} y={burstInfo.y} onDone={() => setBurstInfo(null)} />}
             <p style={{ fontSize: "var(--font-xs)", color: "#ffffff", textTransform: "uppercase", letterSpacing: "0.2em", fontWeight: 700, animation: "nxPulse 1.5s ease-in-out infinite", position: "relative", zIndex: 2 }}>Opening essences...</p>
-            <div style={{ display: "flex", gap: "clamp(24px,4.5vw,56px)", alignItems: "flex-end", justifyContent: "center", position: "relative", zIndex: 2 }}>
+
+            {/* ── Slots fijos — nunca cambian de tamaño ── */}
+            <div style={{ display: "flex", gap: "clamp(16px,3.5vw,44px)", alignItems: "center", justifyContent: "center", position: "relative", zIndex: 2 }}>
                 {results.map((r, i) => {
                     const rs2 = RS[r.rarity]; const state = states[i]; const slug = toSlug(r.name);
                     const isActive = activeIdx === i && state === "cracking";
                     return (
-                        <div key={i} ref={el => { wrapRefs.current[i] = el; }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, position: "relative" }}>
-                            {isActive && <div style={{ position: "absolute", inset: "-20px", borderRadius: "50%", background: `radial-gradient(circle, ${rs2.bgR} 0%, transparent 70%)`, animation: "nxGlow 0.8s ease-in-out infinite", zIndex: 0, pointerEvents: "none" }} />}
-                            {state !== "revealed" ? (
-                                <div style={{ animation: state === "cracking" ? "nxExplode 0.55s ease-in forwards" : undefined, opacity: state === "idle" && i > (activeIdx < 0 ? -1 : activeIdx) ? 0.35 : 1, transition: "opacity 0.3s", position: "relative", zIndex: 1 }}>
-                                    <MiniFragment dim={state === "idle"} />
-                                </div>
-                            ) : (
-                                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 7, animation: "nxSlideUp 0.45s ease both", position: "relative", zIndex: 1 }}>
-                                    <div style={{ position: "relative" }}>
-                                        <div style={{ position: "absolute", inset: "-18px", borderRadius: "50%", background: `radial-gradient(circle, ${rs2.bgR} 0%, transparent 72%)`, animation: "nxGlow 2s ease-in-out infinite", pointerEvents: "none" }} />
-                                        <img src={mythFrontUrl(r.speciesId, slug)} alt={r.name} style={{ width: "clamp(68px,9vw,98px)", height: "clamp(85px,11.5vw,122px)", objectFit: "contain", position: "relative", zIndex: 1, filter: `drop-shadow(0 0 16px ${rs2.glow}) drop-shadow(0 0 30px ${rs2.glow.replace(/[\d.]+\)$/, "0.4)")})` }} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                                    </div>
-                                    <div style={{ padding: "2px 10px", borderRadius: 3, fontSize: "var(--font-2xs)", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", background: rs2.bg, border: `1px solid ${rs2.border}`, color: rs2.color, boxShadow: `0 0 10px ${rs2.glow.replace(/[\d.]+\)$/, "0.45)")}` }}>{rs2.label}</div>
-                                    <span style={{ fontSize: "var(--font-xs)", color: rs2.color, fontWeight: 700, textAlign: "center", maxWidth: 100 }}>{r.name}</span>
-                                    {r.isPityGuarantee && <span style={{ fontSize: 9, color: "#fbbf24" }}>✨</span>}
-                                </div>
+                        /* Slot de ancho y alto fijos — los siblings nunca se mueven */
+                        <div key={i} ref={el => { wrapRefs.current[i] = el; }}
+                            style={{
+                                width: "clamp(72px,10vw,108px)",
+                                height: "clamp(140px,18vw,190px)",
+                                position: "relative",
+                                display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end",
+                                flexShrink: 0,
+                            }}>
+
+                            {/* Aura del slot activo */}
+                            {isActive && (
+                                <div style={{
+                                    position: "absolute", inset: "-16px", borderRadius: 16,
+                                    background: `radial-gradient(circle, ${rs2.bgR} 0%, transparent 72%)`,
+                                    animation: "nxGlow 0.9s ease-in-out infinite",
+                                    pointerEvents: "none", zIndex: 0,
+                                }} />
                             )}
-                            <div style={{ width: 6, height: 6, borderRadius: "50%", background: state === "revealed" ? rs2.border : "rgba(255,255,255,0.2)", boxShadow: state === "revealed" ? `0 0 8px ${rs2.border}` : "none", transition: "all 0.3s", marginTop: 4 }} />
+
+                            {/* Contenido — esencia o myth, fade-cross sin saltar */}
+                            <div style={{
+                                width: "100%", height: "100%",
+                                display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end",
+                                gap: 6, position: "relative", zIndex: 1,
+                            }}>
+                                {state !== "revealed" ? (
+                                    /* Esencia — explota suavemente */
+                                    <div style={{
+                                        position: "absolute", bottom: 16,
+                                        animation: state === "cracking" ? "nxExplode 0.6s cubic-bezier(0.4,0,0.6,1) forwards" : undefined,
+                                        opacity: state === "idle" && i > (activeIdx < 0 ? -1 : activeIdx) ? 0.32 : 1,
+                                        transition: "opacity 0.5s ease",
+                                    }}>
+                                        <MiniFragment dim={state === "idle"} />
+                                    </div>
+                                ) : (
+                                    /* Myth revelado — aparece suavemente desde abajo */
+                                    <div style={{
+                                        position: "absolute", inset: 0,
+                                        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end",
+                                        gap: 5, paddingBottom: 8,
+                                        animation: "multiReveal 0.55s cubic-bezier(0.34,1.4,0.64,1) both",
+                                    }}>
+                                        {/* Myth image */}
+                                        <div style={{ position: "relative", flexShrink: 0 }}>
+                                            <div style={{
+                                                position: "absolute", inset: "-14px", borderRadius: "50%",
+                                                background: `radial-gradient(circle, ${rs2.bgR} 0%, transparent 72%)`,
+                                                animation: "nxGlow 2s ease-in-out infinite",
+                                                pointerEvents: "none",
+                                            }} />
+                                            <img src={mythFrontUrl(r.speciesId, slug)} alt={r.name}
+                                                style={{
+                                                    width: "clamp(56px,7.5vw,88px)",
+                                                    height: "clamp(70px,9.5vw,110px)",
+                                                    objectFit: "contain", position: "relative", zIndex: 1,
+                                                    filter: `drop-shadow(0 0 14px ${rs2.glow}) drop-shadow(0 0 28px ${rs2.glow.replace(/[\d.]+\)$/, "0.4)")})`,
+                                                }}
+                                                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                                        </div>
+                                        {/* Rarity badge */}
+                                        <div style={{
+                                            padding: "2px 8px", borderRadius: 3,
+                                            fontSize: "var(--font-2xs)", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
+                                            background: rs2.bg, border: `1px solid ${rs2.border}`, color: rs2.color,
+                                            boxShadow: `0 0 10px ${rs2.glow.replace(/[\d.]+\)$/, "0.45)")}`,
+                                            whiteSpace: "nowrap",
+                                        }}>{rs2.label}</div>
+                                        {/* Name */}
+                                        <span style={{
+                                            fontSize: "clamp(9px,1vw,var(--font-2xs))", color: rs2.color, fontWeight: 700,
+                                            textAlign: "center", maxWidth: "90%",
+                                            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                                        }}>{r.name}</span>
+                                        {r.isPityGuarantee && <span style={{ fontSize: 9, color: "#fbbf24", lineHeight: 1 }}>✨</span>}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Dot indicator — fuera del slot para que no empuje */}
+                            <div style={{
+                                position: "absolute", bottom: -14,
+                                width: 5, height: 5, borderRadius: "50%",
+                                background: state === "revealed" ? rs2.border : "rgba(255,255,255,0.18)",
+                                boxShadow: state === "revealed" ? `0 0 8px ${rs2.border}` : "none",
+                                transition: "background 0.5s ease, box-shadow 0.5s ease",
+                            }} />
                         </div>
                     );
                 })}
             </div>
+
             <button onClick={onBack} style={{ position: "absolute", bottom: 24, left: 24, padding: "8px 18px", borderRadius: 7, fontSize: "var(--font-xs)", fontWeight: 600, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.18)", color: "#e2e8f0", zIndex: 3 }}>← Skip</button>
         </div>
     );
@@ -870,6 +1227,19 @@ export default function NexusPage() {
                 @keyframes rvRing     { from{opacity:0;transform:translate(-50%,-50%) scale(0.2)} to{opacity:1;transform:translate(-50%,-50%) scale(1)} }
                 @keyframes rvEmerge   { from{opacity:0;transform:translateY(60px) scale(0.5);filter:blur(12px)} 60%{filter:blur(0)} to{opacity:1;transform:translateY(0) scale(1)} }
                 @keyframes rvInfo     { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+                /* ── LEGENDARY / MYTHIC — rayos épicos ── */
+                @keyframes lgFlash    { 0%{opacity:0} 8%{opacity:1} 18%{opacity:0.3} 28%{opacity:1} 45%{opacity:0.5} 60%{opacity:1} 100%{opacity:0} }
+                @keyframes lgBolt     { 0%{opacity:0;transform:scaleX(0) translateY(var(--by,0px))} 6%{opacity:1;transform:scaleX(1) translateY(var(--by,0px))} 85%{opacity:0.6;transform:scaleX(1) translateY(var(--by,0px))} 100%{opacity:0;transform:scaleX(1) translateY(var(--by,0px))} }
+                @keyframes lgBoltV    { 0%{opacity:0;transform:scaleY(0) translateX(var(--bx,0px))} 6%{opacity:1;transform:scaleY(1) translateX(var(--bx,0px))} 85%{opacity:0.6;transform:scaleY(1) translateX(var(--bx,0px))} 100%{opacity:0;transform:scaleY(1) translateX(var(--bx,0px))} }
+                @keyframes lgAura     { 0%{opacity:0;transform:translate(-50%,-50%) scale(0)} 25%{opacity:1;transform:translate(-50%,-50%) scale(1)} 70%{opacity:0.7;transform:translate(-50%,-50%) scale(1.15)} 100%{opacity:0;transform:translate(-50%,-50%) scale(1.4)} }
+                @keyframes lgRing     { 0%{opacity:0.9;width:0;height:0} 100%{opacity:0;width:600px;height:600px} }
+                @keyframes lgRingFast { 0%{opacity:0.7;width:0;height:0} 100%{opacity:0;width:400px;height:400px} }
+                @keyframes lgShimmer  { 0%,100%{background-position:-200% 0} 50%{background-position:200% 0} }
+                @keyframes lgNameGlow { 0%,100%{text-shadow:0 0 20px var(--nc,#fbbf24),0 0 40px var(--nc,#fbbf24)} 50%{text-shadow:0 0 40px var(--nc,#fbbf24),0 0 80px var(--nc,#fbbf24),0 0 120px var(--nc,#fbbf24)} }
+                @keyframes lgMoveIn   { from{opacity:0;transform:translateX(-24px)} to{opacity:1;transform:translateX(0)} }
+                @keyframes lgPulseRing { 0%,100%{box-shadow:0 0 0 0 var(--rc,rgba(251,191,36,0.4))} 50%{box-shadow:0 0 0 12px transparent} }
+                /* ── x5 myth slot reveal ── */
+                @keyframes multiReveal { from{opacity:0;transform:translateY(18px) scale(0.88);filter:blur(4px)} 60%{filter:blur(0)} to{opacity:1;transform:translateY(0) scale(1)} }
             `}</style>
 
             <PageTopbar title="Nexus" onBack={() => navigate(-1)} />
@@ -1044,7 +1414,6 @@ export default function NexusPage() {
                                         whiteSpace: "nowrap", flexShrink: 0,
                                         display: "flex", alignItems: "center", gap: 5,
                                     }}>
-                                        <EssenceIcon size={13} style={{ opacity: essences >= n ? 1 : 0.3 }} />
                                         {pulling ? "..." : `Open ×${n}`}
                                     </button>
                                 ))}

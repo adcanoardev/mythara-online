@@ -74,13 +74,13 @@
   --rarity-epic-bgR:       rgba(168,85,247,0.25);
   --rarity-epic-panel:     rgba(168,85,247,0.48);
 
-  /* ELITE — naranja brillante */
-  --rarity-elite-color:    #fed7aa;
-  --rarity-elite-border:   #fb923c;
-  --rarity-elite-bg:       rgba(194,65,12,0.35);
-  --rarity-elite-glow:     rgba(251,146,60,0.95);
-  --rarity-elite-bgR:      rgba(249,115,22,0.22);
-  --rarity-elite-panel:    rgba(249,115,22,0.42);
+  /* ELITE — cian brillante */
+  --rarity-elite-color:    #a5f3fc;
+  --rarity-elite-border:   #22d3ee;
+  --rarity-elite-bg:       rgba(8,145,178,0.35);
+  --rarity-elite-glow:     rgba(34,211,238,0.95);
+  --rarity-elite-bgR:      rgba(34,211,238,0.22);
+  --rarity-elite-panel:    rgba(34,211,238,0.38);
 
   --rarity-legendary-color:  #fde68a;
   --rarity-legendary-border: #fbbf24;

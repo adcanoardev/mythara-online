@@ -118,8 +118,8 @@ export async function pullEssences(userId: string, amount: 1 | 5): Promise<PullR
 
         const species = weightedPickFromPool(fallbackPool, boostedIds);
 
-        // Stats al nivel 5 (nivel base de invocación)
-        const level    = 5;
+        // Stats al nivel 1 (nivel base de invocación)
+        const level    = 1;
         const maxHp    = Math.floor(species.baseStats.hp    * (1 + level * 0.1));
         const attack   = Math.floor(species.baseStats.atk   * (1 + level * 0.05));
         const defense  = Math.floor(species.baseStats.def   * (1 + level * 0.05));
