@@ -27,3 +27,4 @@ coverage/
 # Vite
 apps/client/.vite/
 
+apps/server/src/scripts/
