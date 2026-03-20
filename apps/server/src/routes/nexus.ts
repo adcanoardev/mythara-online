@@ -28,20 +28,23 @@ router.get("/nexus/pity", requireAuth, async (req, res) => {
     }
 });
 
-// POST /nexus/pull — body: { amount: 1 | 5 }
+// POST /nexus/pull — body: { amount: 1 | 5, essenceType?: "purple" | "gold" }
 router.post("/nexus/pull", requireAuth, async (req, res) => {
     try {
         const userId = req.user!.userId;
-        const { amount } = req.body;
+        const { amount, essenceType = "purple" } = req.body;
 
         if (amount !== 1 && amount !== 5) {
             return res.status(400).json({ error: "amount must be 1 or 5" });
         }
+        if (essenceType !== "purple" && essenceType !== "gold") {
+            return res.status(400).json({ error: "essenceType must be 'purple' or 'gold'" });
+        }
 
-        const results = await pullEssences(userId, amount as 1 | 5);
+        const results = await pullEssences(userId, amount as 1 | 5, essenceType);
         res.json({ results });
     } catch (err: any) {
-        if (err.message === "Not enough Essences") {
+        if (err.message === "Not enough Essences" || err.message === "Not enough Gold Essences") {
             return res.status(400).json({ error: err.message });
         }
         console.error("[nexus/pull]", err);

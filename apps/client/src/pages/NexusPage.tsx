@@ -9,7 +9,11 @@ import { api } from "../lib/api";
 // ─── Types ────────────────────────────────────────────────────
 
 type Rarity = "COMMON" | "RARE" | "EPIC" | "ELITE" | "LEGENDARY" | "MYTHIC";
-interface PityData { essences: number; pityRare: number; pityEpic: number; pityElite: number; pityLegendary: number; }
+interface PityData {
+    essences: number; goldEssences: number;
+    pityRare: number; pityEpic: number; pityElite: number; pityLegendary: number;
+    pityEliteGold: number; pityLegendaryGold: number;
+}
 interface PullResult { speciesId: string; name: string; rarity: Rarity; affinities: string[]; level: number; maxHp: number; attack: number; defense: number; speed: number; instanceId: string; isPityGuarantee: boolean; moves?: { name: string; power?: number; cooldown: number; affinity: string; }[]; }
 
 // ─── Rarity config ────────────────────────────────────────────
@@ -18,17 +22,22 @@ const RS: Record<Rarity, { color: string; border: string; bg: string; glow: stri
     COMMON:    { color: "var(--rarity-common-color)",    border: "var(--rarity-common-border)",    bg: "var(--rarity-common-bg)",    glow: "var(--rarity-common-glow)",    bgR: "var(--rarity-common-bgR)",    label: "Common",    p: "#94a3b8", hex: 0x94a3b8, panelBg: "var(--rarity-common-panel)"    },
     RARE:      { color: "var(--rarity-rare-color)",      border: "var(--rarity-rare-border)",      bg: "var(--rarity-rare-bg)",      glow: "var(--rarity-rare-glow)",      bgR: "var(--rarity-rare-bgR)",      label: "Rare",      p: "#818cf8", hex: 0x6366f1, panelBg: "var(--rarity-rare-panel)"      },
     EPIC:      { color: "var(--rarity-epic-color)",      border: "var(--rarity-epic-border)",      bg: "var(--rarity-epic-bg)",      glow: "var(--rarity-epic-glow)",      bgR: "var(--rarity-epic-bgR)",      label: "Epic",      p: "#c084fc", hex: 0xa855f7, panelBg: "var(--rarity-epic-panel)"      },
-    ELITE:     { color: "var(--rarity-elite-color)",     border: "var(--rarity-elite-border)",     bg: "var(--rarity-elite-bg)",     glow: "var(--rarity-elite-glow)",     bgR: "var(--rarity-elite-bgR)",     label: "Elite",     p: "#fb923c", hex: 0xfb923c, panelBg: "var(--rarity-elite-panel)"     },
+    ELITE:     { color: "var(--rarity-elite-color)",     border: "var(--rarity-elite-border)",     bg: "var(--rarity-elite-bg)",     glow: "var(--rarity-elite-glow)",     bgR: "var(--rarity-elite-bgR)",     label: "Elite",     p: "#22d3ee", hex: 0x22d3ee, panelBg: "var(--rarity-elite-panel)"     },
     LEGENDARY: { color: "var(--rarity-legendary-color)", border: "var(--rarity-legendary-border)", bg: "var(--rarity-legendary-bg)", glow: "var(--rarity-legendary-glow)", bgR: "var(--rarity-legendary-bgR)", label: "Legendary", p: "#fbbf24", hex: 0xfbbf24, panelBg: "var(--rarity-legendary-panel)" },
     MYTHIC:    { color: "var(--rarity-mythic-color)",    border: "var(--rarity-mythic-border)",    bg: "var(--rarity-mythic-bg)",    glow: "var(--rarity-mythic-glow)",    bgR: "var(--rarity-mythic-bgR)",    label: "Mythic",    p: "#f87171", hex: 0xf87171, panelBg: "var(--rarity-mythic-panel)"    },
 };
 
-const PITY_KEYS = [
+const PITY_KEYS_PURPLE = [
     { key: "pityRare",      label: "Rare",      color: "#6366f1", max: 10  },
     { key: "pityEpic",      label: "Epic",      color: "#a855f7", max: 30  },
-    { key: "pityElite",     label: "Elite",     color: "#94a3b8", max: 100 },
+    { key: "pityElite",     label: "Elite",     color: "#22d3ee", max: 100 },
     { key: "pityLegendary", label: "Legendary", color: "#fbbf24", max: 150 },
-];
+] as const;
+
+const PITY_KEYS_GOLD = [
+    { key: "pityEliteGold",     label: "Elite",     color: "#22d3ee", max: 10  },
+    { key: "pityLegendaryGold", label: "Legendary", color: "#fbbf24", max: 15  },
+] as const;
 
 const CDN = "https://cdn.jsdelivr.net/gh/adcanoardev/mythara-assets@7613486785dc2b2089f6d345e1281e9316c1d982";
 const SPARKLES = [
@@ -59,7 +68,7 @@ function loadThree(): Promise<any> {
 
 // ─── Three.js Fullscreen Burst ────────────────────────────────
 
-function FullScreenBurst({ color, onDone, x, y }: { color: number; onDone: () => void; x?: number; y?: number }) {
+function FullScreenBurst({ color, onDone, x, y, isGold = false }: { color: number; onDone: () => void; x?: number; y?: number; isGold?: boolean }) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     useEffect(() => {
         let mounted = true;
@@ -77,35 +86,62 @@ function FullScreenBurst({ color, onDone, x, y }: { color: number; onDone: () =>
             const camera = new THREE.PerspectiveCamera(60, W / H, 0.1, 1000);
             camera.position.z = 5;
 
-            // Offset para centrar el burst en la posición del cristal
             const offsetX = x !== undefined ? ((x - W / 2) / W) * 10 : 0;
             const offsetY = y !== undefined ? -((y - H / 2) / H) * 8 : 0;
 
             const threeColor = new THREE.Color(color);
-            const count = 320;
+            // Gold burst: más partículas, velocidad mayor, anillos extra
+            const count = isGold ? 600 : 320;
             const geo = new THREE.BufferGeometry();
             const pos = new Float32Array(count * 3);
             const vel: { x: number; y: number; z: number }[] = [];
             for (let i = 0; i < count; i++) {
                 const a = Math.random() * Math.PI * 2, e = (Math.random() - 0.5) * Math.PI;
-                const spd = 0.05 + Math.random() * 0.15;
+                const spd = isGold ? (0.07 + Math.random() * 0.22) : (0.05 + Math.random() * 0.15);
                 vel.push({ x: Math.cos(a) * Math.cos(e) * spd, y: Math.sin(e) * spd, z: Math.sin(a) * Math.cos(e) * spd * 0.3 });
                 pos[i * 3] = offsetX; pos[i * 3 + 1] = offsetY; pos[i * 3 + 2] = 0;
             }
             geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-            const mat = new THREE.PointsMaterial({ color: threeColor, size: 0.1, transparent: true, opacity: 1 });
+            const mat = new THREE.PointsMaterial({ color: threeColor, size: isGold ? 0.14 : 0.1, transparent: true, opacity: 1 });
             scene.add(new THREE.Points(geo, mat));
+
+            // Segunda capa de partículas blancas para gold
+            if (isGold) {
+                const geoW = new THREE.BufferGeometry();
+                const posW = new Float32Array(200 * 3);
+                const velW: { x: number; y: number; z: number }[] = [];
+                for (let i = 0; i < 200; i++) {
+                    const a = Math.random() * Math.PI * 2, e = (Math.random() - 0.5) * Math.PI;
+                    const spd = 0.04 + Math.random() * 0.1;
+                    velW.push({ x: Math.cos(a) * Math.cos(e) * spd, y: Math.sin(e) * spd, z: Math.sin(a) * Math.cos(e) * spd * 0.3 });
+                    posW[i * 3] = offsetX; posW[i * 3 + 1] = offsetY; posW[i * 3 + 2] = 0;
+                }
+                geoW.setAttribute("position", new THREE.BufferAttribute(posW, 3));
+                const matW = new THREE.PointsMaterial({ color: 0xfffbe0, size: 0.07, transparent: true, opacity: 0.9 });
+                scene.add(new THREE.Points(geoW, matW));
+                // animate white particles inline via closure
+                const animateW = () => {
+                    const arr = geoW.attributes.position.array as Float32Array;
+                    for (let i = 0; i < 200; i++) { arr[i*3]+=velW[i].x*0.8; arr[i*3+1]+=velW[i].y*0.8; arr[i*3+2]+=velW[i].z*0.8; }
+                    geoW.attributes.position.needsUpdate = true;
+                    matW.opacity = Math.max(0, matW.opacity - 0.009);
+                };
+                (scene as any)._goldWhiteAnimate = animateW;
+            }
+
             const rings: any[] = [];
-            for (let r = 0; r < 6; r++) {
+            const ringCount = isGold ? 9 : 6;
+            for (let r = 0; r < ringCount; r++) {
                 const rGeo = new THREE.RingGeometry(0.08 + r * 0.45, 0.1 + r * 0.45, 72);
-                const rMat = new THREE.MeshBasicMaterial({ color: r % 2 === 0 ? threeColor : new THREE.Color(0xffffff), side: THREE.DoubleSide, transparent: true, opacity: 0.8 - r * 0.08 });
+                const rMat = new THREE.MeshBasicMaterial({ color: r % 2 === 0 ? threeColor : new THREE.Color(isGold ? 0xfffbe0 : 0xffffff), side: THREE.DoubleSide, transparent: true, opacity: 0.8 - r * 0.06 });
                 const ring = new THREE.Mesh(rGeo, rMat);
                 ring.position.x = offsetX; ring.position.y = offsetY;
                 ring.rotation.x = Math.random() * Math.PI; ring.rotation.y = Math.random() * Math.PI;
                 scene.add(ring);
                 rings.push({ mesh: ring, speed: 0.005 + r * 0.003 });
             }
-            const flashMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.9 });
+            const flashColor = isGold ? 0xfffbe0 : 0xffffff;
+            const flashMat = new THREE.MeshBasicMaterial({ color: flashColor, transparent: true, opacity: isGold ? 1.0 : 0.9 });
             const flash = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), flashMat);
             flash.position.x = offsetX; flash.position.y = offsetY;
             scene.add(flash);
@@ -115,11 +151,12 @@ function FullScreenBurst({ color, onDone, x, y }: { color: number; onDone: () =>
                 if (!mounted) return;
                 raf = requestAnimationFrame(animate);
                 frame++;
-                flashMat.opacity = Math.max(0, 0.9 - frame * 0.06);
+                flashMat.opacity = Math.max(0, (isGold ? 1.0 : 0.9) - frame * 0.06);
                 const arr = geo.attributes.position.array as Float32Array;
                 for (let i = 0; i < count; i++) { arr[i*3]+=vel[i].x; arr[i*3+1]+=vel[i].y; arr[i*3+2]+=vel[i].z; vel[i].y -= 0.001; }
                 geo.attributes.position.needsUpdate = true;
                 mat.opacity = Math.max(0, mat.opacity - 0.007);
+                (scene as any)._goldWhiteAnimate?.();
                 rings.forEach(({ mesh, speed }) => {
                     mesh.rotation.z += speed; mesh.rotation.x += speed * 0.7;
                     mesh.scale.setScalar(1 + frame * 0.055);
@@ -131,7 +168,7 @@ function FullScreenBurst({ color, onDone, x, y }: { color: number; onDone: () =>
             animate();
         });
         return () => { mounted = false; };
-    }, [color, x, y]);
+    }, [color, x, y, isGold]);
     return <canvas ref={canvasRef} style={{ position: "fixed", inset: 0, width: "100vw", height: "100vh", pointerEvents: "none", zIndex: 290, background: "transparent" }} />;
 }
 
@@ -153,9 +190,406 @@ function cssParticles(c: HTMLElement, color: string, n = 22) {
     }
 }
 
-// ─── Essence: fragmento 3D blanco/lila con partículas orbitales ──
+// ─── Runic Fragment — hexagonal 3D slab, slow float, glow behind ─
 
-// ─── Essence Orb — fuego lila orgánico, pura energía ─────────
+// ─── Diamond Fragment — canvas-based, float + glow + effects ─────────────────
+
+function DiamondFragment({ size, isGold = false, cracking = false }: { size: number; isGold: boolean; cracking?: boolean }) {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const stateRef = useRef({ t: 0, crackProgress: 0, shakeX: 0, shakeY: 0, cracks: [] as {x1:number,y1:number,x2:number,y2:number,alpha:number}[] });
+
+    useEffect(() => {
+        const cv = canvasRef.current; if (!cv) return;
+        const ctx = cv.getContext('2d')!;
+        const W = cv.width, H = cv.height;
+        const CX = W * 0.5, CY = H * 0.46;
+        const RX = W * 0.38, RY = H * 0.36;
+        const OX = W * 0.06, OY = H * 0.07;
+
+        const col = isGold ? {
+            g1:'rgba(251,191,36,',g2:'rgba(253,230,138,',
+            face:'#1c0e00',face2:'#2d1800',
+            edge1:'#3a1f00',edge2:'#5c2e00',
+            stroke:'#d97706',strokeE:'#92400e',
+            spec:'rgba(255,253,200,',specLo:'rgba(251,191,36,',
+            rim:'rgba(255,248,180,',dot:'#fcd34d',dotG:'rgba(252,211,77,',
+            crack:'rgba(255,220,50,'
+        } : {
+            g1:'rgba(139,92,246,',g2:'rgba(196,181,253,',
+            face:'#0d0624',face2:'#180a3c',
+            edge1:'#1a0d3d',edge2:'#2d1860',
+            stroke:'#7c3aed',strokeE:'#4c1d95',
+            spec:'rgba(245,240,255,',specLo:'rgba(139,92,246,',
+            rim:'rgba(230,215,255,',dot:'#c4b5fd',dotG:'rgba(196,181,253,',
+            crack:'rgba(180,140,255,'
+        };
+
+        // Diamond points (relative to center)
+        function getDiamondPts(cx: number, cy: number, rx: number, ry: number) {
+            return [
+                [cx, cy - ry],       // top
+                [cx + rx, cy],       // right
+                [cx, cy + ry],       // bottom
+                [cx - rx, cy],       // left
+            ];
+        }
+
+        // Generate initial cracks
+        const s = stateRef.current;
+        if (s.cracks.length === 0) {
+            for (let i = 0; i < 8; i++) {
+                const angle = (Math.PI / 4) * i + (Math.random() - 0.5) * 0.3;
+                const len = RX * (0.3 + Math.random() * 0.5);
+                const startR = RX * (0.05 + Math.random() * 0.2);
+                s.cracks.push({
+                    x1: CX + Math.cos(angle) * startR,
+                    y1: CY + Math.sin(angle) * startR * 0.6,
+                    x2: CX + Math.cos(angle) * (startR + len),
+                    y2: CY + Math.sin(angle) * (startR + len) * 0.6,
+                    alpha: 0
+                });
+            }
+        }
+
+        let raf: number;
+        function frame() {
+            s.t += 0.014;
+
+            // Cracking animation
+            if (cracking) {
+                s.crackProgress = Math.min(1, s.crackProgress + 0.04);
+                s.shakeX = cracking ? (Math.random() - 0.5) * 6 * s.crackProgress : 0;
+                s.shakeY = cracking ? (Math.random() - 0.5) * 4 * s.crackProgress : 0;
+                s.cracks.forEach((c, i) => {
+                    c.alpha = Math.min(1, s.crackProgress * (1 + i * 0.1));
+                });
+            } else {
+                s.crackProgress = 0;
+                s.shakeX = 0; s.shakeY = 0;
+                s.cracks.forEach(c => c.alpha = 0);
+            }
+
+            ctx.clearRect(0, 0, W, H);
+
+            // Floating offset
+            const floatY = Math.sin(s.t * 0.45) * 4;
+            const cx = CX + s.shakeX;
+            const cy = CY + floatY + s.shakeY;
+
+            // Ambient glow — pulsing
+            const ga = 0.16 + Math.sin(s.t * 0.6) * 0.06;
+            const gr = ctx.createRadialGradient(cx, cy, 5, cx, cy, RX * 1.6);
+            gr.addColorStop(0, col.g1 + (ga + 0.1) + ')');
+            gr.addColorStop(0.5, col.g1 + ga + ')');
+            gr.addColorStop(1, col.g1 + '0)');
+            ctx.fillStyle = gr; ctx.fillRect(0, 0, W, H);
+
+            // Wider secondary glow
+            const gr2 = ctx.createRadialGradient(cx, cy - 10, 5, cx, cy - 10, RX * 2.2);
+            gr2.addColorStop(0, col.g2 + '0.07)');
+            gr2.addColorStop(1, col.g2 + '0)');
+            ctx.fillStyle = gr2; ctx.fillRect(0, 0, W, H);
+
+            const pts = getDiamondPts(cx, cy, RX, RY);
+            const [top, right, bot, left] = pts;
+
+            // ── 3D side faces (right + bottom-right) ──
+            // Right face: top→right + depth
+            ctx.beginPath();
+            ctx.moveTo(top[0], top[1]);
+            ctx.lineTo(right[0], right[1]);
+            ctx.lineTo(right[0]+OX, right[1]+OY);
+            ctx.lineTo(top[0]+OX, top[1]+OY);
+            ctx.closePath();
+            const rf = ctx.createLinearGradient(top[0], top[1], right[0]+OX, right[1]+OY);
+            rf.addColorStop(0, col.edge2); rf.addColorStop(1, col.edge1);
+            ctx.fillStyle = rf; ctx.fill();
+            ctx.strokeStyle = col.strokeE; ctx.lineWidth = 0.6; ctx.stroke();
+
+            // Bottom-right face: right→bot + depth
+            ctx.beginPath();
+            ctx.moveTo(right[0], right[1]);
+            ctx.lineTo(bot[0], bot[1]);
+            ctx.lineTo(bot[0]+OX, bot[1]+OY);
+            ctx.lineTo(right[0]+OX, right[1]+OY);
+            ctx.closePath();
+            const bf = ctx.createLinearGradient(right[0], right[1], bot[0]+OX, bot[1]+OY);
+            bf.addColorStop(0, col.edge1); bf.addColorStop(1, col.face);
+            ctx.fillStyle = bf; ctx.fill();
+            ctx.strokeStyle = col.strokeE; ctx.lineWidth = 0.6; ctx.stroke();
+
+            // ── Front face ──
+            ctx.beginPath();
+            pts.forEach(([x,y],i)=>{ i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+            ctx.closePath();
+            const ff = ctx.createLinearGradient(top[0]-10, top[1], bot[0]+10, bot[1]);
+            ff.addColorStop(0, col.face2);
+            ff.addColorStop(0.5, col.face);
+            ff.addColorStop(1, col.edge1);
+            ctx.fillStyle = ff; ctx.fill();
+            ctx.strokeStyle = col.stroke; ctx.lineWidth = 1.5; ctx.stroke();
+
+            // ── Clip for inner effects ──
+            ctx.save();
+            ctx.beginPath();
+            pts.forEach(([x,y],i)=>{ i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+            ctx.closePath(); ctx.clip();
+
+            // Inner facet lines — center to each vertex
+            pts.forEach(([x,y]) => {
+                ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(x, y);
+                ctx.strokeStyle = col.specLo + '0.18)'; ctx.lineWidth = 0.5; ctx.stroke();
+            });
+            // Inner diamond at 62%
+            ctx.beginPath();
+            pts.forEach(([x,y],i)=>{
+                const ix=cx+(x-cx)*0.62, iy=cy+(y-cy)*0.62;
+                i===0?ctx.moveTo(ix,iy):ctx.lineTo(ix,iy);
+            });
+            ctx.closePath();
+            ctx.strokeStyle = col.spec + '0.25)'; ctx.lineWidth = 0.7; ctx.stroke();
+
+            // Inner diamond at 32%
+            ctx.beginPath();
+            pts.forEach(([x,y],i)=>{
+                const ix=cx+(x-cx)*0.32, iy=cy+(y-cy)*0.32;
+                i===0?ctx.moveTo(ix,iy):ctx.lineTo(ix,iy);
+            });
+            ctx.closePath();
+            ctx.strokeStyle = col.spec + '0.15)'; ctx.lineWidth = 0.4; ctx.stroke();
+
+            // Specular highlight — upper left
+            const spg = ctx.createRadialGradient(cx-RX*0.35, cy-RY*0.45, 0, cx-RX*0.1, cy-RY*0.1, RX*0.65);
+            spg.addColorStop(0, col.spec + '0.5)');
+            spg.addColorStop(0.5, col.spec + '0.12)');
+            spg.addColorStop(1, col.specLo + '0)');
+            ctx.fillStyle = spg; ctx.fillRect(0, 0, W, H);
+
+            // Inner pulse glow
+            const pa = 0.05 + Math.sin(s.t * 1.1) * 0.03;
+            const pg = ctx.createRadialGradient(cx, cy, 0, cx, cy, RX * 0.7);
+            pg.addColorStop(0, col.g2 + pa + ')');
+            pg.addColorStop(1, col.g1 + '0)');
+            ctx.fillStyle = pg; ctx.fillRect(0, 0, W, H);
+
+            // ── CRACKS ──
+            if (s.crackProgress > 0) {
+                s.cracks.forEach(c => {
+                    if (c.alpha <= 0) return;
+                    ctx.beginPath();
+                    ctx.moveTo(c.x1 + s.shakeX * 0.5, c.y1 + s.shakeY * 0.5);
+                    ctx.lineTo(c.x2 + s.shakeX * 0.5, c.y2 + s.shakeY * 0.5);
+                    ctx.strokeStyle = col.crack + c.alpha + ')';
+                    ctx.lineWidth = 0.8 + c.alpha * 0.6;
+                    ctx.stroke();
+                    // Crack glow
+                    ctx.beginPath();
+                    ctx.moveTo(c.x1, c.y1); ctx.lineTo(c.x2, c.y2);
+                    ctx.strokeStyle = col.crack + (c.alpha * 0.3) + ')';
+                    ctx.lineWidth = 3; ctx.stroke();
+                });
+                // Inner energy buildup when fully cracked
+                if (s.crackProgress > 0.5) {
+                    const pulse = (s.crackProgress - 0.5) * 2;
+                    const eg = ctx.createRadialGradient(cx, cy, 0, cx, cy, RX * 0.5 * pulse);
+                    eg.addColorStop(0, col.g2 + (pulse * 0.6) + ')');
+                    eg.addColorStop(1, col.g1 + '0)');
+                    ctx.fillStyle = eg; ctx.fillRect(0, 0, W, H);
+                }
+            }
+
+            ctx.restore();
+
+            // ── Rim light on top-left edges ──
+            ctx.beginPath();
+            ctx.moveTo(left[0], left[1]);
+            ctx.lineTo(top[0], top[1]);
+            ctx.lineTo(right[0], right[1]);
+            ctx.strokeStyle = col.rim + '0.4)';
+            ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+
+            // ── Vertex dots ──
+            pts.forEach(([x,y], i) => {
+                const pulse = 0.35 + Math.sin(s.t * 1.5 + i * 1.1) * 0.4;
+                const r = 2.8 + Math.sin(s.t * 1.2 + i) * 0.8;
+                const dg = ctx.createRadialGradient(x,y,0,x,y,r*4);
+                dg.addColorStop(0, col.dotG + (pulse*0.5) + ')');
+                dg.addColorStop(1, col.dotG + '0)');
+                ctx.fillStyle = dg; ctx.fillRect(x-12,y-12,24,24);
+                ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+                ctx.fillStyle = col.dot; ctx.globalAlpha = pulse; ctx.fill();
+                ctx.globalAlpha = 1;
+            });
+
+            // ── Orbital particles ──
+            for (let i = 0; i < 6; i++) {
+                const a = s.t * 0.35 + i * Math.PI * 2 / 6;
+                const or = RX * 1.1 + Math.sin(s.t * 0.7 + i) * 6;
+                const px = cx + Math.cos(a) * or * 0.75;
+                const py = cy + Math.sin(a) * or * 0.48;
+                const pa = 0.15 + Math.sin(s.t * 1.3 + i * 0.8) * 0.5;
+                ctx.beginPath();
+                ctx.arc(px, py, 1.5 + Math.sin(s.t+i)*0.5, 0, Math.PI*2);
+                ctx.fillStyle = col.dot;
+                ctx.globalAlpha = Math.max(0, pa); ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+
+            // Ground glow
+            const sg = ctx.createRadialGradient(cx, cy+RY*0.85, 0, cx, cy+RY*0.85, RX*0.8);
+            sg.addColorStop(0, col.g1 + '0.14)');
+            sg.addColorStop(1, col.g1 + '0)');
+            ctx.fillStyle = sg; ctx.fillRect(0, 0, W, H);
+
+            raf = requestAnimationFrame(frame);
+        }
+        frame();
+        return () => cancelAnimationFrame(raf);
+    }, [isGold, cracking]);
+
+    const W = size * 2.2, H = size * 2.4;
+    return (
+        <div style={{
+            position: 'relative',
+            width: W, height: H,
+            // Fade edges radially so canvas boundary is invisible
+            WebkitMaskImage: 'radial-gradient(ellipse 62% 58% at 50% 46%, black 38%, transparent 70%)',
+            maskImage: 'radial-gradient(ellipse 62% 58% at 50% 46%, black 38%, transparent 70%)',
+        }}>
+            <canvas ref={canvasRef} width={W} height={H}
+                style={{ display: 'block', width: W, height: H }}
+            />
+        </div>
+    );
+}
+
+// ─── Mini Diamond for x5 slots ────────────────────────────────────────────────
+
+function MiniDiamond({ dim, rarity, cracking = false }: { dim: boolean; rarity?: string; cracking?: boolean }) {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const tRef = useRef(0);
+    const cpRef = useRef(0);
+
+    useEffect(() => {
+        const cv = canvasRef.current; if (!cv) return;
+        const ctx = cv.getContext('2d')!;
+        const W = cv.width, H = cv.height;
+        const CX = W*0.5, CY = H*0.48;
+        const RX = W*0.36, RY = H*0.32;
+        const OX = W*0.07, OY = H*0.08;
+
+        // Color by rarity or default purple
+        const rarColors: Record<string,{g:string,stroke:string,dot:string,face:string,edge:string}> = {
+            COMMON:    {g:'rgba(100,116,139,',stroke:'#64748b',dot:'#94a3b8',face:'#0f172a',edge:'#1e293b'},
+            RARE:      {g:'rgba(99,102,241,', stroke:'#6366f1',dot:'#a5b4fc',face:'#1e1b4b',edge:'#312e81'},
+            EPIC:      {g:'rgba(168,85,247,', stroke:'#a855f7',dot:'#d8b4fe',face:'#3b0764',edge:'#581c87'},
+            ELITE:     {g:'rgba(34,211,238,', stroke:'#22d3ee',dot:'#a5f3fc',face:'#0c1a2e',edge:'#0e4a5a'},
+            LEGENDARY: {g:'rgba(251,191,36,', stroke:'#fbbf24',dot:'#fde68a',face:'#1c0e00',edge:'#451a03'},
+            MYTHIC:    {g:'rgba(248,113,113,',stroke:'#f87171',dot:'#fca5a5',face:'#1a0505',edge:'#450a0a'},
+        };
+        const c = rarColors[rarity ?? 'EPIC'] ?? rarColors.EPIC;
+        const alpha = dim ? 0.25 : 1;
+
+        let raf: number;
+        function frame() {
+            tRef.current += 0.016;
+            if (cracking) cpRef.current = Math.min(1, cpRef.current + 0.05);
+            else cpRef.current = 0;
+
+            ctx.clearRect(0,0,W,H);
+            const t = tRef.current;
+            const shakeX = cracking ? (Math.random()-0.5)*4*cpRef.current : 0;
+            const shakeY = cracking ? (Math.random()-0.5)*3*cpRef.current : 0;
+            const cx = CX+shakeX, cy = CY+shakeY;
+
+            const pts = [[cx,cy-RY],[cx+RX,cy],[cx,cy+RY],[cx-RX,cy]];
+            const [top,right,bot,left2] = pts;
+
+            if (!dim) {
+                const ga = 0.12+Math.sin(t*0.6)*0.04;
+                const gr = ctx.createRadialGradient(cx,cy,2,cx,cy,RX*1.4);
+                gr.addColorStop(0,c.g+(ga+0.08)+')');
+                gr.addColorStop(1,c.g+'0)');
+                ctx.fillStyle=gr; ctx.globalAlpha=alpha; ctx.fillRect(0,0,W,H); ctx.globalAlpha=1;
+            }
+
+            // Right face
+            ctx.beginPath();
+            ctx.moveTo(top[0],top[1]); ctx.lineTo(right[0],right[1]);
+            ctx.lineTo(right[0]+OX,right[1]+OY); ctx.lineTo(top[0]+OX,top[1]+OY);
+            ctx.closePath();
+            ctx.fillStyle=c.edge; ctx.globalAlpha=alpha*0.8; ctx.fill();
+            ctx.strokeStyle=c.stroke+'88'; ctx.lineWidth=0.5; ctx.stroke();
+            ctx.globalAlpha=1;
+
+            // Front face
+            ctx.beginPath();
+            pts.forEach(([x,y],i)=>{i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+            ctx.closePath();
+            ctx.fillStyle=c.face; ctx.globalAlpha=alpha; ctx.fill();
+            ctx.strokeStyle=c.stroke; ctx.lineWidth=1.2; ctx.stroke();
+            ctx.globalAlpha=1;
+
+            ctx.save();
+            ctx.beginPath();
+            pts.forEach(([x,y],i)=>{i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+            ctx.closePath(); ctx.clip();
+
+            // Inner facets
+            if (!dim) {
+                const ig = ctx.createRadialGradient(cx-RX*0.3,cy-RY*0.4,0,cx,cy,RX*0.7);
+                ig.addColorStop(0,c.g+'0.35)'); ig.addColorStop(1,c.g+'0)');
+                ctx.fillStyle=ig; ctx.fillRect(0,0,W,H);
+                pts.forEach(([x,y])=>{
+                    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(x,y);
+                    ctx.strokeStyle=c.g+'0.15)'; ctx.lineWidth=0.4; ctx.stroke();
+                });
+            }
+
+            // Cracks
+            if (cpRef.current > 0) {
+                for(let i=0;i<6;i++){
+                    const a=(Math.PI/3)*i+0.2;
+                    const len=RX*(0.4+Math.random()*0.3);
+                    ctx.beginPath();
+                    ctx.moveTo(cx+Math.cos(a)*RX*0.1, cy+Math.sin(a)*RY*0.1);
+                    ctx.lineTo(cx+Math.cos(a)*len, cy+Math.sin(a)*len*0.6);
+                    ctx.strokeStyle=`rgba(255,220,100,${cpRef.current*0.9})`;
+                    ctx.lineWidth=0.6; ctx.stroke();
+                }
+                if(cpRef.current>0.6){
+                    const eg=ctx.createRadialGradient(cx,cy,0,cx,cy,RX*0.6*(cpRef.current-0.4));
+                    eg.addColorStop(0,c.g+(cpRef.current*0.7)+')'); eg.addColorStop(1,c.g+'0)');
+                    ctx.fillStyle=eg; ctx.fillRect(0,0,W,H);
+                }
+            }
+            ctx.restore();
+
+            // Rim
+            if(!dim){
+                ctx.beginPath();
+                ctx.moveTo(left2[0],left2[1]); ctx.lineTo(top[0],top[1]); ctx.lineTo(right[0],right[1]);
+                ctx.strokeStyle=`rgba(240,220,255,0.35)`; ctx.lineWidth=1.5; ctx.lineJoin='round'; ctx.stroke();
+            }
+
+            // Vertex dots
+            if(!dim){
+                pts.forEach(([x,y],i)=>{
+                    const p=0.3+Math.sin(t*1.5+i*1.1)*0.4;
+                    ctx.beginPath(); ctx.arc(x,y,1.8,0,Math.PI*2);
+                    ctx.fillStyle=c.dot; ctx.globalAlpha=p; ctx.fill(); ctx.globalAlpha=1;
+                });
+            }
+            raf=requestAnimationFrame(frame);
+        }
+        frame();
+        return ()=>cancelAnimationFrame(raf);
+    },[dim,rarity,cracking]);
+
+    return <canvas ref={canvasRef} width={72} height={90} style={{display:'block',width:72,height:90}}/>;
+}
+
+// ─── Legacy: EssenceFragment y GoldEssenceFragment ahora apuntan a RunicFragment ─
 
 function EssenceFragment({ size }: { size: number }) {
     const s = size;
@@ -192,7 +626,7 @@ function EssenceFragment({ size }: { size: number }) {
                 style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", overflow: "visible" }}>
                 <defs>
                     {/* Gradiente principal del fuego — blanco caliente en base, violeta/púrpura hacia arriba */}
-                    <linearGradient id="efFire" x1="50%" y1="100%" x2="50%" y2="0%" gradientUnits="userSpaceOnUse"
+                    <linearGradient id="efFire" gradientUnits="userSpaceOnUse"
                         x1="0" y1={baseY} x2="0" y2={s * 0.05}>
                         <stop offset="0%"   stopColor="#ffffff" stopOpacity="0.98" />
                         <stop offset="12%"  stopColor="#f0e6ff" stopOpacity="0.95" />
@@ -423,6 +857,110 @@ function MiniFragment({ dim }: { dim: boolean }) {
 
 // ─── Essence Icon — mini fuego reutilizable ───────────────────
 
+// ─── Gold Essence Fragment — llama dorada para el centro ─────
+function GoldEssenceFragment({ size }: { size: number }) {
+    const s = size * 1.3; // más grande que la purple
+    const cx = s / 2;
+    const baseY = s * 0.82;
+    const baseW = s * 0.28;
+    const id = "gfrag";
+
+    const embers = Array.from({ length: 20 }, (_, i) => ({
+        x: cx + (Math.sin(i * 2.1) * s * 0.2),
+        sz: 1.6 + (i % 4) * 1.0,
+        dur: `${2.5 + (i % 5) * 0.65}s`,
+        delay: `${-(i * 0.4)}s`,
+        color: i % 4 === 0 ? "#ffffff" : i % 4 === 1 ? "#fef3c7" : i % 4 === 2 ? "#fbbf24" : "#f59e0b",
+        drift: Math.sin(i * 0.9) * s * 0.14,
+    }));
+
+    return (
+        <div style={{ position: "relative", width: s, height: s * 1.4, flexShrink: 0 }}>
+            {/* Aura dorada difusa */}
+            <div style={{
+                position: "absolute",
+                bottom: s * 0.05, left: "50%", transform: "translateX(-50%)",
+                width: s * 1.3, height: s * 0.65,
+                background: "radial-gradient(ellipse at 50% 80%, rgba(251,191,36,0.35) 0%, rgba(245,158,11,0.15) 45%, transparent 70%)",
+                filter: "blur(18px)",
+                pointerEvents: "none",
+                animation: "nxGlow 2.2s ease-in-out infinite",
+            }} />
+
+            <svg viewBox={`0 0 ${s} ${s * 1.4}`}
+                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", overflow: "visible" }}>
+                <defs>
+                    <linearGradient id={`${id}Main`} x1="0" y1={baseY} x2="0" y2={s * 0.05} gradientUnits="userSpaceOnUse">
+                        <stop offset="0%"   stopColor="#ffffff"  stopOpacity="0.98" />
+                        <stop offset="12%"  stopColor="#fef9c3"  stopOpacity="0.95" />
+                        <stop offset="32%"  stopColor="#fbbf24"  stopOpacity="0.9"  />
+                        <stop offset="58%"  stopColor="#d97706"  stopOpacity="0.78" />
+                        <stop offset="80%"  stopColor="#92400e"  stopOpacity="0.4"  />
+                        <stop offset="100%" stopColor="#451a03"  stopOpacity="0"    />
+                    </linearGradient>
+                    <linearGradient id={`${id}L`} x1="0" y1={baseY} x2="0" y2={s * 0.18} gradientUnits="userSpaceOnUse">
+                        <stop offset="0%"   stopColor="#fef3c7"  stopOpacity="0.85" />
+                        <stop offset="100%" stopColor="#b45309"  stopOpacity="0"    />
+                    </linearGradient>
+                    <linearGradient id={`${id}R`} x1="0" y1={baseY} x2="0" y2={s * 0.22} gradientUnits="userSpaceOnUse">
+                        <stop offset="0%"   stopColor="#fde68a"  stopOpacity="0.75" />
+                        <stop offset="100%" stopColor="#92400e"  stopOpacity="0"    />
+                    </linearGradient>
+                    <filter id={`${id}Soft`} x="-30%" y="-30%" width="160%" height="160%">
+                        <feGaussianBlur stdDeviation={s * 0.035} result="b"/>
+                        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                    </filter>
+                    <filter id={`${id}Glow`} x="-60%" y="-60%" width="220%" height="220%">
+                        <feGaussianBlur stdDeviation={s * 0.08} result="b"/>
+                        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                    </filter>
+                </defs>
+
+                {/* Espiral decorativa */}
+                <path d={`M ${cx} ${baseY*0.92} C ${cx+s*0.55} ${baseY*0.82} ${cx+s*0.62} ${baseY*0.38} ${cx+s*0.22} ${baseY*0.1} C ${cx+s*0.04} ${baseY*0.0} ${cx-s*0.16} ${baseY*0.0} ${cx-s*0.3} ${baseY*0.1} C ${cx-s*0.58} ${baseY*0.32} ${cx-s*0.52} ${baseY*0.74} ${cx-s*0.12} ${baseY*0.88}`}
+                    fill="none" stroke="rgba(251,191,36,0.4)" strokeWidth={s * 0.022} strokeLinecap="round">
+                    <animate attributeName="stroke-opacity" values="0.2;0.6;0.18;0.55;0.2" dur="3s" repeatCount="indefinite"/>
+                </path>
+
+                {/* Llama izquierda */}
+                <path d={`M ${cx-baseW*0.6} ${baseY} C ${cx-baseW*2.2} ${baseY-s*0.32} ${cx-baseW*1.6} ${baseY-s*0.68} ${cx-baseW*0.25} ${baseY-s*0.85} C ${cx} ${baseY-s*0.68} ${cx-baseW*0.22} ${baseY-s*0.28} ${cx-baseW*0.6} ${baseY} Z`}
+                    fill={`url(#${id}L)`} filter={`url(#${id}Soft)`} opacity="0.7">
+                    <animateTransform attributeName="transform" type="skewX" values="-7;6;-5;7;-7" dur="2.3s" repeatCount="indefinite" additive="sum" style={{transformOrigin:`${cx}px ${baseY}px`}}/>
+                </path>
+                {/* Llama derecha */}
+                <path d={`M ${cx+baseW*0.6} ${baseY} C ${cx+baseW*2.2} ${baseY-s*0.3} ${cx+baseW*1.7} ${baseY-s*0.65} ${cx+baseW*0.28} ${baseY-s*0.82} C ${cx} ${baseY-s*0.65} ${cx+baseW*0.25} ${baseY-s*0.26} ${cx+baseW*0.6} ${baseY} Z`}
+                    fill={`url(#${id}R)`} filter={`url(#${id}Soft)`} opacity="0.65">
+                    <animateTransform attributeName="transform" type="skewX" values="6;-8;5;-6;6" dur="2s" repeatCount="indefinite" additive="sum" style={{transformOrigin:`${cx}px ${baseY}px`}}/>
+                </path>
+                {/* Llama central */}
+                <path d={`M ${cx-baseW*1.3} ${baseY} C ${cx-baseW*1.6} ${baseY-s*0.45} ${cx-baseW*0.65} ${baseY-s*0.9} ${cx} ${baseY-s*1.22} C ${cx+baseW*0.65} ${baseY-s*0.9} ${cx+baseW*1.6} ${baseY-s*0.45} ${cx+baseW*1.3} ${baseY} Z`}
+                    fill={`url(#${id}Main)`} filter={`url(#${id}Glow)`}>
+                    <animateTransform attributeName="transform" type="scale" values="1 1;0.88 1.12;1.1 0.92;0.86 1.1;1 1" dur="1.8s" repeatCount="indefinite" additive="sum" style={{transformOrigin:`${cx}px ${baseY}px`}}/>
+                </path>
+                {/* Punta */}
+                <path d={`M ${cx-baseW*0.4} ${baseY-s*0.88} C ${cx-baseW*0.12} ${baseY-s*1.06} ${cx} ${baseY-s*1.24} ${cx} ${baseY-s*1.22} C ${cx} ${baseY-s*1.22} ${cx+baseW*0.12} ${baseY-s*1.04} ${cx+baseW*0.4} ${baseY-s*0.86} C ${cx+baseW*0.14} ${baseY-s*0.78} ${cx-baseW*0.14} ${baseY-s*0.8} ${cx-baseW*0.4} ${baseY-s*0.88} Z`}
+                    fill={`url(#${id}Main)`}>
+                    <animateTransform attributeName="transform" type="scale" values="1 1;0.65 1.28;1.14 0.8;0.76 1.2;1 1" dur="1.3s" repeatCount="indefinite" additive="sum" style={{transformOrigin:`${cx}px ${baseY-s*0.9}px`}}/>
+                </path>
+                {/* Chispas */}
+                {embers.map((e, i) => (
+                    <g key={i}>
+                        <circle cx={e.x} cy={baseY - s * 0.15} r={e.sz} fill={e.color} opacity="0">
+                            <animate attributeName="opacity" values="0;0.9;0" dur={e.dur} begin={e.delay} repeatCount="indefinite"/>
+                            <animateTransform attributeName="transform" type="translate" values={`0,0;${e.drift},${-s * 0.85}`} dur={e.dur} begin={e.delay} repeatCount="indefinite"/>
+                        </circle>
+                    </g>
+                ))}
+                {/* Base brillante */}
+                <ellipse cx={cx} cy={baseY - s * 0.05} rx={baseW * 1.2} ry={s * 0.1} fill="rgba(255,248,200,0.92)">
+                    <animate attributeName="opacity" values="0.7;1;0.55;0.95;0.7" dur="1.6s" repeatCount="indefinite"/>
+                    <animate attributeName="rx" values={`${baseW*1.1};${baseW*1.35};${baseW*1.0};${baseW*1.3};${baseW*1.1}`} dur="1.6s" repeatCount="indefinite"/>
+                </ellipse>
+            </svg>
+        </div>
+    );
+}
+
 function EssenceIcon({ size = 18, style }: { size?: number; style?: React.CSSProperties }) {
     const cx = size / 2, baseY = size * 0.88, baseW = size * 0.16;
     return (
@@ -470,38 +1008,142 @@ function EssenceIcon({ size = 18, style }: { size?: number; style?: React.CSSPro
     );
 }
 
+// ─── Gold Essence Icon — llama dorada más grande con espiral ─────────────────
+
+function GoldEssenceIcon({ size = 24, style }: { size?: number; style?: React.CSSProperties }) {
+    const cx = size / 2, baseY = size * 0.86, baseW = size * 0.18;
+    const id = `gef${size}`;
+    return (
+        <svg viewBox={`0 0 ${size} ${size * 1.3}`} width={size} height={size * 1.3}
+            style={{ display: "inline-block", verticalAlign: "middle", flexShrink: 0, ...style }}
+            overflow="visible">
+            <defs>
+                {/* Gradiente dorado — blanco caliente en base, ámbar hacia arriba */}
+                <linearGradient id={`${id}G`} x1="0" y1={baseY} x2="0" y2="0" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%"   stopColor="#ffffff"  stopOpacity="1"    />
+                    <stop offset="15%"  stopColor="#fef3c7"  stopOpacity="0.98" />
+                    <stop offset="40%"  stopColor="#fbbf24"  stopOpacity="0.92" />
+                    <stop offset="70%"  stopColor="#d97706"  stopOpacity="0.7"  />
+                    <stop offset="90%"  stopColor="#92400e"  stopOpacity="0.35" />
+                    <stop offset="100%" stopColor="#451a03"  stopOpacity="0"    />
+                </linearGradient>
+                {/* Glow filter */}
+                <filter id={`${id}Gl`} x="-80%" y="-80%" width="260%" height="260%">
+                    <feGaussianBlur stdDeviation={size * 0.07} result="b"/>
+                    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+                {/* Glow exterior suave */}
+                <filter id={`${id}Aura`} x="-100%" y="-100%" width="300%" height="300%">
+                    <feGaussianBlur stdDeviation={size * 0.18} result="b"/>
+                    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+            </defs>
+
+            {/* Aura exterior dorada */}
+            <ellipse cx={cx} cy={baseY * 0.6} rx={size * 0.38} ry={size * 0.55}
+                fill="rgba(251,191,36,0.12)" filter={`url(#${id}Aura)`}>
+                <animate attributeName="opacity" values="0.5;0.9;0.4;0.8;0.5" dur="2.2s" repeatCount="indefinite"/>
+            </ellipse>
+
+            {/* Espiral dorada — arco que rodea la llama */}
+            <path d={`M ${cx} ${baseY*0.92}
+                      C ${cx + size*0.52} ${baseY*0.85} ${cx + size*0.6} ${baseY*0.4} ${cx + size*0.22} ${baseY*0.12}
+                      C ${cx + size*0.05} ${baseY*0.02} ${cx - size*0.15} ${baseY*0.01} ${cx - size*0.28} ${baseY*0.1}
+                      C ${cx - size*0.55} ${baseY*0.3} ${cx - size*0.5} ${baseY*0.72} ${cx - size*0.12} ${baseY*0.88}`}
+                fill="none" stroke="rgba(251,191,36,0.55)" strokeWidth={size * 0.025}
+                strokeLinecap="round">
+                <animate attributeName="stroke-opacity" values="0.3;0.7;0.25;0.6;0.3" dur="2.8s" repeatCount="indefinite"/>
+            </path>
+            {/* Segunda espiral más pequeña */}
+            <path d={`M ${cx} ${baseY*0.88}
+                      C ${cx + size*0.35} ${baseY*0.78} ${cx + size*0.38} ${baseY*0.45} ${cx + size*0.1} ${baseY*0.22}
+                      C ${cx - size*0.05} ${baseY*0.1} ${cx - size*0.22} ${baseY*0.12} ${cx - size*0.32} ${baseY*0.28}
+                      C ${cx - size*0.42} ${baseY*0.5} ${cx - size*0.3} ${baseY*0.75} ${cx - size*0.05} ${baseY*0.86}`}
+                fill="none" stroke="rgba(253,230,138,0.4)" strokeWidth={size * 0.018}
+                strokeLinecap="round">
+                <animate attributeName="stroke-opacity" values="0.2;0.5;0.15;0.45;0.2" dur="2s" repeatCount="indefinite"/>
+            </path>
+
+            {/* Llama lateral izquierda — más ancha */}
+            <path d={`M ${cx-baseW*0.5} ${baseY} C ${cx-baseW*1.8} ${baseY-size*0.38} ${cx-baseW*1.4} ${baseY-size*0.75} ${cx-baseW*0.25} ${baseY-size*0.92} C ${cx} ${baseY-size*0.75} ${cx-baseW*0.22} ${baseY-size*0.32} ${cx-baseW*0.5} ${baseY} Z`}
+                fill={`url(#${id}G)`} opacity="0.6">
+                <animateTransform attributeName="transform" type="skewX" values="-6;5;-4;6;-6" dur="2.2s" repeatCount="indefinite" additive="sum" style={{transformOrigin:`${cx}px ${baseY}px`}}/>
+            </path>
+            {/* Llama lateral derecha */}
+            <path d={`M ${cx+baseW*0.5} ${baseY} C ${cx+baseW*1.8} ${baseY-size*0.35} ${cx+baseW*1.5} ${baseY-size*0.72} ${cx+baseW*0.25} ${baseY-size*0.88} C ${cx} ${baseY-size*0.72} ${cx+baseW*0.22} ${baseY-size*0.3} ${cx+baseW*0.5} ${baseY} Z`}
+                fill={`url(#${id}G)`} opacity="0.55">
+                <animateTransform attributeName="transform" type="skewX" values="5;-7;4;-5;5" dur="1.9s" repeatCount="indefinite" additive="sum" style={{transformOrigin:`${cx}px ${baseY}px`}}/>
+            </path>
+            {/* Llama central — más alta */}
+            <path d={`M ${cx-baseW*1.1} ${baseY} C ${cx-baseW*1.4} ${baseY-size*0.42} ${cx-baseW*0.55} ${baseY-size*0.88} ${cx} ${baseY-size*1.18} C ${cx+baseW*0.55} ${baseY-size*0.88} ${cx+baseW*1.4} ${baseY-size*0.42} ${cx+baseW*1.1} ${baseY} Z`}
+                fill={`url(#${id}G)`} filter={`url(#${id}Gl)`}>
+                <animateTransform attributeName="transform" type="scale" values="1 1;0.88 1.12;1.1 0.92;0.86 1.1;1 1" dur="1.7s" repeatCount="indefinite" additive="sum" style={{transformOrigin:`${cx}px ${baseY}px`}}/>
+            </path>
+            {/* Punta */}
+            <path d={`M ${cx-baseW*0.35} ${baseY-size*0.85} C ${cx-baseW*0.12} ${baseY-size*1.02} ${cx} ${baseY-size*1.2} ${cx} ${baseY-size*1.18} C ${cx} ${baseY-size*1.18} ${cx+baseW*0.12} ${baseY-size*1.0} ${cx+baseW*0.35} ${baseY-size*0.83} C ${cx+baseW*0.12} ${baseY-size*0.76} ${cx-baseW*0.12} ${baseY-size*0.78} ${cx-baseW*0.35} ${baseY-size*0.85} Z`}
+                fill={`url(#${id}G)`}>
+                <animateTransform attributeName="transform" type="scale" values="1 1;0.65 1.25;1.12 0.82;0.78 1.18;1 1" dur="1.3s" repeatCount="indefinite" additive="sum" style={{transformOrigin:`${cx}px ${baseY-size*0.9}px`}}/>
+            </path>
+            {/* Chispas doradas flotantes */}
+            {[
+                { cx: cx - size*0.22, cy: baseY - size*0.55, r: size*0.022, delay: "0s",    dur: "1.8s" },
+                { cx: cx + size*0.28, cy: baseY - size*0.45, r: size*0.018, delay: "0.6s",  dur: "2.1s" },
+                { cx: cx - size*0.18, cy: baseY - size*0.82, r: size*0.015, delay: "1.1s",  dur: "1.6s" },
+                { cx: cx + size*0.12, cy: baseY - size*0.92, r: size*0.02,  delay: "0.3s",  dur: "2.4s" },
+                { cx: cx + size*0.32, cy: baseY - size*0.68, r: size*0.013, delay: "0.9s",  dur: "1.9s" },
+            ].map((s, i) => (
+                <circle key={i} cx={s.cx} cy={s.cy} r={s.r} fill="#fde68a">
+                    <animate attributeName="opacity" values="0;1;0" dur={s.dur} begin={s.delay} repeatCount="indefinite"/>
+                    <animateTransform attributeName="transform" type="translate" values="0,0;0,-6;0,0" dur={s.dur} begin={s.delay} repeatCount="indefinite"/>
+                </circle>
+            ))}
+            {/* Base brillante dorada */}
+            <ellipse cx={cx} cy={baseY - size*0.06} rx={baseW*1.1} ry={size*0.11} fill="rgba(255,255,220,0.9)">
+                <animate attributeName="opacity" values="0.7;1;0.55;0.95;0.7" dur="1.5s" repeatCount="indefinite"/>
+            </ellipse>
+        </svg>
+    );
+}
+
 // ─── LegendaryReveal — pantalla épica fullscreen para LEGENDARY/MYTHIC ────────
 // Usada tanto en x1 como en x5 cuando toca rareza alta
 
-type LgPhase = "bolts" | "emerge" | "info";
+type LgPhase = "cracking" | "bolts" | "emerge" | "info";
 
-function LegendaryReveal({ result, onBack, fromMulti = false }: { result: PullResult; onBack: () => void; fromMulti?: boolean }) {
-    const [phase, setPhase] = useState<LgPhase>("bolts");
+function LegendaryReveal({ result, onBack, fromMulti = false, isGold = false }: { result: PullResult; onBack: () => void; fromMulti?: boolean; isGold?: boolean }) {
+    const [phase, setPhase] = useState<LgPhase>("cracking");
     const [showBurst, setShowBurst] = useState(false);
     const rs = RS[result.rarity];
     const slug = toSlug(result.name);
     const isMythic = result.rarity === "MYTHIC";
 
-    // Secuencia: rayos 1.2s → emerge con burst → info 1.8s después
+    // Secuencia: cracking (1.4s) → bolts/rayos (1.8s) → emerge con burst → info
     useEffect(() => {
-        const t1 = setTimeout(() => { setPhase("emerge"); setShowBurst(true); }, 1800);
-        const t2 = setTimeout(() => setPhase("info"), 3600);
-        return () => { clearTimeout(t1); clearTimeout(t2); };
+        const t0 = setTimeout(() => setPhase("bolts"),  1400);
+        const t1 = setTimeout(() => { setPhase("emerge"); setShowBurst(true); }, 3200);
+        const t2 = setTimeout(() => setPhase("info"), 5000);
+        return () => { clearTimeout(t0); clearTimeout(t1); clearTimeout(t2); };
     }, []);
 
-    // Rayos horizontales y verticales
+    // Rayos horizontales, verticales y diagonales — más intensos
     const hBolts = [
-        { top: "28%", dur: "1.8s", delay: "0s",    width: "100%", color: rs.border, opacity: 0.9 },
-        { top: "48%", dur: "1.8s", delay: "0.12s", width: "80%",  color: "#ffffff", opacity: 0.7 },
-        { top: "62%", dur: "1.8s", delay: "0.07s", width: "100%", color: rs.border, opacity: 0.6 },
-        { top: "18%", dur: "1.8s", delay: "0.22s", width: "60%",  color: rs.color,  opacity: 0.5 },
-        { top: "78%", dur: "1.8s", delay: "0.18s", width: "70%",  color: rs.border, opacity: 0.4 },
+        { top: "28%",  dur: "1.8s", delay: "0s",    width: "100%", color: rs.border,  opacity: 0.95 },
+        { top: "48%",  dur: "1.8s", delay: "0.08s", width: "100%", color: "#ffffff",  opacity: 0.85 },
+        { top: "62%",  dur: "1.8s", delay: "0.05s", width: "100%", color: rs.border,  opacity: 0.7  },
+        { top: "18%",  dur: "1.8s", delay: "0.18s", width: "75%",  color: rs.color,   opacity: 0.6  },
+        { top: "78%",  dur: "1.8s", delay: "0.14s", width: "80%",  color: rs.border,  opacity: 0.5  },
+        { top: "35%",  dur: "1.6s", delay: "0.22s", width: "60%",  color: "#ffffff",  opacity: 0.4  },
+        { top: "55%",  dur: "1.6s", delay: "0.3s",  width: "55%",  color: rs.color,   opacity: 0.35 },
+        { top: "88%",  dur: "1.4s", delay: "0.1s",  width: "45%",  color: rs.border,  opacity: 0.3  },
     ];
     const vBolts = [
-        { left: "25%", dur: "1.8s", delay: "0.05s", height: "100%", color: rs.border, opacity: 0.7 },
-        { left: "50%", dur: "1.8s", delay: "0s",    height: "100%", color: "#ffffff", opacity: 0.85 },
-        { left: "75%", dur: "1.8s", delay: "0.14s", height: "80%",  color: rs.border, opacity: 0.55 },
-        { left: "38%", dur: "1.8s", delay: "0.2s",  height: "60%",  color: rs.color,  opacity: 0.4 },
+        { left: "25%", dur: "1.8s", delay: "0.04s", height: "100%", color: rs.border, opacity: 0.8  },
+        { left: "50%", dur: "1.8s", delay: "0s",    height: "100%", color: "#ffffff",  opacity: 0.95 },
+        { left: "75%", dur: "1.8s", delay: "0.12s", height: "100%", color: rs.border, opacity: 0.65 },
+        { left: "38%", dur: "1.6s", delay: "0.2s",  height: "80%",  color: rs.color,  opacity: 0.5  },
+        { left: "62%", dur: "1.6s", delay: "0.16s", height: "70%",  color: rs.border, opacity: 0.45 },
+        { left: "12%", dur: "1.4s", delay: "0.28s", height: "60%",  color: "#ffffff",  opacity: 0.3  },
+        { left: "88%", dur: "1.4s", delay: "0.08s", height: "55%",  color: rs.color,  opacity: 0.28 },
     ];
 
     const isInfo = phase === "info";
@@ -519,7 +1161,33 @@ function LegendaryReveal({ result, onBack, fromMulti = false }: { result: PullRe
                 opacity: phase === "bolts" ? 0.6 : 1,
             }} />
 
-            {/* ── Flash blanco al inicio ── */}
+            {/* ── CRACKING phase — diamante grande vibrando antes de los rayos ── */}
+            {phase === "cracking" && (
+                <div style={{
+                    position: "absolute", inset: 0, zIndex: 15,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    flexDirection: "column", gap: 16,
+                    background: "#000000",
+                }}>
+                    {/* Glow que crece con la rareza */}
+                    <div style={{
+                        position: "absolute",
+                        width: "clamp(240px,45vw,520px)", height: "clamp(240px,45vw,520px)",
+                        borderRadius: "50%",
+                        background: `radial-gradient(circle, ${rs.glow.replace(/[\d.]+\)$/, "0.25)")} 0%, transparent 70%)`,
+                        animation: "nxGlow 0.5s ease-in-out infinite",
+                    }} />
+                    <DiamondFragment size={110} isGold={isGold} cracking={true} />
+                    <div style={{
+                        fontFamily: "'Rajdhani',sans-serif", fontWeight: 700,
+                        fontSize: "clamp(12px,1.6vw,16px)", letterSpacing: "0.3em",
+                        textTransform: "uppercase", color: rs.color, opacity: 0.8,
+                        animation: "nxPulse 0.35s ease-in-out infinite",
+                    }}>The essence shatters...</div>
+                </div>
+            )}
+
+            {/* ── Flash blanco al inicio de bolts ── */}
             {phase === "bolts" && (
                 <div style={{
                     position: "absolute", inset: 0, zIndex: 10,
@@ -533,9 +1201,9 @@ function LegendaryReveal({ result, onBack, fromMulti = false }: { result: PullRe
                 <div key={i} style={{
                     position: "absolute", top: b.top, left: i % 2 === 0 ? 0 : "auto",
                     right: i % 2 === 1 ? 0 : "auto",
-                    width: b.width, height: "1px",
-                    background: `linear-gradient(${i % 2 === 0 ? "to right" : "to left"}, transparent 0%, ${b.color} 20%, #ffffff 50%, ${b.color} 80%, transparent 100%)`,
-                    boxShadow: `0 0 8px ${b.color}, 0 0 20px ${b.color}55`,
+                    width: b.width, height: i < 2 ? "2px" : "1px",
+                    background: `linear-gradient(${i % 2 === 0 ? "to right" : "to left"}, transparent 0%, ${b.color} 15%, #ffffff 50%, ${b.color} 85%, transparent 100%)`,
+                    boxShadow: `0 0 ${i < 2 ? 14 : 8}px ${b.color}, 0 0 ${i < 2 ? 35 : 18}px ${b.color}77, 0 0 ${i < 2 ? 60 : 30}px ${b.color}33`,
                     opacity: b.opacity,
                     animation: `lgBolt ${b.dur} ${b.delay} ease-out forwards`,
                     transformOrigin: i % 2 === 0 ? "left center" : "right center",
@@ -548,9 +1216,9 @@ function LegendaryReveal({ result, onBack, fromMulti = false }: { result: PullRe
                 <div key={i} style={{
                     position: "absolute", left: b.left,
                     top: i % 2 === 0 ? 0 : "auto", bottom: i % 2 === 1 ? 0 : "auto",
-                    width: "1px", height: b.height,
-                    background: `linear-gradient(${i % 2 === 0 ? "to bottom" : "to top"}, transparent 0%, ${b.color} 20%, #ffffff 50%, ${b.color} 80%, transparent 100%)`,
-                    boxShadow: `0 0 8px ${b.color}, 0 0 20px ${b.color}55`,
+                    width: i < 2 ? "2px" : "1px", height: b.height,
+                    background: `linear-gradient(${i % 2 === 0 ? "to bottom" : "to top"}, transparent 0%, ${b.color} 15%, #ffffff 50%, ${b.color} 85%, transparent 100%)`,
+                    boxShadow: `0 0 ${i < 2 ? 14 : 8}px ${b.color}, 0 0 ${i < 2 ? 35 : 18}px ${b.color}77, 0 0 ${i < 2 ? 60 : 30}px ${b.color}33`,
                     opacity: b.opacity,
                     animation: `lgBoltV ${b.dur} ${b.delay} ease-out forwards`,
                     transformOrigin: i % 2 === 0 ? "center top" : "center bottom",
@@ -571,7 +1239,7 @@ function LegendaryReveal({ result, onBack, fromMulti = false }: { result: PullRe
             ))}
 
             {/* ── Burst Three.js ── */}
-            {showBurst && <FullScreenBurst color={rs.hex} onDone={() => setShowBurst(false)} />}
+            {showBurst && <FullScreenBurst color={rs.hex} onDone={() => setShowBurst(false)} isGold={isGold} />}
 
             {/* ── Mito emerge desde el centro ── */}
             {(phase === "emerge" || phase === "info") && (
@@ -734,26 +1402,27 @@ function LegendaryReveal({ result, onBack, fromMulti = false }: { result: PullRe
     );
 }
 
-type RevealPhase = "flash" | "pillar" | "emerge" | "info";
+type RevealPhase = "cracking" | "flash" | "pillar" | "emerge" | "info";
 
-function RevealSingle({ result, onBack }: { result: PullResult; onBack: () => void }) {
+function RevealSingle({ result, onBack, isGold = false }: { result: PullResult; onBack: () => void; isGold?: boolean }) {
     const rank = ["COMMON","RARE","EPIC","ELITE","LEGENDARY","MYTHIC"].indexOf(result.rarity);
 
     // LEGENDARY y MYTHIC → pantalla épica con rayos + moves
-    if (rank >= 4) return <LegendaryReveal result={result} onBack={onBack} />;
+    if (rank >= 4) return <LegendaryReveal result={result} onBack={onBack} isGold={isGold} />;
 
-    const [phase, setPhase] = useState<RevealPhase>("flash");
+    const [phase, setPhase] = useState<RevealPhase>("cracking");
     const [burstDone, setBurstDone] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const rs = RS[result.rarity];
     const slug = toSlug(result.name);
 
-    // Phase sequence: flash → pillar (suspense) → emerge → info
+    // Phase sequence: cracking (vibra+grietas) → flash → pillar → emerge → info
     useEffect(() => {
-        const t1 = setTimeout(() => setPhase("pillar"),  400);   // flash → pillar
-        const t2 = setTimeout(() => setPhase("emerge"),  2200);  // pillar brilla solo durante 1.8s — intriga
-        const t3 = setTimeout(() => setPhase("info"),   3200);   // emerge → info (mito visible 1s antes del texto)
-        return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+        const t0 = setTimeout(() => setPhase("flash"),  1200);  // cracking dura 1.2s
+        const t1 = setTimeout(() => setPhase("pillar"), 1600);  // flash → pillar
+        const t2 = setTimeout(() => setPhase("emerge"), 3400);  // pillar 1.8s
+        const t3 = setTimeout(() => setPhase("info"),   4400);  // emerge → info
+        return () => { clearTimeout(t0); clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
     }, []);
 
     // Ambient particle shower for high rarity
@@ -766,6 +1435,7 @@ function RevealSingle({ result, onBack }: { result: PullResult; onBack: () => vo
     }, [rank, phase]);
 
     const isInfo = phase === "info";
+    const isCracking = phase === "cracking";
 
     return (
         <div ref={containerRef} style={{
@@ -774,6 +1444,34 @@ function RevealSingle({ result, onBack }: { result: PullResult; onBack: () => vo
             fontFamily: "'Exo 2',sans-serif", overflow: "hidden",
             background: "#070b14",
         }}>
+            {/* ── CRACKING phase — diamante en pantalla con grietas y vibración ── */}
+            {isCracking && (
+                <div style={{
+                    position: "absolute", inset: 0, zIndex: 10,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    background: "#070b14",
+                }}>
+                    {/* Ambient glow que crece */}
+                    <div style={{
+                        position: "absolute",
+                        width: "clamp(200px,35vw,400px)", height: "clamp(200px,35vw,400px)",
+                        borderRadius: "50%",
+                        background: `radial-gradient(circle, ${rs.p}44 0%, transparent 70%)`,
+                        animation: "nxGlow 0.6s ease-in-out infinite",
+                    }} />
+                    <DiamondFragment size={100} isGold={isGold} cracking={true} />
+                    {/* Tension text */}
+                    <div style={{
+                        position: "absolute", bottom: "25%",
+                        fontFamily: "'Rajdhani',sans-serif", fontWeight: 700,
+                        fontSize: "clamp(11px,1.4vw,14px)", letterSpacing: "0.25em",
+                        textTransform: "uppercase", color: rs.p,
+                        opacity: 0.7,
+                        animation: "nxPulse 0.4s ease-in-out infinite",
+                    }}>Essence breaking...</div>
+                </div>
+            )}
+
             {/* ── Flash blanco cegador ── */}
             {phase === "flash" && (
                 <div style={{ position: "absolute", inset: 0, background: "#ffffff", animation: "rvFlash 0.32s ease-out forwards", zIndex: 50 }} />
@@ -831,7 +1529,7 @@ function RevealSingle({ result, onBack }: { result: PullResult; onBack: () => vo
 
             {/* ── Burst Three.js ── */}
             {(phase === "emerge" || phase === "info") && !burstDone && (
-                <FullScreenBurst color={rs.hex} onDone={() => setBurstDone(true)} />
+                <FullScreenBurst color={rs.hex} onDone={() => setBurstDone(true)} isGold={isGold} />
             )}
 
             {/* ── Aro de energía en torno al mito ── */}
@@ -959,7 +1657,7 @@ function RevealSingle({ result, onBack }: { result: PullResult; onBack: () => vo
 
 type CrystalState = "idle" | "cracking" | "revealed";
 
-function RevealMulti({ results, onBack }: { results: PullResult[]; onBack: () => void }) {
+function RevealMulti({ results, onBack, isGold = false }: { results: PullResult[]; onBack: () => void; isGold?: boolean }) {
     const [states, setStates] = useState<CrystalState[]>(Array(5).fill("idle"));
     const [activeIdx, setActiveIdx] = useState<number>(-1);
     const [burstInfo, setBurstInfo] = useState<{ color: number; x: number; y: number; key: number } | null>(null);
@@ -1012,7 +1710,7 @@ function RevealMulti({ results, onBack }: { results: PullResult[]; onBack: () =>
 
     // Pantalla épica de legendary — al cerrar va al SUMMONS
     if (showLegendary) {
-        return <LegendaryReveal result={showLegendary} fromMulti onBack={() => { setShowLegendary(null); setDone(true); }} />;
+        return <LegendaryReveal result={showLegendary} fromMulti isGold={isGold} onBack={() => { setShowLegendary(null); setDone(true); }} />;
     }
 
     if (done) {
@@ -1043,7 +1741,7 @@ function RevealMulti({ results, onBack }: { results: PullResult[]; onBack: () =>
     return (
         <div style={{ position: "fixed", inset: 0, zIndex: 200, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "clamp(16px,3vh,32px)", overflow: "hidden", fontFamily: "'Exo 2',sans-serif", background: "#070b14" }}>
             <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 50% 50%, rgba(123,47,255,0.1) 0%, transparent 65%)", zIndex: 0, pointerEvents: "none" }} />
-            {burstInfo && <FullScreenBurst key={burstInfo.key} color={burstInfo.color} x={burstInfo.x} y={burstInfo.y} onDone={() => setBurstInfo(null)} />}
+            {burstInfo && <FullScreenBurst key={burstInfo.key} color={burstInfo.color} x={burstInfo.x} y={burstInfo.y} isGold={isGold} onDone={() => setBurstInfo(null)} />}
             <p style={{ fontSize: "var(--font-xs)", color: "#ffffff", textTransform: "uppercase", letterSpacing: "0.2em", fontWeight: 700, animation: "nxPulse 1.5s ease-in-out infinite", position: "relative", zIndex: 2 }}>Opening essences...</p>
 
             {/* ── Slots fijos — nunca cambian de tamaño ── */}
@@ -1086,7 +1784,7 @@ function RevealMulti({ results, onBack }: { results: PullResult[]; onBack: () =>
                                         opacity: state === "idle" && i > (activeIdx < 0 ? -1 : activeIdx) ? 0.32 : 1,
                                         transition: "opacity 0.5s ease",
                                     }}>
-                                        <MiniFragment dim={state === "idle"} />
+                                        <MiniDiamond dim={state === "idle"} rarity={results[i]?.rarity} cracking={state === "cracking"} />
                                     </div>
                                 ) : (
                                     /* Myth revelado — aparece suavemente desde abajo */
@@ -1160,12 +1858,13 @@ export default function NexusPage() {
     const [error, setError]     = useState<string | null>(null);
     const [singleResult, setSingleResult] = useState<PullResult | null>(null);
     const [multiResults, setMultiResults] = useState<PullResult[] | null>(null);
+    const [essenceMode, setEssenceMode] = useState<"purple" | "gold">("purple");
 
     const [sphereSize, setSphereSize] = useState(100);
     useEffect(() => {
         function onResize() {
             const w = window.innerWidth;
-            setSphereSize(w < 500 ? 90 : w < 700 ? 110 : w < 1100 ? 150 : 200);
+            setSphereSize(w < 500 ? 55 : w < 700 ? 70 : w < 1100 ? 105 : 145);
         }
         onResize();
         window.addEventListener("resize", onResize);
@@ -1178,8 +1877,12 @@ export default function NexusPage() {
             const bannerData = (br as any).banner;
             setPity({
                 ...(pr as any),
-                _boostedId:     bannerData?.boostedMythIds?.[0] ?? null,
-                _boostedRarity: bannerData?.boostedRarity     ?? "LEGENDARY",
+                goldEssences:      (pr as any).goldEssences      ?? 0,
+                pityEliteGold:     (pr as any).pityEliteGold     ?? 0,
+                pityLegendaryGold: (pr as any).pityLegendaryGold ?? 0,
+                _boostedId:        bannerData?.boostedMythIds?.[0] ?? null,
+                _boostedName:      bannerData?.boostedMythName   ?? null,
+                _boostedRarity:    bannerData?.boostedRarity     ?? "LEGENDARY",
             } as any);
         } catch { setError("Failed to load Nexus"); }
         finally { setLoading(false); }
@@ -1188,10 +1891,11 @@ export default function NexusPage() {
     useEffect(() => { fetchData(); loadThree(); }, [fetchData]);
 
     async function handlePull(amount: 1 | 5) {
-        if (!pity || pity.essences < amount || pulling) return;
+        const available = essenceMode === "gold" ? (pity?.goldEssences ?? 0) : (pity?.essences ?? 0);
+        if (!pity || available < amount || pulling) return;
         setPulling(true); setError(null);
         try {
-            const res: any = await api.nexusPull(amount);
+            const res: any = await api.nexusPull(amount, essenceMode);
             await fetchData();
             if (amount === 1) setSingleResult(res.results[0]);
             else setMultiResults(res.results);
@@ -1199,12 +1903,15 @@ export default function NexusPage() {
         finally { setPulling(false); }
     }
 
-    const essences = pity?.essences ?? 0;
+    const essences     = pity?.essences     ?? 0;
+    const goldEssences = pity?.goldEssences ?? 0;
+    const activeEssences = essenceMode === "gold" ? goldEssences : essences;
+    const isGold = essenceMode === "gold";
     const boostedId     = (pity as any)?._boostedId     ?? null;
     const boostedRarity = ((pity as any)?._boostedRarity ?? "LEGENDARY") as Rarity;
     const boostedRS     = RS[boostedRarity];
     const boostedSlug   = boostedId ? toSlug(boostedId) : null;
-    const boostedName   = boostedId ?? null;
+    const boostedName   = (pity as any)?._boostedName ?? null;
 
     return (
         <PageShell ambientColor="rgba(123,47,255,0.07)">
@@ -1316,7 +2023,7 @@ export default function NexusPage() {
                         ))}
 
                         {/* LEFT: responsive width */}
-                        <div style={{ width: "clamp(120px,22vw,220px)", minWidth: "clamp(120px,22vw,220px)", borderRight: "1px solid rgba(255,255,255,0.07)", display: "flex", flexDirection: "column", overflow: "hidden", position: "relative", zIndex: 1 }}>
+                        <div style={{ width: "clamp(160px,22vw,260px)", minWidth: "clamp(160px,22vw,260px)", borderRight: "1px solid rgba(255,255,255,0.07)", display: "flex", flexDirection: "column", overflow: "hidden", position: "relative", zIndex: 1 }}>
                             <div style={{ flex: 1, position: "relative", overflow: "hidden" }}>
                                 {/* Gradiente dinámico según rareza del boosted */}
                                 <div style={{ position: "absolute", inset: 0, background: `linear-gradient(160deg,${boostedRS.panelBg} 0%,${boostedRS.panelBg.replace(/[\d.]+\)$/, "0.22)")} 45%,rgba(7,11,20,0.95) 100%)` }} />
@@ -1345,10 +2052,10 @@ export default function NexusPage() {
                             {/* Pity */}
                             <div style={{ padding: "8px 12px", borderTop: "1px solid rgba(255,255,255,0.07)", background: "rgba(0,0,0,0.25)" }}>
                                 <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 7 }}>
-                                    <EssenceIcon size={13} />
-                                    <span style={{ fontSize: "var(--font-2xs)", textTransform: "uppercase", letterSpacing: "0.1em", color: "#ffffff", fontWeight: 700 }}>Pity Tracker</span>
+                                    {isGold ? <GoldEssenceIcon size={13} /> : <EssenceIcon size={13} />}
+                                    <span style={{ fontSize: "var(--font-2xs)", textTransform: "uppercase", letterSpacing: "0.1em", color: isGold ? "#fbbf24" : "#ffffff", fontWeight: 700 }}>Pity Tracker</span>
                                 </div>
-                                {PITY_KEYS.map(({ key, label, color, max }) => {
+                                {(isGold ? PITY_KEYS_GOLD : PITY_KEYS_PURPLE).map(({ key, label, color, max }) => {
                                     const cur = (pity as any)?.[key] ?? 0;
                                     const pct = Math.min((cur / max) * 100, 100);
                                     const hot = pct >= 70;
@@ -1365,90 +2072,168 @@ export default function NexusPage() {
                             </div>
                         </div>
 
-                        {/* CENTER: Fragmento + contador essences + botones */}
-                        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "clamp(6px,1.5vh,14px)", position: "relative", zIndex: 1, minWidth: 0 }}>
-                            <div style={{ animation: "nxFloat 5s ease-in-out infinite", position: "relative", zIndex: 1, marginBottom: -sphereSize * 0.15 }}>
-                                <EssenceFragment size={sphereSize} />
+                        {/* CENTER: Fragmento arriba centrado + botones abajo */}
+                        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between", paddingTop: "clamp(6px,2vh,20px)", paddingBottom: "clamp(6px,1.5vh,16px)", position: "relative", zIndex: 1, minWidth: 0, overflow: "hidden" }}>
+                            {/* Top area — fragmento flotante centrado */}
+                            <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 0 }}>
+                            <div style={{ animation: "nxFloat 5s ease-in-out infinite", position: "relative", zIndex: 1 }}>
+                                <DiamondFragment size={sphereSize} isGold={isGold} />
                             </div>
-                            <div style={{ textAlign: "center", position: "relative", zIndex: 2 }}>
-                                <p style={{ fontSize: "var(--font-sm)", fontWeight: 700, color: "#ffffff", letterSpacing: "0.1em", textTransform: "uppercase" }}>Essence</p>
-                                <p style={{ fontSize: "var(--font-xs)", color: "#67e8f9", marginTop: 2 }}>
-                                    {boostedName ? `Boost active · ×10` : "Open essences below"}
+                            <div style={{ textAlign: "center", position: "relative", zIndex: 2, marginTop: -sphereSize * 0.12 }}>
+                                <p style={{ fontSize: "var(--font-xs)", fontWeight: 700, color: isGold ? "#fbbf24" : "#ffffff", letterSpacing: "0.12em", textTransform: "uppercase", transition: "color 0.3s" }}>
+                                    {isGold ? "Gold Essence" : "Essence"}
                                 </p>
                             </div>
 
-                            {/* Essence counter — prominente, con icono de fuego */}
-                            <div style={{
-                                display: "flex", alignItems: "center", gap: 7,
-                                background: "rgba(123,47,255,0.16)",
-                                border: "1px solid rgba(167,139,250,0.4)",
-                                borderRadius: 10,
-                                padding: "6px 16px 6px 12px",
-                                position: "relative", zIndex: 2,
-                                boxShadow: "0 0 18px rgba(123,47,255,0.22)",
-                            }}>
-                                <EssenceIcon size={20} />
-                                <span style={{
-                                    fontSize: "var(--font-lg)", fontWeight: 800,
-                                    color: "#e9d5ff", fontFamily: "'Rajdhani',sans-serif",
-                                    letterSpacing: "0.04em", lineHeight: 1,
-                                }}>{essences}</span>
-                                <span style={{ fontSize: "var(--font-xs)", color: "#a78bfa", fontWeight: 500 }}>essences</span>
+                            </div>{/* end top area */}
+
+                            {/* Bottom controls — pegados abajo */}
+                            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "clamp(4px,1vh,8px)", width: "100%", position: "relative", zIndex: 2 }}>
+                            {/* Essence mode toggle — número prominente */}
+                            <div style={{ display: "flex", gap: 6, position: "relative", zIndex: 2, width: "100%", maxWidth: 240, justifyContent: "center" }}>
+                                {(["purple", "gold"] as const).map(mode => {
+                                    const active = essenceMode === mode;
+                                    const isG = mode === "gold";
+                                    const count = isG ? goldEssences : essences;
+                                    return (
+                                        <button key={mode} onClick={() => setEssenceMode(mode)} style={{
+                                            flex: 1,
+                                            padding: "6px 10px",
+                                            borderRadius: 9,
+                                            border: `1px solid ${active ? (isG ? "rgba(251,191,36,0.6)" : "rgba(167,139,250,0.6)") : "rgba(255,255,255,0.08)"}`,
+                                            background: active ? (isG ? "rgba(251,191,36,0.12)" : "rgba(123,47,255,0.15)") : "rgba(255,255,255,0.02)",
+                                            cursor: "pointer", transition: "all 0.2s",
+                                            boxShadow: active ? `0 0 10px ${isG ? "rgba(251,191,36,0.25)" : "rgba(123,47,255,0.25)"}` : "none",
+                                            display: "flex", flexDirection: "column", alignItems: "center", gap: 1,
+                                        }}>
+                                            {/* Label + icono */}
+                                            <div style={{ display: "flex", alignItems: "center", gap: 3 }}>
+                                                {isG
+                                                    ? <GoldEssenceIcon size={10} style={{ opacity: active ? 1 : 0.4 }} />
+                                                    : <EssenceIcon size={9} style={{ opacity: active ? 1 : 0.35 }} />
+                                                }
+                                                <span style={{
+                                                    fontFamily: "'Rajdhani',sans-serif", fontWeight: 700,
+                                                    fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase",
+                                                    color: active ? (isG ? "#fbbf24" : "#c4b5fd") : "#5a6a80",
+                                                    transition: "color 0.2s",
+                                                }}>
+                                                    {isG ? "Gold" : "Purple"}
+                                                </span>
+                                            </div>
+                                            {/* Número prominente en blanco */}
+                                            <span style={{
+                                                fontFamily: "'Rajdhani',sans-serif", fontWeight: 800,
+                                                fontSize: 18, lineHeight: 1,
+                                                color: active ? "#ffffff" : "#334155",
+                                                letterSpacing: "0.02em",
+                                                transition: "color 0.2s",
+                                            }}>
+                                                {count}
+                                            </span>
+                                        </button>
+                                    );
+                                })}
                             </div>
 
                             {error && <p style={{ fontSize: "var(--font-xs)", color: "#f87171", textAlign: "center", maxWidth: 160, position: "relative", zIndex: 2 }}>{error}</p>}
 
-                            {/* Botones — compactos mobile, crecen en desktop */}
-                            <div style={{ display: "flex", gap: "clamp(6px,1.5vw,12px)", position: "relative", zIndex: 10, width: "100%", justifyContent: "center", padding: "0 clamp(8px,3vw,0px)" }}>
-                                {([1, 5] as const).map(n => (
-                                    <button key={n} onClick={() => handlePull(n)} disabled={pulling || essences < n} style={{
-                                        padding: "clamp(8px,1.5vh,11px) clamp(12px,2.5vw,28px)",
-                                        borderRadius: 8,
-                                        fontSize: "clamp(11px,1.2vw,var(--font-sm))", fontWeight: 700, letterSpacing: "0.04em",
-                                        cursor: essences >= n && !pulling ? "pointer" : "not-allowed",
-                                        border: `1px solid ${essences >= n ? (n === 5 ? "rgba(123,47,255,0.75)" : "rgba(123,47,255,0.55)") : "rgba(255,255,255,0.1)"}`,
-                                        background: essences >= n ? (n === 5 ? "rgba(123,47,255,0.32)" : "rgba(123,47,255,0.18)") : "rgba(255,255,255,0.03)",
-                                        color: essences >= n ? (n === 5 ? "#e2d9ff" : "#c4b5fd") : "#5a6a80",
-                                        transition: "all 0.15s",
-                                        boxShadow: essences >= n ? `0 0 14px ${n === 5 ? "rgba(123,47,255,0.4)" : "rgba(123,47,255,0.22)"}` : "none",
-                                        whiteSpace: "nowrap", flexShrink: 0,
-                                        display: "flex", alignItems: "center", gap: 5,
-                                    }}>
-                                        {pulling ? "..." : `Open ×${n}`}
-                                    </button>
-                                ))}
+                            {/* Botones — compactos, solo x1 en gold */}
+                            <div style={{ display: "flex", gap: 6, position: "relative", zIndex: 10, width: "100%", maxWidth: 220, justifyContent: "center" }}>
+                                {(isGold ? [1] as const : [1, 5] as const).map(n => {
+                                    const canPull = activeEssences >= n && !pulling;
+                                    const isX5 = n === 5;
+                                    const borderColor = canPull
+                                        ? isGold ? "rgba(251,191,36,0.65)" : (isX5 ? "rgba(123,47,255,0.75)" : "rgba(123,47,255,0.55)")
+                                        : "rgba(255,255,255,0.1)";
+                                    const bgColor = canPull
+                                        ? isGold ? "rgba(251,191,36,0.14)" : (isX5 ? "rgba(123,47,255,0.28)" : "rgba(123,47,255,0.16)")
+                                        : "rgba(255,255,255,0.03)";
+                                    const textColor = canPull
+                                        ? isGold ? "#fcd34d" : (isX5 ? "#e2d9ff" : "#c4b5fd")
+                                        : "#5a6a80";
+                                    const shadow = canPull
+                                        ? isGold ? "0 0 12px rgba(251,191,36,0.3)" : `0 0 12px ${isX5 ? "rgba(123,47,255,0.4)" : "rgba(123,47,255,0.2)"}`
+                                        : "none";
+                                    return (
+                                        <button key={n} onClick={() => handlePull(n)} disabled={pulling || activeEssences < n} style={{
+                                            flex: 1,
+                                            padding: "8px 0",
+                                            borderRadius: 8,
+                                            fontSize: "var(--font-xs)", fontWeight: 700, letterSpacing: "0.06em",
+                                            cursor: canPull ? "pointer" : "not-allowed",
+                                            border: `1px solid ${borderColor}`,
+                                            background: bgColor, color: textColor,
+                                            transition: "all 0.2s", boxShadow: shadow,
+                                            whiteSpace: "nowrap",
+                                            display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
+                                        }}>
+                                            {isGold && canPull && <GoldEssenceIcon size={12} />}
+                                            {pulling ? "..." : `Open ×${n}`}
+                                        </button>
+                                    );
+                                })}
                             </div>
+                            </div>{/* end bottom controls */}
                         </div>
 
                         {/* RIGHT: responsive width */}
-                        <div style={{ width: "clamp(90px,15vw,148px)", minWidth: "clamp(90px,15vw,148px)", borderLeft: "1px solid rgba(255,255,255,0.07)", padding: "10px clamp(6px,1vw,13px)", display: "flex", flexDirection: "column", gap: 4, position: "relative", zIndex: 1, overflow: "hidden" }}>
-                            <p style={{ fontSize: "var(--font-2xs)", textTransform: "uppercase", letterSpacing: "0.1em", color: "#ffffff", fontWeight: 700, marginBottom: 3 }}>Rates</p>
-                            {([
-                                { l: "Common",    c: "#64748b", tc: "#e2e8f0", r: "60%" },
-                                { l: "Rare",      c: "#6366f1", tc: "#c7d2fe", r: "30%" },
-                                { l: "Epic",      c: "#a855f7", tc: "#e9d5ff", r: "7%"  },
-                                { l: "Elite",     c: "#94a3b8", tc: "#f1f5f9", r: "2.5%" },
-                                { l: "Legendary", c: "#fbbf24", tc: "#fde68a", r: "0.5%" },
-                            ] as const).map(({ l, c, tc, r }) => (
-                                <div key={l} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "2px 0", gap: 3 }}>
-                                    <div style={{ display: "flex", alignItems: "center", gap: 4, minWidth: 0 }}>
-                                        <div style={{ width: 6, height: 6, borderRadius: 1, background: c, flexShrink: 0 }} />
-                                        <span style={{ fontSize: "var(--font-2xs)", color: tc, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{l}</span>
+                        <div style={{ width: "clamp(130px,17vw,195px)", minWidth: "clamp(130px,17vw,195px)", borderLeft: "1px solid rgba(255,255,255,0.07)", padding: "10px clamp(8px,1.2vw,16px)", display: "flex", flexDirection: "column", gap: 4, position: "relative", zIndex: 1, overflow: "hidden" }}>
+                            <p style={{ fontSize: "var(--font-2xs)", textTransform: "uppercase", letterSpacing: "0.1em", color: isGold ? "#fbbf24" : "#ffffff", fontWeight: 700, marginBottom: 3 }}>Rates</p>
+                            {isGold ? (
+                                // Gold Essence rates: EPIC 85% / ELITE 10% / LEGENDARY 5%
+                                [
+                                    { l: "Epic",      c: "#a855f7", tc: "#e9d5ff", r: "85%" },
+                                    { l: "Elite",     c: "#22d3ee", tc: "#a5f3fc", r: "10%" },
+                                    { l: "Legendary", c: "#fbbf24", tc: "#fde68a", r: "5%"  },
+                                ].map(({ l, c, tc, r }) => (
+                                    <div key={l} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "2px 0", gap: 3 }}>
+                                        <div style={{ display: "flex", alignItems: "center", gap: 4, minWidth: 0 }}>
+                                            <div style={{ width: 6, height: 6, borderRadius: 1, background: c, flexShrink: 0, boxShadow: `0 0 4px ${c}` }} />
+                                            <span style={{ fontSize: "var(--font-2xs)", color: tc, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{l}</span>
+                                        </div>
+                                        <span style={{ fontSize: "var(--font-2xs)", fontFamily: "monospace", color: "#fde68a", flexShrink: 0, fontWeight: 700 }}>{r}</span>
                                     </div>
-                                    <span style={{ fontSize: "var(--font-2xs)", fontFamily: "monospace", color: "#e2e8f0", flexShrink: 0 }}>{r}</span>
-                                </div>
-                            ))}
-                            <div style={{ marginTop: 5, paddingTop: 6, borderTop: "1px solid rgba(255,255,255,0.07)" }}>
-                                <p style={{ fontSize: "var(--font-2xs)", color: "#ffffff", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700, marginBottom: 3 }}>Boost ×10</p>
-                                <p style={{ fontSize: "var(--font-2xs)", color: "#a8b5c8", lineHeight: 1.5 }}>If you get the featured myth's rarity, ×10 chance it's them.</p>
+                                ))
+                            ) : (
+                                // Purple Essence rates estándar
+                                [
+                                    { l: "Common",    c: "#64748b", tc: "#e2e8f0", r: "60%" },
+                                    { l: "Rare",      c: "#6366f1", tc: "#c7d2fe", r: "30%" },
+                                    { l: "Epic",      c: "#a855f7", tc: "#e9d5ff", r: "7%"  },
+                                    { l: "Elite",     c: "#22d3ee", tc: "#a5f3fc", r: "2.5%" },
+                                    { l: "Legendary", c: "#fbbf24", tc: "#fde68a", r: "0.5%" },
+                                ].map(({ l, c, tc, r }) => (
+                                    <div key={l} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "2px 0", gap: 3 }}>
+                                        <div style={{ display: "flex", alignItems: "center", gap: 4, minWidth: 0 }}>
+                                            <div style={{ width: 6, height: 6, borderRadius: 1, background: c, flexShrink: 0 }} />
+                                            <span style={{ fontSize: "var(--font-2xs)", color: tc, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{l}</span>
+                                        </div>
+                                        <span style={{ fontSize: "var(--font-2xs)", fontFamily: "monospace", color: "#e2e8f0", flexShrink: 0 }}>{r}</span>
+                                    </div>
+                                ))
+                            )}
+                            {/* Pity info según modo */}
+                            <div style={{ marginTop: 5, paddingTop: 6, borderTop: `1px solid ${isGold ? "rgba(251,191,36,0.15)" : "rgba(255,255,255,0.07)"}` }}>
+                                {isGold ? (
+                                    <>
+                                        <p style={{ fontSize: "var(--font-2xs)", color: "#fbbf24", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700, marginBottom: 3 }}>Pity</p>
+                                        <p style={{ fontSize: "var(--font-2xs)", color: "#a8b5c8", lineHeight: 1.5 }}>Elite in 10 · Legendary in 15 · Epic always</p>
+                                    </>
+                                ) : (
+                                    <>
+                                        <p style={{ fontSize: "var(--font-2xs)", color: "#ffffff", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700, marginBottom: 3 }}>Boost ×10</p>
+                                        <p style={{ fontSize: "var(--font-2xs)", color: "#a8b5c8", lineHeight: 1.5 }}>If you get the featured myth's rarity, ×10 chance it's them.</p>
+                                    </>
+                                )}
                             </div>
                         </div>
                     </div>
                 )}
             </div>
 
-            {singleResult && <RevealSingle result={singleResult} onBack={() => setSingleResult(null)} />}
-            {multiResults && <RevealMulti results={multiResults} onBack={() => setMultiResults(null)} />}
+            {singleResult && <RevealSingle result={singleResult} isGold={isGold} onBack={() => setSingleResult(null)} />}
+            {multiResults && <RevealMulti results={multiResults} isGold={isGold} onBack={() => setMultiResults(null)} />}
         </PageShell>
     );
 }

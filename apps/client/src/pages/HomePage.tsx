@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { useTrainer } from "../context/TrainerContext";
 import { useMapDrag } from "../hooks/useMapDrag";
 import ChatPanel from "../components/ChatPanel";
+import MailPanel from "../components/MailPanel";
+import { api } from "../lib/api";
 import AvatarWithFrame from "../components/AvatarWithFrame";
 
 type District = {
@@ -98,6 +100,8 @@ export default function HomePage() {
     const mapRef       = useRef<HTMLDivElement>(null);
     const [hoveredId,   setHoveredId]   = useState<string | null>(null);
     const [chatOpen,    setChatOpen]    = useState(false);
+    const [mailOpen,    setMailOpen]    = useState(false);
+    const [unreadMail,  setUnreadMail]  = useState(0);
     const { offset: rawOffset, onMouseDown, onTouchStart, didDrag } = useMapDrag(containerRef, mapRef, { initialYRatio: 0.44 });
     const offset = rawOffset ?? { x: 0, y: 0 };
 
@@ -120,6 +124,11 @@ export default function HomePage() {
     const selFrame    = t?.avatarFrame ?? null;
 
     const nexus = DISTRICTS.find(d => d.id === "nexus")!;
+
+    // Fetch unread mail count on mount
+    useEffect(() => {
+        api.mail().then(({ unreadCount }) => setUnreadMail(unreadCount)).catch(() => {});
+    }, []);
 
     return (
         <div className="w-screen h-screen overflow-hidden relative bg-black flex flex-col select-none">
@@ -210,7 +219,30 @@ export default function HomePage() {
                             <span style={{ fontFamily:"Rajdhani,sans-serif",fontWeight:700,fontSize:15,color,lineHeight:1 }}>{value}</span>
                         </div>
                     ))}
-                    <button onClick={() => setChatOpen(true)} style={{ width:38,height:38,borderRadius:10,background:"rgba(4,7,16,.88)",border:"1px solid rgba(99,102,241,.50)",boxShadow:"0 0 10px rgba(99,102,241,.20)",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:17,flexShrink:0,marginLeft:8,transition:"all .15s ease" }}>💬</button>
+                    {/* Mail button */}
+                    <button
+                        onClick={() => setMailOpen(true)}
+                        style={{ position:"relative", width:38,height:38,borderRadius:10,background:"rgba(4,7,16,.88)",border:"1px solid rgba(103,232,249,.45)",boxShadow:"0 0 10px rgba(103,232,249,.15)",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",flexShrink:0,transition:"all .15s ease" }}
+                    >
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="rgba(103,232,249,0.85)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="2" y="4" width="20" height="16" rx="2"/>
+                            <path d="m2 7 10 7 10-7"/>
+                        </svg>
+                        {unreadMail > 0 && (
+                            <span style={{ position:"absolute",top:-5,right:-5,minWidth:16,height:16,borderRadius:8,background:"#f87171",color:"#fff",fontSize:9,fontFamily:"monospace",fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center",padding:"0 3px",border:"1.5px solid #070b14",lineHeight:1 }}>
+                                {unreadMail > 99 ? "99+" : unreadMail}
+                            </span>
+                        )}
+                    </button>
+                    {/* Chat button */}
+                    <button
+                        onClick={() => setChatOpen(true)}
+                        style={{ width:38,height:38,borderRadius:10,background:"rgba(4,7,16,.88)",border:"1px solid rgba(99,102,241,.50)",boxShadow:"0 0 10px rgba(99,102,241,.20)",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",flexShrink:0,transition:"all .15s ease" }}
+                    >
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="rgba(167,139,250,0.85)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                    </button>
                 </div>
             </div>
 
@@ -279,6 +311,7 @@ export default function HomePage() {
 
             {/* ── CHAT OVERLAY ── */}
             {chatOpen && <ChatPanel onClose={() => setChatOpen(false)} />}
+            {mailOpen && <MailPanel onClose={() => setMailOpen(false)} onUnreadChange={setUnreadMail} />}
         </div>
     );
 }

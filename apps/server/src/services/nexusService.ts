@@ -24,6 +24,10 @@ const PITY_EPIC      = 30;
 const PITY_ELITE     = 100;
 const PITY_LEGENDARY = 150;
 
+// Gold Essence pity thresholds (más agresivos)
+const GOLD_PITY_ELITE     = 10;
+const GOLD_PITY_LEGENDARY = 15;
+
 // ─── Tipos ────────────────────────────────────────────────────
 
 export interface PullResult {
@@ -55,17 +59,23 @@ export async function getActiveBanner() {
     });
     if (!banner) return null;
 
-    // Compute boostedRarity: highest rarity among the boosted myths
+    // Compute boostedRarity and boostedMythName
     const allCreatures = getAllCreatures();
     const boostedCreatures = allCreatures.filter(c => banner.boostedMythIds.includes(c.id));
     let boostedRarity: Rarity = "COMMON";
+    let boostedMythName: string | null = null;
     for (const c of boostedCreatures) {
         if (RARITY_RANK[c.rarity] > RARITY_RANK[boostedRarity]) {
             boostedRarity = c.rarity;
+            boostedMythName = c.name;
         }
     }
+    // If multiple boosted, take the first one's name
+    if (!boostedMythName && boostedCreatures.length > 0) {
+        boostedMythName = boostedCreatures[0].name;
+    }
 
-    return { ...banner, boostedRarity };
+    return { ...banner, boostedRarity, boostedMythName };
 }
 
 // ─── Pity del trainer ────────────────────────────────────────
@@ -74,12 +84,15 @@ export async function getTrainerPity(userId: string) {
     const profile = await prisma.trainerProfile.findUnique({
         where: { userId },
         select: {
-            essences:         true,
+            essences:          true,
+            goldEssences:      true,
             corruptedEssences: true,
-            pityRare:         true,
-            pityEpic:         true,
-            pityElite:        true,
-            pityLegendary:    true,
+            pityRare:          true,
+            pityEpic:          true,
+            pityElite:         true,
+            pityLegendary:     true,
+            pityEliteGold:     true,
+            pityLegendaryGold: true,
         },
     });
     if (!profile) throw new Error("Trainer not found");
@@ -88,21 +101,29 @@ export async function getTrainerPity(userId: string) {
 
 // ─── Pull principal ───────────────────────────────────────────
 
-export async function pullEssences(userId: string, amount: 1 | 5): Promise<PullResult[]> {
+export async function pullEssences(userId: string, amount: 1 | 5, essenceType: "purple" | "gold" = "purple"): Promise<PullResult[]> {
     // 1. Verificar que tiene suficientes Essences
     const profile = await prisma.trainerProfile.findUnique({
         where: { userId },
         select: {
-            essences:      true,
-            pityRare:      true,
-            pityEpic:      true,
-            pityElite:     true,
-            pityLegendary: true,
+            essences:          true,
+            goldEssences:      true,
+            pityRare:          true,
+            pityEpic:          true,
+            pityElite:         true,
+            pityLegendary:     true,
+            pityEliteGold:     true,
+            pityLegendaryGold: true,
         },
     });
 
     if (!profile) throw new Error("Trainer not found");
-    if (profile.essences < amount) throw new Error("Not enough Essences");
+
+    if (essenceType === "gold") {
+        if ((profile.goldEssences ?? 0) < amount) throw new Error("Not enough Gold Essences");
+    } else {
+        if (profile.essences < amount) throw new Error("Not enough Essences");
+    }
 
     // 2. Banner activo (para boosted chance)
     const banner = await getActiveBanner();
@@ -112,18 +133,50 @@ export async function pullEssences(userId: string, amount: 1 | 5): Promise<PullR
     const allCreatures = getAllCreatures();
     if (allCreatures.length === 0) throw new Error("No myths available");
 
-    // 4. Ejecutar pulls uno a uno, actualizando pity en memoria
+    // 4. Ejecutar pulls usando pity separado según tipo
     let { pityRare, pityEpic, pityElite, pityLegendary } = profile;
+    let pityEliteGold     = profile.pityEliteGold     ?? 0;
+    let pityLegendaryGold = profile.pityLegendaryGold ?? 0;
     const results: PullResult[] = [];
 
     for (let i = 0; i < amount; i++) {
-        const { rarity, isPityGuarantee, newPityRare, newPityEpic, newPityElite, newPityLegendary } =
-            resolvePityAndRoll(pityRare, pityEpic, pityElite, pityLegendary);
+        let rarity: Rarity;
+        let isPityGuarantee: boolean;
+        let newPityRare: number, newPityEpic: number, newPityElite: number, newPityLegendary: number;
+        let newPityEliteGold = pityEliteGold, newPityLegendaryGold = pityLegendaryGold;
 
-        pityRare      = newPityRare;
-        pityEpic      = newPityEpic;
-        pityElite     = newPityElite;
-        pityLegendary = newPityLegendary;
+        if (essenceType === "gold") {
+            const result = resolvePityAndRoll(
+                0, 0, pityEliteGold, pityLegendaryGold,
+                GOLD_PITY_ELITE, GOLD_PITY_LEGENDARY, rollRarityGold
+            );
+            if (RARITY_RANK[result.rarity] < RARITY_RANK["EPIC"]) {
+                rarity = "EPIC";
+                isPityGuarantee = true;
+            } else {
+                rarity = result.rarity;
+                isPityGuarantee = result.isPityGuarantee;
+            }
+            // Pity purple no cambia con pulls gold
+            newPityRare = pityRare; newPityEpic = pityEpic;
+            newPityElite = pityElite; newPityLegendary = pityLegendary;
+            // Pity gold sí cambia
+            newPityEliteGold     = RARITY_RANK[rarity] >= RARITY_RANK["ELITE"]     ? 0 : result.newPityElite;
+            newPityLegendaryGold = RARITY_RANK[rarity] >= RARITY_RANK["LEGENDARY"] ? 0 : result.newPityLegendary;
+        } else {
+            const result = resolvePityAndRoll(pityRare, pityEpic, pityElite, pityLegendary);
+            ({ rarity, isPityGuarantee, newPityRare, newPityEpic, newPityElite, newPityLegendary } = result);
+            // Pity gold no cambia con pulls purple
+            newPityEliteGold = pityEliteGold;
+            newPityLegendaryGold = pityLegendaryGold;
+        }
+
+        pityRare          = newPityRare;
+        pityEpic          = newPityEpic;
+        pityElite         = newPityElite;
+        pityLegendary     = newPityLegendary;
+        pityEliteGold     = newPityEliteGold;
+        pityLegendaryGold = newPityLegendaryGold;
 
         // Pool de la rareza obtenida, con boosted weight para myths del banner
         const pool = allCreatures.filter((c) => c.rarity === rarity);
@@ -175,11 +228,16 @@ export async function pullEssences(userId: string, amount: 1 | 5): Promise<PullR
     await prisma.trainerProfile.update({
         where: { userId },
         data: {
-            essences:      { decrement: amount },
+            ...(essenceType === "gold"
+                ? { goldEssences: { decrement: amount } }
+                : { essences:     { decrement: amount } }
+            ),
             pityRare,
             pityEpic,
             pityElite,
             pityLegendary,
+            pityEliteGold,
+            pityLegendaryGold,
         },
     });
 
@@ -193,6 +251,9 @@ function resolvePityAndRoll(
     pityEpic: number,
     pityElite: number,
     pityLegendary: number,
+    eliteThreshold     = PITY_ELITE,
+    legendaryThreshold = PITY_LEGENDARY,
+    rollFn: () => Rarity = rollRarity,
 ): {
     rarity: Rarity;
     isPityGuarantee: boolean;
@@ -210,10 +271,10 @@ function resolvePityAndRoll(
     const nextLegendary = pityLegendary + 1;
 
     // Pity checks — prioridad: LEGENDARY > ELITE > EPIC > RARE
-    if (nextLegendary >= PITY_LEGENDARY) {
+    if (nextLegendary >= legendaryThreshold) {
         rarity = "LEGENDARY";
         isPityGuarantee = true;
-    } else if (nextElite >= PITY_ELITE) {
+    } else if (nextElite >= eliteThreshold) {
         rarity = "ELITE";
         isPityGuarantee = true;
     } else if (nextEpic >= PITY_EPIC) {
@@ -223,12 +284,9 @@ function resolvePityAndRoll(
         rarity = "RARE";
         isPityGuarantee = true;
     } else {
-        rarity = rollRarity();
+        rarity = rollFn();
     }
 
-    // Actualizar contadores:
-    // - Si la rareza obtenida ES la del contador o está por encima → resetear a 0
-    // - Si está por debajo → incrementar
     const newPityRare      = RARITY_RANK[rarity] >= RARITY_RANK["RARE"]      ? 0 : nextRare;
     const newPityEpic      = RARITY_RANK[rarity] >= RARITY_RANK["EPIC"]      ? 0 : nextEpic;
     const newPityElite     = RARITY_RANK[rarity] >= RARITY_RANK["ELITE"]     ? 0 : nextElite;
@@ -259,6 +317,24 @@ function rollRarity(): Rarity {
         if (roll < cumulative) return r;
     }
     return "COMMON";
+}
+
+// Gold Essence roll — EPIC 85% / ELITE 10% / LEGENDARY 5%, no COMMON/RARE
+const GOLD_WEIGHTS: Partial<Record<Rarity, number>> = {
+    EPIC:      85,
+    ELITE:     10,
+    LEGENDARY:  5,
+};
+
+function rollRarityGold(): Rarity {
+    const total = Object.values(GOLD_WEIGHTS).reduce((a, b) => a! + b!, 0)!;
+    const roll  = Math.random() * total;
+    let cumulative = 0;
+    for (const [r, w] of Object.entries(GOLD_WEIGHTS) as [Rarity, number][]) {
+        cumulative += w;
+        if (roll < cumulative) return r;
+    }
+    return "EPIC";
 }
 
 function weightedPickFromPool(

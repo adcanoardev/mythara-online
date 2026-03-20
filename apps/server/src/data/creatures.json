@@ -9264,7 +9264,14 @@
                 "accuracy": 100,
                 "cooldown": 0,
                 "description": "A basic bite that injects a small dose of venom.",
-                "effects": []
+                "effects": [
+                            {
+                                "type": "apply_status",
+                                "status": "poison",
+                                "chance": 15,
+                                "target": "enemy"
+                            }
+                        ]
             },
             {
                 "id": "venokrel_toxic_spores",
@@ -9312,7 +9319,7 @@
                 "affinities": ["VENOM"],
                 "height": 1.2,
                 "weight": 32.0,
-                "description": git,
+                "description": "Venokrel evolves into a two-headed hydra, each head with a different type of venom.",
                 "baseStats": {
                     "hp": 108,
                     "atk": 88,
@@ -9336,7 +9343,14 @@
                         "accuracy": 100,
                         "cooldown": 0,
                         "description": "A basic bite that injects a small dose of venom.",
-                        "effects": []
+                        "effects": [
+                            {
+                                "type": "apply_status",
+                                "status": "poison",
+                                "chance": 15,
+                                "target": "enemy"
+                            }
+                        ]
                     },
                     {
                         "id": "mordventh_hydra_bite",
@@ -9346,7 +9360,7 @@
                         "power": 68,
                         "accuracy": 95,
                         "cooldown": 2,
-                        "description": "Ataque con las tres cabezas de la hidra, cada una inyectando un veneno distinto.",
+                        "description": "Ataque con las dos cabezas de la hidra, inyectando veneno.",
                         "effects": [
                             {
                                 "type": "apply_status",
@@ -9364,7 +9378,7 @@
                         "power": 95,
                         "accuracy": 85,
                         "cooldown": 5,
-                        "description": "The three heads attack simultaneously with devastating combined venoms.",
+                        "description": "The two heads attack simultaneously with devastating combined venoms.",
                         "effects": [
                             {
                                 "type": "apply_status",
@@ -9413,7 +9427,14 @@
                         "accuracy": 100,
                         "cooldown": 0,
                         "description": "A basic bite that injects a small dose of venom.",
-                        "effects": []
+                        "effects": [
+                            {
+                                "type": "apply_status",
+                                "status": "poison",
+                                "chance": 15,
+                                "target": "enemy"
+                            }
+                        ]
                     },
                     {
                         "id": "aborventh_hydra_bite",
