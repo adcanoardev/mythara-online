@@ -84,18 +84,21 @@ interface Enhancer {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const RARITY_CONFIG: Record<string, { label: string; color: string; bg: string; border: string }> = {
-    COMMON:    { label: "COM",   color: "#94a3b8", bg: "rgba(100,116,139,.18)", border: "rgba(100,116,139,.28)" },
-    RARE:      { label: "RARE",  color: "#818cf8", bg: "rgba(99,102,241,.18)",  border: "rgba(99,102,241,.28)"  },
-    EPIC:      { label: "EPIC",  color: "#c084fc", bg: "rgba(192,132,252,.18)", border: "rgba(192,132,252,.28)" },
-    ELITE:     { label: "ELITE", color: "var(--text-primary)", bg: "rgba(226,232,240,.18)", border: "rgba(226,232,240,.28)" },
-    LEGENDARY: { label: "LEG",   color: "var(--accent-gold)", bg: "rgba(251,191,36,.18)",  border: "rgba(251,191,36,.28)"  },
-    MYTHIC:    { label: "MYT",   color: "#f472b6", bg: "rgba(244,114,182,.18)", border: "rgba(244,114,182,.28)" },
+    COMMON:    { label: "COM",   color: "var(--rarity-common-color)",    bg: "var(--rarity-common-bg)",    border: "var(--rarity-common-border)"    },
+    RARE:      { label: "RARE",  color: "var(--rarity-rare-color)",      bg: "var(--rarity-rare-bg)",      border: "var(--rarity-rare-border)"      },
+    EPIC:      { label: "EPIC",  color: "var(--rarity-epic-color)",      bg: "var(--rarity-epic-bg)",      border: "var(--rarity-epic-border)"      },
+    ELITE:     { label: "ELITE", color: "var(--rarity-elite-color)",     bg: "var(--rarity-elite-bg)",     border: "var(--rarity-elite-border)"     },
+    LEGENDARY: { label: "LEG",   color: "var(--rarity-legendary-color)", bg: "var(--rarity-legendary-bg)", border: "var(--rarity-legendary-border)" },
+    MYTHIC:    { label: "MYT",   color: "var(--rarity-mythic-color)",    bg: "var(--rarity-mythic-bg)",    border: "var(--rarity-mythic-border)"    },
 };
 
 const RARITY_GLOW: Record<string, string> = {
-    COMMON: "rgba(148,163,184,.35)", RARE: "rgba(99,102,241,.45)",
-    EPIC: "rgba(192,132,252,.45)", ELITE: "rgba(226,232,240,.45)",
-    LEGENDARY: "rgba(251,191,36,.5)", MYTHIC: "rgba(244,114,182,.55)",
+    COMMON:    "var(--rarity-common-glow)",
+    RARE:      "var(--rarity-rare-glow)",
+    EPIC:      "var(--rarity-epic-glow)",
+    ELITE:     "var(--rarity-elite-glow)",
+    LEGENDARY: "var(--rarity-legendary-glow)",
+    MYTHIC:    "var(--rarity-mythic-glow)",
 };
 
 const AFFINITY_ICON: Record<string, string> = {
@@ -151,9 +154,8 @@ function MythCard({ myth, selected, onClick }: { myth: Myth; selected: boolean; 
                 borderRadius: 10,
                 aspectRatio: "0.72",
                 border: selected ? `2px solid ${rar.color}cc` : `1px solid ${rar.border}`,
-                boxShadow: selected ? `0 0 16px ${RARITY_GLOW[myth.rarity]}` : "none",
+                boxShadow: selected ? `0 0 14px ${RARITY_GLOW[myth.rarity]}, inset 0 0 8px ${RARITY_GLOW[myth.rarity].replace(/[\d.]+\)$/, "0.15)")}` : "none",
                 background: "linear-gradient(135deg,#0d1525,#070f1a)",
-                transform: selected ? "scale(1.04)" : "scale(1)",
             }}>
             {/* Art */}
             {artUrl ? (
@@ -596,6 +598,24 @@ export default function TavernPage() {
     const [expandedView, setExpandedView] = useState(false);
     const [expandAffFilter, setExpandAffFilter] = useState("ALL");
     const [expandRarFilter, setExpandRarFilter] = useState("ALL");
+    const [sortBy, setSortBy] = useState<"level_rarity" | "level" | "rarity" | "power" | "name">("level_rarity");
+
+    // ─── Orden compartido — se aplica en panel izquierdo Y en expand ──
+    const RARITY_RANK: Record<string, number> = { COMMON:0, RARE:1, EPIC:2, ELITE:3, LEGENDARY:4, MYTHIC:5 };
+    function applySort(list: Myth[]): Myth[] {
+        return [...list].sort((a, b) => {
+            switch (sortBy) {
+                case "level_rarity":
+                    if (b.level !== a.level) return b.level - a.level;
+                    return (RARITY_RANK[b.rarity] ?? 0) - (RARITY_RANK[a.rarity] ?? 0);
+                case "level":   return b.level - a.level;
+                case "rarity":  return (RARITY_RANK[b.rarity] ?? 0) - (RARITY_RANK[a.rarity] ?? 0);
+                case "power":   return calcPower(b) - calcPower(a);
+                case "name":    return (a.name ?? a.speciesId).localeCompare(b.name ?? b.speciesId);
+                default:        return 0;
+            }
+        });
+    }
 
     // Normaliza un creature del backend: moves/distortion/stats pueden venir
     // directos o anidados en speciesData segun la version del backend
@@ -631,8 +651,8 @@ export default function TavernPage() {
 
     useEffect(() => { load(); }, [load]);
 
-    const filtered = myths.filter(m =>
-        affFilter === "ALL" || (m.affinities ?? []).includes(affFilter)
+    const filtered = applySort(
+        myths.filter(m => affFilter === "ALL" || (m.affinities ?? []).includes(affFilter))
     );
 
     const rar = selected ? (RARITY_CONFIG[selected.rarity] ?? RARITY_CONFIG.COMMON) : null;
@@ -747,8 +767,8 @@ export default function TavernPage() {
             <div className="relative flex-1 flex overflow-hidden min-h-0">
 
                 {/* ── LEFT: myth card grid / inventory ── */}
-                <div className="flex flex-col overflow-hidden flex-shrink-0"
-                    style={{ width: "clamp(160px,30%,260px)", borderRight: "1px solid rgba(255,255,255,.05)" }}>
+                <div className="flex flex-col overflow-hidden flex-shrink-0 min-h-0"
+                    style={{ width: "clamp(160px,30%,260px)", borderRight: "1px solid rgba(255,255,255,.05)", overflowX: "hidden" }}>
 
                     {/* ── Left tabs: Myths / Inventory ── */}
                     <div className="flex flex-shrink-0 items-center" style={{ borderBottom: "1px solid rgba(255,255,255,.06)" }}>
@@ -829,22 +849,49 @@ export default function TavernPage() {
                             </button>
                         ))}
                     </div>
-                    {/* Grid */}
-                    <div className="flex-1 overflow-y-auto p-2"
-                        style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 5, alignContent: "start", scrollbarWidth: "none" }}>
-                        {loading ? (
-                            [...Array(6)].map((_,i) => (
-                                <div key={i} className="rounded-xl animate-pulse"
-                                    style={{ aspectRatio: ".72", background: "rgba(255,255,255,.05)" }} />
-                            ))
-                        ) : filtered.map(m => (
-                            <MythCard key={m.id} myth={m} selected={selected?.id === m.id}
-                                onClick={() => { setSelected(m); setTab("stats"); setSelectedForm(0); setDistortionFlash(false); }} />
+                    {/* Sort selector — compacto, shared con expand */}
+                    <div className="flex-shrink-0 flex items-center gap-1.5 px-2 py-1.5"
+                        style={{ borderBottom: "1px solid rgba(255,255,255,.05)", background: "rgba(0,0,0,0.15)" }}>
+                        <span style={{ fontSize: 9, color: "rgba(255,255,255,.25)", fontFamily: "monospace", letterSpacing: ".1em", flexShrink: 0 }}>SORT</span>
+                        {([
+                            { id: "level_rarity", label: "Lv+Rar" },
+                            { id: "level",        label: "Level"  },
+                            { id: "rarity",       label: "Rarity" },
+                            { id: "power",        label: "PWR"    },
+                            { id: "name",         label: "Name"   },
+                        ] as const).map(opt => (
+                            <button key={opt.id} onClick={() => setSortBy(opt.id)}
+                                style={{
+                                    padding: "1px 5px", borderRadius: 4,
+                                    fontSize: 9, fontFamily: "monospace", cursor: "pointer",
+                                    background: sortBy === opt.id ? "rgba(167,139,250,.2)" : "transparent",
+                                    border: sortBy === opt.id ? "1px solid rgba(167,139,250,.4)" : "1px solid transparent",
+                                    color: sortBy === opt.id ? "#a78bfa" : "rgba(255,255,255,.28)",
+                                    whiteSpace: "nowrap",
+                                    transition: "all 0.12s",
+                                }}>
+                                {opt.label}
+                            </button>
                         ))}
-                        {!loading && filtered.length === 0 && (
-                            <div className="col-span-3 text-center pt-8 font-mono text-[10px]"
-                                style={{ color: "rgba(255,255,255,.25)" }}>No myths found</div>
-                        )}
+                    </div>
+                    {/* Scroll wrapper — flex-1 aquí, no en el grid */}
+                    <div style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden", scrollbarWidth: "none" }}>
+                        {/* Grid */}
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 4, padding: 8, alignContent: "start" }}>
+                            {loading ? (
+                                [...Array(6)].map((_,i) => (
+                                    <div key={i} className="rounded-xl animate-pulse"
+                                        style={{ aspectRatio: ".72", background: "rgba(255,255,255,.05)" }} />
+                                ))
+                            ) : filtered.map(m => (
+                                <MythCard key={m.id} myth={m} selected={selected?.id === m.id}
+                                    onClick={() => { setSelected(m); setTab("stats"); setSelectedForm(0); setDistortionFlash(false); }} />
+                            ))}
+                            {!loading && filtered.length === 0 && (
+                                <div className="col-span-3 text-center pt-8 font-mono text-[10px]"
+                                    style={{ color: "rgba(255,255,255,.25)" }}>No myths found</div>
+                            )}
+                        </div>
                     </div>
                     {/* Footer count */}
                     <div className="flex-shrink-0 px-3 py-2 font-mono text-[9px] text-center"
@@ -1219,11 +1266,11 @@ export default function TavernPage() {
             {/* ── OVERLAY: Vista expandida de todos los myths ── */}
             {expandedView && (() => {
                 const RARITIES = ["ALL", "COMMON", "RARE", "EPIC", "ELITE", "LEGENDARY", "MYTHIC"];
-                const expandFiltered = myths.filter(m => {
+                const expandFiltered = applySort(myths.filter(m => {
                     const affOk = expandAffFilter === "ALL" || (m.affinities ?? []).includes(expandAffFilter);
                     const rarOk = expandRarFilter === "ALL" || m.rarity === expandRarFilter;
                     return affOk && rarOk;
-                });
+                }));
                 return (
                     <div
                         className="fixed inset-0 z-50 flex flex-col"
@@ -1296,32 +1343,55 @@ export default function TavernPage() {
                                     );
                                 })}
                             </div>
+                            {/* Sort — mismo estado que el panel izquierdo */}
+                            <div className="flex gap-1.5 flex-wrap items-center">
+                                <span style={{ fontSize: 10, color: "rgba(255,255,255,.3)", fontFamily: "monospace", marginRight: 2 }}>SORT</span>
+                                {([
+                                    { id: "level_rarity", label: "Lv + Rarity" },
+                                    { id: "level",        label: "Level"       },
+                                    { id: "rarity",       label: "Rarity"      },
+                                    { id: "power",        label: "Power"       },
+                                    { id: "name",         label: "Name"        },
+                                ] as const).map(opt => (
+                                    <button key={opt.id} onClick={() => setSortBy(opt.id)}
+                                        style={{
+                                            padding: "2px 8px", borderRadius: 5, fontSize: 11, fontFamily: "monospace", cursor: "pointer",
+                                            background: sortBy === opt.id ? "rgba(167,139,250,.18)" : "rgba(255,255,255,.03)",
+                                            border: sortBy === opt.id ? "1px solid rgba(167,139,250,.35)" : "1px solid rgba(255,255,255,.07)",
+                                            color: sortBy === opt.id ? "#a78bfa" : "rgba(255,255,255,.35)",
+                                            transition: "all 0.12s",
+                                        }}>
+                                        {opt.label}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
 
                         {/* Grid de myths */}
-                        <div className="flex-1 overflow-y-auto p-4"
-                            style={{
+                        <div style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden", scrollbarWidth: "none" }}>
+                            <div style={{
                                 display: "grid",
-                                gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))",
+                                gridTemplateColumns: "repeat(auto-fill, minmax(90px, 1fr))",
                                 gap: 8,
+                                padding: 16,
                                 alignContent: "start",
-                                scrollbarWidth: "none",
                             }}>
-                            {expandFiltered.map(m => (
-                                <MythCard key={m.id} myth={m} selected={selected?.id === m.id}
-                                    onClick={() => {
-                                        setSelected(m);
-                                        setTab("stats");
-                                        setSelectedForm(0);
-                                        setDistortionFlash(false);
-                                        setExpandedView(false);
-                                    }} />
-                            ))}
-                            {expandFiltered.length === 0 && (
-                                <div style={{ gridColumn: "1/-1", textAlign: "center", paddingTop: 48, color: "rgba(255,255,255,.2)", fontFamily: "monospace", fontSize: 12 }}>
-                                    No myths match the current filters
-                                </div>
-                            )}
+                                {expandFiltered.map(m => (
+                                    <MythCard key={m.id} myth={m} selected={selected?.id === m.id}
+                                        onClick={() => {
+                                            setSelected(m);
+                                            setTab("stats");
+                                            setSelectedForm(0);
+                                            setDistortionFlash(false);
+                                            setExpandedView(false);
+                                        }} />
+                                ))}
+                                {expandFiltered.length === 0 && (
+                                    <div style={{ gridColumn: "1/-1", textAlign: "center", paddingTop: 48, color: "rgba(255,255,255,.2)", fontFamily: "monospace", fontSize: 12 }}>
+                                        No myths match the current filters
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 );

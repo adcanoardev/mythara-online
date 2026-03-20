@@ -37,6 +37,40 @@ export default {
 
                 // ── Legados (alias para compatibilidad) ────────────
                 yellow: "#fbbf24",    // → gold
+
+                // ── Rareza — alias → CSS variables ─────────────────
+                // Usar: text-rarity-elite, bg-rarity-epic, border-rarity-legendary, etc.
+                // El valor real vive en style.css (:root --rarity-*)
+                // Cambiar style.css propaga a Tailwind + inline styles
+                "rarity-common-color":   "var(--rarity-common-color)",
+                "rarity-common-border":  "var(--rarity-common-border)",
+                "rarity-common-bg":      "var(--rarity-common-bg)",
+                "rarity-common-glow":    "var(--rarity-common-glow)",
+
+                "rarity-rare-color":     "var(--rarity-rare-color)",
+                "rarity-rare-border":    "var(--rarity-rare-border)",
+                "rarity-rare-bg":        "var(--rarity-rare-bg)",
+                "rarity-rare-glow":      "var(--rarity-rare-glow)",
+
+                "rarity-epic-color":     "var(--rarity-epic-color)",
+                "rarity-epic-border":    "var(--rarity-epic-border)",
+                "rarity-epic-bg":        "var(--rarity-epic-bg)",
+                "rarity-epic-glow":      "var(--rarity-epic-glow)",
+
+                "rarity-elite-color":    "var(--rarity-elite-color)",
+                "rarity-elite-border":   "var(--rarity-elite-border)",
+                "rarity-elite-bg":       "var(--rarity-elite-bg)",
+                "rarity-elite-glow":     "var(--rarity-elite-glow)",
+
+                "rarity-legendary-color":  "var(--rarity-legendary-color)",
+                "rarity-legendary-border": "var(--rarity-legendary-border)",
+                "rarity-legendary-bg":     "var(--rarity-legendary-bg)",
+                "rarity-legendary-glow":   "var(--rarity-legendary-glow)",
+
+                "rarity-mythic-color":   "var(--rarity-mythic-color)",
+                "rarity-mythic-border":  "var(--rarity-mythic-border)",
+                "rarity-mythic-bg":      "var(--rarity-mythic-bg)",
+                "rarity-mythic-glow":    "var(--rarity-mythic-glow)",
             },
             fontFamily: {
                 display: ["Rajdhani", "sans-serif"],

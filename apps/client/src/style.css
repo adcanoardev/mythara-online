@@ -48,6 +48,53 @@
   --color-muted:  #a8b5c8;
   --color-subtle: #8892a4;
   --app-height:   100dvh;
+
+  /* ── Rareza — sistema global ─────────────────────────────
+     Cambiar aquí afecta NexusPage, TavernPage, BattlePage
+     y cualquier página futura que use var(--rarity-*).
+  ────────────────────────────────────────────────────────── */
+  --rarity-common-color:   #94a3b8;
+  --rarity-common-border:  #64748b;
+  --rarity-common-bg:      rgba(71,85,105,0.3);
+  --rarity-common-glow:    rgba(148,163,184,0.9);
+  --rarity-common-bgR:     rgba(100,116,139,0.12);
+  --rarity-common-panel:   rgba(100,116,139,0.45);
+
+  --rarity-rare-color:     #c7d2fe;
+  --rarity-rare-border:    #6366f1;
+  --rarity-rare-bg:        rgba(67,56,202,0.35);
+  --rarity-rare-glow:      rgba(99,102,241,0.95);
+  --rarity-rare-bgR:       rgba(99,102,241,0.2);
+  --rarity-rare-panel:     rgba(99,102,241,0.42);
+
+  --rarity-epic-color:     #e9d5ff;
+  --rarity-epic-border:    #a855f7;
+  --rarity-epic-bg:        rgba(126,34,206,0.35);
+  --rarity-epic-glow:      rgba(168,85,247,0.95);
+  --rarity-epic-bgR:       rgba(168,85,247,0.25);
+  --rarity-epic-panel:     rgba(168,85,247,0.48);
+
+  /* ELITE — naranja brillante */
+  --rarity-elite-color:    #fed7aa;
+  --rarity-elite-border:   #fb923c;
+  --rarity-elite-bg:       rgba(194,65,12,0.35);
+  --rarity-elite-glow:     rgba(251,146,60,0.95);
+  --rarity-elite-bgR:      rgba(249,115,22,0.22);
+  --rarity-elite-panel:    rgba(249,115,22,0.42);
+
+  --rarity-legendary-color:  #fde68a;
+  --rarity-legendary-border: #fbbf24;
+  --rarity-legendary-bg:     rgba(180,83,9,0.35);
+  --rarity-legendary-glow:   rgba(251,191,36,1.0);
+  --rarity-legendary-bgR:    rgba(251,191,36,0.25);
+  --rarity-legendary-panel:  rgba(251,191,36,0.45);
+
+  --rarity-mythic-color:   #fca5a5;
+  --rarity-mythic-border:  #f87171;
+  --rarity-mythic-bg:      rgba(185,28,28,0.35);
+  --rarity-mythic-glow:    rgba(248,113,113,0.95);
+  --rarity-mythic-bgR:     rgba(248,113,113,0.2);
+  --rarity-mythic-panel:   rgba(248,113,113,0.45);
 }
 
 * {

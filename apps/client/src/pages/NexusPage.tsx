@@ -1,5 +1,6 @@
 // apps/client/src/pages/NexusPage.tsx
 import { useEffect, useState, useCallback, useRef } from "react";
+import type React from "react";
 import { useNavigate } from "react-router-dom";
 import PageShell from "../components/PageShell";
 import PageTopbar from "../components/PageTopbar";
@@ -8,19 +9,18 @@ import { api } from "../lib/api";
 // ─── Types ────────────────────────────────────────────────────
 
 type Rarity = "COMMON" | "RARE" | "EPIC" | "ELITE" | "LEGENDARY" | "MYTHIC";
-interface Banner { id: number; startsAt: string; endsAt: string; boostedMythIds: string[]; boostedMythNames?: string[]; isActive: boolean; }
 interface PityData { essences: number; pityRare: number; pityEpic: number; pityElite: number; pityLegendary: number; }
 interface PullResult { speciesId: string; name: string; rarity: Rarity; affinities: string[]; level: number; maxHp: number; attack: number; defense: number; speed: number; instanceId: string; isPityGuarantee: boolean; }
 
 // ─── Rarity config ────────────────────────────────────────────
 
-const RS: Record<Rarity, { color: string; border: string; bg: string; glow: string; bgR: string; label: string; p: string; hex: number }> = {
-    COMMON:    { color: "#e2e8f0", border: "#64748b", bg: "rgba(71,85,105,0.3)",   glow: "rgba(148,163,184,0.9)",  bgR: "rgba(100,116,139,0.12)", label: "Common",    p: "#94a3b8", hex: 0x94a3b8 },
-    RARE:      { color: "#c7d2fe", border: "#6366f1", bg: "rgba(67,56,202,0.35)",  glow: "rgba(99,102,241,0.95)",  bgR: "rgba(99,102,241,0.2)",   label: "Rare",      p: "#818cf8", hex: 0x6366f1 },
-    EPIC:      { color: "#e9d5ff", border: "#a855f7", bg: "rgba(126,34,206,0.35)", glow: "rgba(168,85,247,0.95)",  bgR: "rgba(168,85,247,0.25)",  label: "Epic",      p: "#c084fc", hex: 0xa855f7 },
-    ELITE:     { color: "#f1f5f9", border: "#94a3b8", bg: "rgba(30,41,59,0.6)",    glow: "rgba(226,232,240,0.9)",  bgR: "rgba(148,163,184,0.15)", label: "Elite",     p: "#e2e8f0", hex: 0xe2e8f0 },
-    LEGENDARY: { color: "#fde68a", border: "#fbbf24", bg: "rgba(180,83,9,0.35)",   glow: "rgba(251,191,36,1.0)",   bgR: "rgba(251,191,36,0.25)",  label: "Legendary", p: "#fbbf24", hex: 0xfbbf24 },
-    MYTHIC:    { color: "#fca5a5", border: "#f87171", bg: "rgba(185,28,28,0.35)",   glow: "rgba(248,113,113,0.95)", bgR: "rgba(248,113,113,0.2)",  label: "Mythic",    p: "#f87171", hex: 0xf87171 },
+const RS: Record<Rarity, { color: string; border: string; bg: string; glow: string; bgR: string; label: string; p: string; hex: number; panelBg: string }> = {
+    COMMON:    { color: "var(--rarity-common-color)",    border: "var(--rarity-common-border)",    bg: "var(--rarity-common-bg)",    glow: "var(--rarity-common-glow)",    bgR: "var(--rarity-common-bgR)",    label: "Common",    p: "#94a3b8", hex: 0x94a3b8, panelBg: "var(--rarity-common-panel)"    },
+    RARE:      { color: "var(--rarity-rare-color)",      border: "var(--rarity-rare-border)",      bg: "var(--rarity-rare-bg)",      glow: "var(--rarity-rare-glow)",      bgR: "var(--rarity-rare-bgR)",      label: "Rare",      p: "#818cf8", hex: 0x6366f1, panelBg: "var(--rarity-rare-panel)"      },
+    EPIC:      { color: "var(--rarity-epic-color)",      border: "var(--rarity-epic-border)",      bg: "var(--rarity-epic-bg)",      glow: "var(--rarity-epic-glow)",      bgR: "var(--rarity-epic-bgR)",      label: "Epic",      p: "#c084fc", hex: 0xa855f7, panelBg: "var(--rarity-epic-panel)"      },
+    ELITE:     { color: "var(--rarity-elite-color)",     border: "var(--rarity-elite-border)",     bg: "var(--rarity-elite-bg)",     glow: "var(--rarity-elite-glow)",     bgR: "var(--rarity-elite-bgR)",     label: "Elite",     p: "#fb923c", hex: 0xfb923c, panelBg: "var(--rarity-elite-panel)"     },
+    LEGENDARY: { color: "var(--rarity-legendary-color)", border: "var(--rarity-legendary-border)", bg: "var(--rarity-legendary-bg)", glow: "var(--rarity-legendary-glow)", bgR: "var(--rarity-legendary-bgR)", label: "Legendary", p: "#fbbf24", hex: 0xfbbf24, panelBg: "var(--rarity-legendary-panel)" },
+    MYTHIC:    { color: "var(--rarity-mythic-color)",    border: "var(--rarity-mythic-border)",    bg: "var(--rarity-mythic-bg)",    glow: "var(--rarity-mythic-glow)",    bgR: "var(--rarity-mythic-bgR)",    label: "Mythic",    p: "#f87171", hex: 0xf87171, panelBg: "var(--rarity-mythic-panel)"    },
 };
 
 const PITY_KEYS = [
@@ -38,7 +38,6 @@ const SPARKLES = [
     { top: "32%", left: "6%",  fs: 6,  delay: "0.5s" },
 ];
 
-function daysLeft(e: string) { return Math.max(0, Math.ceil((new Date(e).getTime() - Date.now()) / 86400000)); }
 function mythFrontUrl(id: string, slug: string) { return `${CDN}/myths/${id}/${slug}_front.png`; }
 function affinityUrl(a: string) { return `${CDN}/affinity/${a}_affinity_icon.webp`; }
 function toSlug(s: string) { return s.toLowerCase().replace(/\s+/g, "_"); }
@@ -156,262 +155,547 @@ function cssParticles(c: HTMLElement, color: string, n = 22) {
 
 // ─── Essence: fragmento 3D blanco/lila con partículas orbitales ──
 
-function EssenceFragment({ size }: { size: number }) {
-    const h = size / 2;
-    const s = size;
+// ─── Essence Orb — fuego lila orgánico, pura energía ─────────
 
-    // Partículas que orbitan en distintos planos (efecto 3D CSS)
-    const orbits = [
-        { count: 8,  rx: h * 0.72, ry: h * 0.22, dur: "3.2s",  color: "#ffffff",  sz: 3.5, plane: "rotateX(70deg)" },
-        { count: 6,  rx: h * 0.58, ry: h * 0.38, dur: "4.8s",  color: "#c4b5fd",  sz: 3,   plane: "rotateX(30deg) rotateY(45deg)" },
-        { count: 5,  rx: h * 0.45, ry: h * 0.45, dur: "6.1s",  color: "#a78bfa",  sz: 2.5, plane: "rotateX(55deg) rotateZ(20deg)" },
-        { count: 10, rx: h * 0.82, ry: h * 0.16, dur: "2.6s",  color: "#e8d5ff",  sz: 2,   plane: "rotateX(82deg) rotateZ(40deg)" },
-        { count: 4,  rx: h * 0.35, ry: h * 0.28, dur: "7.4s",  color: "#67e8f9",  sz: 2,   plane: "rotateX(15deg) rotateY(70deg)" },
-    ];
+function EssenceFragment({ size }: { size: number }) {
+    const s = size;
+    const cx = s / 2;
+    // Base del fuego — parte baja centrada
+    const baseY = s * 0.82;
+    const baseW = s * 0.28;
+
+    // Embers que ascienden
+    const embers = Array.from({ length: 16 }, (_, i) => ({
+        x: cx + (Math.sin(i * 2.1) * s * 0.18),
+        sz: 1.4 + (i % 4) * 0.9,
+        dur: `${2.8 + (i % 5) * 0.7}s`,
+        delay: `${-(i * 0.45)}s`,
+        color: i % 3 === 0 ? "#ffffff" : i % 3 === 1 ? "#d8b4fe" : "#a78bfa",
+        drift: Math.sin(i * 0.9) * s * 0.12,
+    }));
 
     return (
-        <div style={{ position: "relative", width: s, height: s, flexShrink: 0 }}>
-            {/* Glow radial sin bordes */}
-            <div style={{ position: "absolute", inset: -s * 0.25, borderRadius: "50%", background: "radial-gradient(circle, rgba(200,180,255,0.18) 0%, rgba(123,47,255,0.12) 35%, rgba(76,201,240,0.05) 60%, transparent 72%)", animation: "nxGlow 3.5s ease-in-out infinite", pointerEvents: "none" }} />
+        <div style={{ position: "relative", width: s, height: s * 1.4, flexShrink: 0 }}>
 
-            {/* SVG del fragmento — forma de cristal irregular blanco/lila con efecto 3D */}
-            <svg viewBox={`0 0 ${s} ${s}`} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", overflow: "visible" }}>
+            {/* Corona de glow difusa debajo */}
+            <div style={{
+                position: "absolute",
+                bottom: s * 0.05, left: "50%", transform: "translateX(-50%)",
+                width: s * 1.1, height: s * 0.55,
+                background: "radial-gradient(ellipse at 50% 80%, rgba(123,47,255,0.28) 0%, rgba(167,139,250,0.1) 45%, transparent 70%)",
+                filter: "blur(14px)",
+                pointerEvents: "none",
+                animation: "nxGlow 2.2s ease-in-out infinite",
+            }} />
+
+            <svg viewBox={`0 0 ${s} ${s * 1.4}`}
+                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", overflow: "visible" }}>
                 <defs>
-                    {/* Cara principal — blanco lila con gradiente */}
-                    <linearGradient id="fMain" x1="20%" y1="0%" x2="80%" y2="100%">
-                        <stop offset="0%"   stopColor="#f8f4ff" stopOpacity="0.97" />
-                        <stop offset="28%"  stopColor="#ddd0ff" stopOpacity="0.92" />
-                        <stop offset="58%"  stopColor="#a78bfa" stopOpacity="0.82" />
-                        <stop offset="88%"  stopColor="#7b2fff" stopOpacity="0.65" />
-                        <stop offset="100%" stopColor="#3b0080" stopOpacity="0.5" />
-                        <animateTransform attributeName="gradientTransform" type="rotate" from="0 0.5 0.5" to="360 0.5 0.5" dur="6s" repeatCount="indefinite" />
+                    {/* Gradiente principal del fuego — blanco caliente en base, violeta/púrpura hacia arriba */}
+                    <linearGradient id="efFire" x1="50%" y1="100%" x2="50%" y2="0%" gradientUnits="userSpaceOnUse"
+                        x1="0" y1={baseY} x2="0" y2={s * 0.05}>
+                        <stop offset="0%"   stopColor="#ffffff" stopOpacity="0.98" />
+                        <stop offset="12%"  stopColor="#f0e6ff" stopOpacity="0.95" />
+                        <stop offset="30%"  stopColor="#c084fc" stopOpacity="0.9" />
+                        <stop offset="55%"  stopColor="#9333ea" stopOpacity="0.8" />
+                        <stop offset="78%"  stopColor="#6b21a8" stopOpacity="0.55" />
+                        <stop offset="100%" stopColor="#3b0764" stopOpacity="0" />
                     </linearGradient>
-                    {/* Cara lateral izquierda — más oscura */}
-                    <linearGradient id="fLeft" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%"   stopColor="#c4b5fd" stopOpacity="0.7" />
-                        <stop offset="100%" stopColor="#4c1d95" stopOpacity="0.85" />
+
+                    {/* Gradiente llama izquierda */}
+                    <linearGradient id="efFireL" x1="0" y1={baseY} x2="0" y2={s * 0.18} gradientUnits="userSpaceOnUse">
+                        <stop offset="0%"   stopColor="#e9d5ff" stopOpacity="0.85" />
+                        <stop offset="45%"  stopColor="#a855f7" stopOpacity="0.65" />
+                        <stop offset="100%" stopColor="#581c87" stopOpacity="0" />
                     </linearGradient>
-                    {/* Cara lateral derecha */}
-                    <linearGradient id="fRight" x1="100%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%"   stopColor="#e9d5ff" stopOpacity="0.55" />
-                        <stop offset="100%" stopColor="#6d28d9" stopOpacity="0.75" />
+
+                    {/* Gradiente llama derecha */}
+                    <linearGradient id="efFireR" x1="0" y1={baseY} x2="0" y2={s * 0.22} gradientUnits="userSpaceOnUse">
+                        <stop offset="0%"   stopColor="#ddd6fe" stopOpacity="0.8" />
+                        <stop offset="50%"  stopColor="#7c3aed" stopOpacity="0.55" />
+                        <stop offset="100%" stopColor="#4c1d95" stopOpacity="0" />
                     </linearGradient>
-                    {/* Cara inferior */}
-                    <linearGradient id="fBot" x1="50%" y1="0%" x2="50%" y2="100%">
-                        <stop offset="0%"   stopColor="#7b2fff" stopOpacity="0.5" />
-                        <stop offset="100%" stopColor="#1e0050" stopOpacity="0.8" />
-                    </linearGradient>
-                    <filter id="fBlur"><feGaussianBlur stdDeviation="2.5" /></filter>
-                    <filter id="fBlur2"><feGaussianBlur stdDeviation="1" /></filter>
-                    <filter id="fGlow"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+
+                    <filter id="efSoft" x="-40%" y="-40%" width="180%" height="180%">
+                        <feGaussianBlur stdDeviation="2.5" />
+                    </filter>
+                    <filter id="efGlow" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur stdDeviation="5" result="b"/>
+                        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                    </filter>
+                    <filter id="efEmber">
+                        <feGaussianBlur stdDeviation="0.7" />
+                    </filter>
                 </defs>
 
-                {/* Sombra/glow detrás */}
-                <polygon points={`${h},${h*0.06} ${h*1.62},${h*0.66} ${h*1.44},${h*1.9} ${h*0.56},${h*1.9} ${h*0.38},${h*0.66}`}
-                    fill="rgba(123,47,255,0.25)" filter="url(#fBlur)" />
+                {/* ── Cuerpo del fuego izquierdo (llama lateral) ── */}
+                <path d={`
+                    M ${cx - baseW * 0.6} ${baseY}
+                    C ${cx - baseW * 1.8} ${baseY - s * 0.22},
+                      ${cx - baseW * 1.4} ${baseY - s * 0.5},
+                      ${cx - baseW * 0.5} ${baseY - s * 0.72}
+                    C ${cx - baseW * 0.1} ${baseY - s * 0.55},
+                      ${cx - baseW * 0.3} ${baseY - s * 0.18},
+                      ${cx - baseW * 0.6} ${baseY} Z
+                `} fill="url(#efFireL)" filter="url(#efSoft)">
+                    <animateTransform attributeName="transform" type="skewX"
+                        values="-4;6;-8;3;-4" dur="4.8s" repeatCount="indefinite" additive="sum"
+                        style={{transformOrigin:`${cx}px ${baseY}px`}}/>
+                    <animate attributeName="opacity" values="0.75;0.9;0.6;0.85;0.75" dur="4.8s" repeatCount="indefinite" />
+                </path>
 
-                {/* Cara lateral izquierda (lado oscuro) */}
-                <polygon points={`${h},${h*0.08} ${h*0.4},${h*0.68} ${h*0.58},${h*1.88} ${h},${h*1.3}`}
-                    fill="url(#fLeft)" />
+                {/* ── Cuerpo del fuego derecho (llama lateral) ── */}
+                <path d={`
+                    M ${cx + baseW * 0.6} ${baseY}
+                    C ${cx + baseW * 1.8} ${baseY - s * 0.2},
+                      ${cx + baseW * 1.5} ${baseY - s * 0.48},
+                      ${cx + baseW * 0.6} ${baseY - s * 0.65}
+                    C ${cx + baseW * 0.15} ${baseY - s * 0.5},
+                      ${cx + baseW * 0.25} ${baseY - s * 0.16},
+                      ${cx + baseW * 0.6} ${baseY} Z
+                `} fill="url(#efFireR)" filter="url(#efSoft)">
+                    <animateTransform attributeName="transform" type="skewX"
+                        values="5;-6;9;-2;5" dur="4.2s" repeatCount="indefinite" additive="sum"
+                        style={{transformOrigin:`${cx}px ${baseY}px`}}/>
+                    <animate attributeName="opacity" values="0.7;0.85;0.55;0.8;0.7" dur="4.2s" repeatCount="indefinite" />
+                </path>
 
-                {/* Cara lateral derecha */}
-                <polygon points={`${h},${h*0.08} ${h*1.6},${h*0.68} ${h*1.42},${h*1.88} ${h},${h*1.3}`}
-                    fill="url(#fRight)" />
+                {/* ── Llama trasera grande y difusa ── */}
+                <path d={`
+                    M ${cx - baseW} ${baseY}
+                    C ${cx - baseW * 1.5} ${baseY - s * 0.3},
+                      ${cx - baseW * 0.8} ${baseY - s * 0.75},
+                      ${cx} ${baseY - s * 1.05}
+                    C ${cx + baseW * 0.8} ${baseY - s * 0.75},
+                      ${cx + baseW * 1.5} ${baseY - s * 0.3},
+                      ${cx + baseW} ${baseY} Z
+                `} fill="url(#efFire)" filter="url(#efSoft)" opacity="0.6">
+                    <animateTransform attributeName="transform" type="scale"
+                        values="1 1;0.88 1.08;1.06 0.95;0.91 1.06;1 1"
+                        dur="5.5s" repeatCount="indefinite" additive="sum"
+                        style={{transformOrigin:`${cx}px ${baseY}px`}}/>
+                </path>
 
-                {/* Cara inferior */}
-                <polygon points={`${h},${h*1.3} ${h*0.58},${h*1.88} ${h*1.42},${h*1.88}`}
-                    fill="url(#fBot)" />
+                {/* ── Llama central principal — la más viva ── */}
+                <path d={`
+                    M ${cx - baseW * 0.85} ${baseY}
+                    C ${cx - baseW * 1.1} ${baseY - s * 0.28},
+                      ${cx - baseW * 0.55} ${baseY - s * 0.68},
+                      ${cx - baseW * 0.08} ${baseY - s * 0.98}
+                    C ${cx + baseW * 0.08} ${baseY - s * 1.0},
+                      ${cx + baseW * 0.6} ${baseY - s * 0.65},
+                      ${cx + baseW * 1.05} ${baseY - s * 0.25}
+                    C ${cx + baseW * 1.3} ${baseY - s * 0.1},
+                      ${cx + baseW * 0.95} ${baseY},
+                      ${cx - baseW * 0.85} ${baseY} Z
+                `} fill="url(#efFire)" filter="url(#efGlow)">
+                    <animateTransform attributeName="transform" type="scale"
+                        values="1 1;0.84 1.12;1.08 0.93;0.88 1.09;1 1"
+                        dur="3.8s" repeatCount="indefinite" additive="sum"
+                        style={{transformOrigin:`${cx}px ${baseY}px`}}/>
+                    <animate attributeName="opacity" values="0.92;1;0.78;0.96;0.92" dur="3.8s" repeatCount="indefinite" />
+                </path>
 
-                {/* Cara principal (frente) — la más brillante */}
-                <polygon points={`${h},${h*0.08} ${h*1.6},${h*0.68} ${h},${h*1.3} ${h*0.4},${h*0.68}`}
-                    fill="url(#fMain)" filter="url(#fGlow)">
-                    <animateTransform attributeName="transform" type="rotate" from={`0 ${h} ${h}`} to={`360 ${h} ${h}`} dur="14s" repeatCount="indefinite" />
-                </polygon>
+                {/* ── Punta de llama secundaria (tip) ── */}
+                <path d={`
+                    M ${cx - baseW * 0.35} ${baseY - s * 0.72}
+                    C ${cx - baseW * 0.15} ${baseY - s * 0.88},
+                      ${cx + baseW * 0.1} ${baseY - s * 1.02},
+                      ${cx} ${baseY - s * 1.18}
+                    C ${cx - baseW * 0.05} ${baseY - s * 1.0},
+                      ${cx + baseW * 0.18} ${baseY - s * 0.84},
+                      ${cx + baseW * 0.38} ${baseY - s * 0.7}
+                    C ${cx + baseW * 0.15} ${baseY - s * 0.6},
+                      ${cx - baseW * 0.1} ${baseY - s * 0.62},
+                      ${cx - baseW * 0.35} ${baseY - s * 0.72} Z
+                `} fill="url(#efFire)">
+                    <animateTransform attributeName="transform" type="scale"
+                        values="1 1;0.78 1.16;1.12 0.88;0.82 1.14;1 1"
+                        dur="3.0s" repeatCount="indefinite" additive="sum"
+                        style={{transformOrigin:`${cx}px ${baseY - s * 0.7}px`}}/>
+                    <animate attributeName="opacity" values="0.85;1;0.65;0.95;0.85" dur="3.0s" repeatCount="indefinite" />
+                </path>
 
-                {/* Arista central brillante */}
-                <line x1={h} y1={h*0.08} x2={h} y2={h*1.3} stroke="rgba(255,255,255,0.7)" strokeWidth="1.2">
-                    <animate attributeName="opacity" values="0.7;1;0.7" dur="2s" repeatCount="indefinite" />
-                </line>
-                <line x1={h*0.4} y1={h*0.68} x2={h*1.6} y2={h*0.68} stroke="rgba(255,255,255,0.3)" strokeWidth="0.6" />
-                <line x1={h} y1={h*1.3} x2={h*0.58} y2={h*1.88} stroke="rgba(200,180,255,0.4)" strokeWidth="0.6" />
-                <line x1={h} y1={h*1.3} x2={h*1.42} y2={h*1.88} stroke="rgba(200,180,255,0.4)" strokeWidth="0.6" />
+                {/* ── Núcleo brillante en la base ── */}
+                <ellipse cx={cx} cy={baseY - s * 0.08} rx={baseW * 0.7} ry={s * 0.1}
+                    fill="rgba(255,255,255,0.92)" filter="url(#efSoft)">
+                    <animate attributeName="opacity" values="0.8;1;0.65;0.95;0.8" dur="3.2s" repeatCount="indefinite" />
+                    <animate attributeName="ry" values={`${s*0.1};${s*0.13};${s*0.09};${s*0.12};${s*0.1}`} dur="3.2s" repeatCount="indefinite" />
+                </ellipse>
 
-                {/* Shine highlights */}
-                <ellipse cx={h*0.72} cy={h*0.32} rx={h*0.12} ry={h*0.07} fill="rgba(255,255,255,0.75)" filter="url(#fBlur2)" />
-                <ellipse cx={h*0.62} cy={h*0.55} rx={h*0.06} ry={h*0.04} fill="rgba(255,255,255,0.5)" />
-
-                {/* Pulsos expansivos */}
-                <circle cx={h} cy={h} r={h*0.25} fill="none" stroke="rgba(167,139,250,0.45)" strokeWidth="0.8">
-                    <animate attributeName="r" values={`${h*0.25};${h*0.88};${h*0.25}`} dur="3.2s" repeatCount="indefinite" />
-                    <animate attributeName="opacity" values="0.5;0;0.5" dur="3.2s" repeatCount="indefinite" />
-                </circle>
-                <circle cx={h} cy={h} r={h*0.25} fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="0.5">
-                    <animate attributeName="r" values={`${h*0.25};${h*0.88};${h*0.25}`} dur="3.2s" begin="1.0s" repeatCount="indefinite" />
-                    <animate attributeName="opacity" values="0.35;0;0.35" dur="3.2s" begin="1.0s" repeatCount="indefinite" />
-                </circle>
+                {/* ── Embers ascendentes ── */}
+                {embers.map((e, i) => (
+                    <circle key={i} cx={e.x} cy={baseY - s * 0.05} r={e.sz}
+                        fill={e.color} filter="url(#efEmber)">
+                        <animate attributeName="cy"
+                            values={`${baseY - s*0.05};${baseY - s*0.05 - s*(0.7 + (i%3)*0.35)}`}
+                            dur={e.dur} begin={e.delay} repeatCount="indefinite" />
+                        <animate attributeName="cx"
+                            values={`${e.x};${e.x + e.drift};${e.x + e.drift * 0.5}`}
+                            dur={e.dur} begin={e.delay} repeatCount="indefinite" />
+                        <animate attributeName="opacity"
+                            values={`0.9;0.6;0`}
+                            dur={e.dur} begin={e.delay} repeatCount="indefinite" />
+                        <animate attributeName="r"
+                            values={`${e.sz};${e.sz * 0.6};0`}
+                            dur={e.dur} begin={e.delay} repeatCount="indefinite" />
+                    </circle>
+                ))}
             </svg>
-
-            {/* Anillos orbitales CSS en distintos planos — efecto 3D */}
-            {orbits.map((orbit, oi) => (
-                <div key={oi} style={{
-                    position: "absolute", top: "50%", left: "50%",
-                    width: orbit.rx * 2, height: orbit.ry * 2,
-                    marginLeft: -orbit.rx, marginTop: -orbit.ry,
-                    borderRadius: "50%",
-                    border: `1px solid ${orbit.color}22`,
-                    transform: orbit.plane,
-                    pointerEvents: "none",
-                }}>
-                    {/* Partículas en esta órbita */}
-                    {Array.from({ length: orbit.count }, (_, pi) => {
-                        const startDeg = (pi / orbit.count) * 360;
-                        const delayS = -((pi / orbit.count) * parseFloat(orbit.dur)).toFixed(2);
-                        return (
-                            <div key={pi} style={{
-                                position: "absolute",
-                                width: orbit.sz, height: orbit.sz,
-                                borderRadius: "50%",
-                                background: orbit.color,
-                                boxShadow: `0 0 ${orbit.sz * 2.5}px ${orbit.color}`,
-                                top: "50%", left: "50%",
-                                marginLeft: -orbit.sz / 2, marginTop: -orbit.sz / 2,
-                                animation: `nxOrb${oi} ${orbit.dur} linear ${delayS}s infinite`,
-                                transformOrigin: `${-orbit.rx + orbit.sz / 2}px 0`,
-                            }} />
-                        );
-                    })}
-                </div>
-            ))}
         </div>
     );
 }
 
-// ─── Mini fragmento x5 ────────────────────────────────────────
+// ─── Mini Essence Fire x5 ────────────────────────────────────
 
 function MiniFragment({ dim }: { dim: boolean }) {
+    const s = 72, cx = 36, baseY = 62, baseW = 10;
     return (
-        <svg viewBox="0 0 72 72" width={72} height={72} style={{ display: "block", overflow: "visible", opacity: dim ? 0.28 : 1, transition: "opacity 0.4s", filter: dim ? "none" : "drop-shadow(0 0 8px rgba(200,180,255,0.9)) drop-shadow(0 0 18px rgba(123,47,255,0.5))" }}>
+        <svg viewBox="0 0 72 96" width={72} height={96} style={{ display: "block", overflow: "visible", opacity: dim ? 0.25 : 1, transition: "opacity 0.5s" }}>
             <defs>
-                <linearGradient id="mfMain" x1="20%" y1="0%" x2="80%" y2="100%">
-                    <stop offset="0%"   stopColor="#f8f4ff" stopOpacity={dim ? "0.2"  : "0.97"} />
-                    <stop offset="35%"  stopColor="#ddd0ff" stopOpacity={dim ? "0.15" : "0.9"} />
-                    <stop offset="75%"  stopColor="#a78bfa" stopOpacity={dim ? "0.1"  : "0.8"} />
-                    <stop offset="100%" stopColor="#3b0080" stopOpacity={dim ? "0.08" : "0.65"} />
-                    <animateTransform attributeName="gradientTransform" type="rotate" from="0 0.5 0.5" to="360 0.5 0.5" dur="5s" repeatCount="indefinite" />
+                <linearGradient id="mfFire" x1="0" y1={baseY} x2="0" y2="8" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%"   stopColor="#ffffff" stopOpacity={dim ? "0.3" : "0.98"} />
+                    <stop offset="20%"  stopColor="#e9d5ff" stopOpacity={dim ? "0.15" : "0.92"} />
+                    <stop offset="50%"  stopColor="#a855f7" stopOpacity={dim ? "0.08" : "0.78"} />
+                    <stop offset="80%"  stopColor="#6b21a8" stopOpacity={dim ? "0.04" : "0.45"} />
+                    <stop offset="100%" stopColor="#3b0764" stopOpacity="0" />
                 </linearGradient>
-                <linearGradient id="mfLeft" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%"   stopColor="#c4b5fd" stopOpacity={dim ? "0.1"  : "0.65"} />
-                    <stop offset="100%" stopColor="#4c1d95" stopOpacity={dim ? "0.08" : "0.8"} />
+                <linearGradient id="mfSide" x1="0" y1={baseY} x2="0" y2="20" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%"   stopColor="#ddd6fe" stopOpacity={dim ? "0.15" : "0.8"} />
+                    <stop offset="100%" stopColor="#581c87" stopOpacity="0" />
                 </linearGradient>
-                <filter id="mfGl"><feGaussianBlur stdDeviation="1.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-                <filter id="mfBl"><feGaussianBlur stdDeviation="1" /></filter>
+                <filter id="mfGl" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur stdDeviation="2.5" result="b"/>
+                    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+                <filter id="mfSoft"><feGaussianBlur stdDeviation="1.5"/></filter>
             </defs>
-            {/* Cara lateral */}
-            <polygon points="36,3 14,27 22,69 36,52" fill="url(#mfLeft)" />
-            {/* Cara principal */}
-            <polygon points="36,3 58,27 50,69 36,52" fill="url(#mfLeft)" />
-            <polygon points="36,3 58,27 36,52 14,27" fill="url(#mfMain)" filter="url(#mfGl)" />
-            {/* Cara inferior */}
-            <polygon points="36,52 22,69 50,69" fill="rgba(60,0,128,0.7)" />
-            {/* Aristas */}
-            <line x1="36" y1="3" x2="36" y2="52" stroke="rgba(255,255,255,0.65)" strokeWidth="1">
-                <animate attributeName="opacity" values="0.65;1;0.65" dur="2s" repeatCount="indefinite" />
-            </line>
-            <line x1="14" y1="27" x2="58" y2="27" stroke="rgba(255,255,255,0.25)" strokeWidth="0.5" />
-            {/* Shine */}
-            <ellipse cx="26" cy="15" rx="5" ry="3" fill="rgba(255,255,255,0.7)" filter="url(#mfBl)" />
+
+            {/* Llama lateral izquierda */}
+            {!dim && <path d={`M ${cx-baseW*0.5} ${baseY} C ${cx-baseW*1.8} ${baseY-20} ${cx-baseW*1.4} ${baseY-44} ${cx-baseW*0.4} ${baseY-58} C ${cx-baseW*0.1} ${baseY-44} ${cx-baseW*0.3} ${baseY-18} ${cx-baseW*0.5} ${baseY} Z`}
+                fill="url(#mfSide)" filter="url(#mfSoft)" opacity="0.7">
+                <animate attributeName="opacity" values="0.6;0.85;0.5;0.75;0.6" dur="2s" repeatCount="indefinite"/>
+            </path>}
+
+            {/* Llama lateral derecha */}
+            {!dim && <path d={`M ${cx+baseW*0.5} ${baseY} C ${cx+baseW*1.8} ${baseY-18} ${cx+baseW*1.5} ${baseY-42} ${cx+baseW*0.5} ${baseY-55} C ${cx+baseW*0.1} ${baseY-42} ${cx+baseW*0.2} ${baseY-16} ${cx+baseW*0.5} ${baseY} Z`}
+                fill="url(#mfSide)" filter="url(#mfSoft)" opacity="0.65">
+                <animate attributeName="opacity" values="0.55;0.8;0.45;0.7;0.55" dur="1.8s" repeatCount="indefinite"/>
+            </path>}
+
+            {/* Llama central */}
+            <path d={`M ${cx-baseW} ${baseY} C ${cx-baseW*1.3} ${baseY-24} ${cx-baseW*0.6} ${baseY-58} ${cx} ${baseY-76} C ${cx+baseW*0.6} ${baseY-58} ${cx+baseW*1.3} ${baseY-24} ${cx+baseW} ${baseY} Z`}
+                fill="url(#mfFire)" filter={dim ? undefined : "url(#mfGl)"}>
+                {!dim && <><animateTransform attributeName="transform" type="scale"
+                    values="1 1;0.82 1.12;1.1 0.92;0.86 1.1;1 1"
+                    dur="1.6s" repeatCount="indefinite" additive="sum"
+                    style={{transformOrigin:`${cx}px ${baseY}px`}}/>
+                <animate attributeName="opacity" values="0.9;1;0.75;0.95;0.9" dur="1.6s" repeatCount="indefinite"/></>}
+            </path>
+
+            {/* Punta de llama tip */}
+            {!dim && <path d={`M ${cx-baseW*0.3} ${baseY-58} C ${cx-baseW*0.1} ${baseY-68} ${cx+baseW*0.05} ${baseY-78} ${cx} ${baseY-88} C ${cx-baseW*0.05} ${baseY-76} ${cx+baseW*0.12} ${baseY-66} ${cx+baseW*0.35} ${baseY-57} C ${cx+baseW*0.1} ${baseY-52} ${cx-baseW*0.1} ${baseY-54} ${cx-baseW*0.3} ${baseY-58} Z`}
+                fill="url(#mfFire)">
+                <animateTransform attributeName="transform" type="scale"
+                    values="1 1;0.7 1.18;1.15 0.85;0.75 1.15;1 1"
+                    dur="1.2s" repeatCount="indefinite" additive="sum"
+                    style={{transformOrigin:`${cx}px ${baseY-60}px`}}/>
+            </path>}
+
+            {/* Núcleo brillante base */}
+            <ellipse cx={cx} cy={baseY-6} rx={baseW*0.75} ry={7}
+                fill={dim ? "rgba(200,180,255,0.3)" : "rgba(255,255,255,0.9)"} filter="url(#mfSoft)">
+                {!dim && <animate attributeName="opacity" values="0.8;1;0.65;0.95;0.8" dur="1.3s" repeatCount="indefinite"/>}
+            </ellipse>
+
+            {/* Embers mini */}
+            {!dim && [0,1,2].map(i => (
+                <circle key={i} cx={cx + Math.sin(i*1.8)*baseW*0.7} cy={baseY-8} r={1.1+i*0.5}
+                    fill={i===0?"#ffffff":"#d8b4fe"}>
+                    <animate attributeName="cy" values={`${baseY-8};${baseY-8-28-i*14}`} dur={`${1.0+i*0.28}s`} begin={`${-i*0.25}s`} repeatCount="indefinite"/>
+                    <animate attributeName="opacity" values="0.9;0" dur={`${1.0+i*0.28}s`} begin={`${-i*0.25}s`} repeatCount="indefinite"/>
+                    <animate attributeName="r" values={`${1.1+i*0.5};0`} dur={`${1.0+i*0.28}s`} begin={`${-i*0.25}s`} repeatCount="indefinite"/>
+                </circle>
+            ))}
         </svg>
     );
 }
 
-// ─── Reveal x1 ───────────────────────────────────────────────
+// ─── Essence Icon — mini fuego reutilizable ───────────────────
+
+function EssenceIcon({ size = 18, style }: { size?: number; style?: React.CSSProperties }) {
+    const cx = size / 2, baseY = size * 0.88, baseW = size * 0.16;
+    return (
+        <svg viewBox={`0 0 ${size} ${size * 1.2}`} width={size} height={size * 1.2}
+            style={{ display: "inline-block", verticalAlign: "middle", flexShrink: 0, ...style }}
+            overflow="visible">
+            <defs>
+                <linearGradient id={`efIcon${size}`} x1="0" y1={baseY} x2="0" y2="0" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%"  stopColor="#ffffff" stopOpacity="0.98" />
+                    <stop offset="25%" stopColor="#e9d5ff" stopOpacity="0.94" />
+                    <stop offset="55%" stopColor="#a855f7" stopOpacity="0.82" />
+                    <stop offset="85%" stopColor="#6b21a8" stopOpacity="0.45" />
+                    <stop offset="100%" stopColor="#3b0764" stopOpacity="0" />
+                </linearGradient>
+                <filter id={`efIconGl${size}`} x="-60%" y="-60%" width="220%" height="220%">
+                    <feGaussianBlur stdDeviation={size * 0.06} result="b"/>
+                    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+            </defs>
+            {/* Llama lateral izquierda */}
+            <path d={`M ${cx-baseW*0.4} ${baseY} C ${cx-baseW*1.5} ${baseY-size*0.35} ${cx-baseW*1.1} ${baseY-size*0.72} ${cx-baseW*0.2} ${baseY-size*0.88} C ${cx} ${baseY-size*0.72} ${cx-baseW*0.2} ${baseY-size*0.3} ${cx-baseW*0.4} ${baseY} Z`}
+                fill={`url(#efIcon${size})`} opacity="0.55">
+                <animateTransform attributeName="transform" type="skewX" values="-5;5;-5" dur="2s" repeatCount="indefinite" additive="sum" style={{transformOrigin:`${cx}px ${baseY}px`}}/>
+            </path>
+            {/* Llama lateral derecha */}
+            <path d={`M ${cx+baseW*0.4} ${baseY} C ${cx+baseW*1.5} ${baseY-size*0.32} ${cx+baseW*1.2} ${baseY-size*0.68} ${cx+baseW*0.2} ${baseY-size*0.85} C ${cx} ${baseY-size*0.68} ${cx+baseW*0.2} ${baseY-size*0.28} ${cx+baseW*0.4} ${baseY} Z`}
+                fill={`url(#efIcon${size})`} opacity="0.5">
+                <animateTransform attributeName="transform" type="skewX" values="4;-6;4" dur="1.8s" repeatCount="indefinite" additive="sum" style={{transformOrigin:`${cx}px ${baseY}px`}}/>
+            </path>
+            {/* Llama central */}
+            <path d={`M ${cx-baseW} ${baseY} C ${cx-baseW*1.2} ${baseY-size*0.38} ${cx-baseW*0.5} ${baseY-size*0.82} ${cx} ${baseY-size*1.08} C ${cx+baseW*0.5} ${baseY-size*0.82} ${cx+baseW*1.2} ${baseY-size*0.38} ${cx+baseW} ${baseY} Z`}
+                fill={`url(#efIcon${size})`} filter={`url(#efIconGl${size})`}>
+                <animateTransform attributeName="transform" type="scale" values="1 1;0.85 1.1;1.08 0.93;0.88 1.07;1 1" dur="1.6s" repeatCount="indefinite" additive="sum" style={{transformOrigin:`${cx}px ${baseY}px`}}/>
+            </path>
+            {/* Punta */}
+            <path d={`M ${cx-baseW*0.3} ${baseY-size*0.8} C ${cx-baseW*0.1} ${baseY-size*0.95} ${cx} ${baseY-size*1.1} ${cx} ${baseY-size*1.08} C ${cx} ${baseY-size*1.08} ${cx+baseW*0.1} ${baseY-size*0.93} ${cx+baseW*0.3} ${baseY-size*0.78} C ${cx+baseW*0.1} ${baseY-size*0.72} ${cx-baseW*0.1} ${baseY-size*0.74} ${cx-baseW*0.3} ${baseY-size*0.8} Z`}
+                fill={`url(#efIcon${size})`}>
+                <animateTransform attributeName="transform" type="scale" values="1 1;0.7 1.2;1.1 0.85;0.8 1.15;1 1" dur="1.2s" repeatCount="indefinite" additive="sum" style={{transformOrigin:`${cx}px ${baseY-size*0.85}px`}}/>
+            </path>
+            {/* Base brillante */}
+            <ellipse cx={cx} cy={baseY - size*0.07} rx={baseW*0.8} ry={size*0.1} fill="rgba(255,255,255,0.88)">
+                <animate attributeName="opacity" values="0.75;1;0.6;0.9;0.75" dur="1.4s" repeatCount="indefinite"/>
+            </ellipse>
+        </svg>
+    );
+}
+
+
+
+type RevealPhase = "flash" | "pillar" | "emerge" | "info";
 
 function RevealSingle({ result, onBack }: { result: PullResult; onBack: () => void }) {
-    const [showBurst, setShowBurst] = useState(true);
-    const [showBinder, setShowBinder] = useState(false);
+    const [phase, setPhase] = useState<RevealPhase>("flash");
+    const [burstDone, setBurstDone] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const rs = RS[result.rarity];
     const slug = toSlug(result.name);
+    const rank = ["COMMON","RARE","EPIC","ELITE","LEGENDARY","MYTHIC"].indexOf(result.rarity);
 
+    // Phase sequence: flash → pillar (suspense) → emerge → info
     useEffect(() => {
-        const rank = ["COMMON","RARE","EPIC","ELITE","LEGENDARY","MYTHIC"].indexOf(result.rarity);
-        if (rank < 3) return;
-        const start = setTimeout(() => {
-            const iv = setInterval(() => { if (containerRef.current) cssParticles(containerRef.current, rs.p, 8); }, 900);
-            return () => clearInterval(iv);
+        const t1 = setTimeout(() => setPhase("pillar"),  400);   // flash → pillar
+        const t2 = setTimeout(() => setPhase("emerge"),  2200);  // pillar brilla solo durante 1.8s — intriga
+        const t3 = setTimeout(() => setPhase("info"),   3200);   // emerge → info (mito visible 1s antes del texto)
+        return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+    }, []);
+
+    // Ambient particle shower for high rarity
+    useEffect(() => {
+        if (rank < 3 || phase !== "info") return;
+        const iv = setInterval(() => {
+            if (containerRef.current) cssParticles(containerRef.current, rs.p, 6);
         }, 800);
-        return () => clearTimeout(start);
-    }, [result.rarity]);
+        return () => clearInterval(iv);
+    }, [rank, phase]);
+
+    const isInfo = phase === "info";
 
     return (
         <div ref={containerRef} style={{
             position: "fixed", inset: 0, zIndex: 200,
             display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
             fontFamily: "'Exo 2',sans-serif", overflow: "hidden",
-            background: showBinder
-                ? `radial-gradient(ellipse at 50% 42%,${rs.bgR} 0%,rgba(7,11,20,0.97) 58%),#070b14`
-                : "#070b14",
-            transition: "background 0.6s ease",
+            background: "#070b14",
         }}>
-            {/* Fondo animado reveal */}
-            {showBinder && (
+            {/* ── Flash blanco cegador ── */}
+            {phase === "flash" && (
+                <div style={{ position: "absolute", inset: 0, background: "#ffffff", animation: "rvFlash 0.32s ease-out forwards", zIndex: 50 }} />
+            )}
+
+            {/* ── Pillar de luz ascendente — difuso, sin bordes duros ── */}
+            {(phase === "pillar" || phase === "emerge" || phase === "info") && (
                 <>
-                    <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 20% 80%, rgba(123,47,255,0.06) 0%, transparent 50%), radial-gradient(ellipse at 80% 20%, rgba(76,201,240,0.05) 0%, transparent 50%)", pointerEvents: "none" }} />
-                    <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(rgba(123,47,255,0.04) 1px, transparent 1px)", backgroundSize: "32px 32px", pointerEvents: "none", opacity: 0.6 }} />
+                    {/* Columna exterior ancha — muy difusa */}
+                    <div style={{
+                        position: "absolute", left: "50%", bottom: 0,
+                        transform: "translateX(-50%)",
+                        width: "clamp(180px,28vw,340px)",
+                        height: "85%",
+                        background: `radial-gradient(ellipse at 50% 100%, ${rs.border}30 0%, ${rs.border}12 35%, transparent 65%)`,
+                        animation: "rvPillar 0.7s ease-out both",
+                        zIndex: 1, pointerEvents: "none",
+                        filter: "blur(18px)",
+                    }} />
+                    {/* Columna interior — más estrecha y luminosa */}
+                    <div style={{
+                        position: "absolute", left: "50%", bottom: 0,
+                        transform: "translateX(-50%)",
+                        width: "clamp(60px,9vw,110px)",
+                        height: "75%",
+                        background: `radial-gradient(ellipse at 50% 100%, ${rs.glow.replace(/[\d.]+\)$/, "0.55)")} 0%, ${rs.border}28 40%, transparent 70%)`,
+                        animation: "rvPillar 0.55s 0.08s ease-out both",
+                        zIndex: 2, pointerEvents: "none",
+                        filter: "blur(8px)",
+                    }} />
+                    {/* Halo ground — charco de luz en el suelo */}
+                    <div style={{
+                        position: "absolute", bottom: 0, left: "50%",
+                        transform: "translateX(-50%)",
+                        width: "clamp(160px,32vw,400px)",
+                        height: "clamp(20px,6vh,55px)",
+                        background: `radial-gradient(ellipse at 50% 100%, ${rs.border}50 0%, ${rs.border}18 50%, transparent 75%)`,
+                        animation: "rvPillar 0.5s ease-out both",
+                        zIndex: 2, pointerEvents: "none",
+                        filter: "blur(12px)",
+                    }} />
                 </>
             )}
 
-            {/* Botón izquierda */}
-            {showBinder && (
-                <button onClick={onBack} style={{ position: "absolute", left: "clamp(12px,3vw,32px)", top: "50%", transform: "translateY(-50%)", padding: "10px 18px", borderRadius: 8, fontSize: "var(--font-xs)", fontWeight: 600, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.2)", color: "#e2e8f0", zIndex: 20, animation: "nxSlideUp 0.35s 0.92s ease both", opacity: 0 }}>← Back</button>
-            )}
-            {/* Botón derecha */}
-            {showBinder && (
-                <button onClick={onBack} style={{ position: "absolute", right: "clamp(12px,3vw,32px)", top: "50%", transform: "translateY(-50%)", padding: "10px 20px", borderRadius: 8, fontSize: "var(--font-xs)", fontWeight: 700, cursor: "pointer", letterSpacing: "0.06em", background: rs.bg, border: `1px solid ${rs.border}`, color: rs.color, boxShadow: `0 0 14px ${rs.glow.replace(/[\d.]+\)$/, "0.35)")}`, zIndex: 20, animation: "nxSlideUp 0.35s 0.95s ease both", opacity: 0 }}>Close ✓</button>
+            {/* ── Fondo radial dramático ── */}
+            {(phase === "emerge" || phase === "info") && (
+                <div style={{
+                    position: "absolute", inset: 0,
+                    background: `radial-gradient(ellipse at 50% 58%, ${rs.bgR} 0%, rgba(7,11,20,0.0) 55%)`,
+                    animation: "rvBgReveal 0.7s ease-out both",
+                    zIndex: 1,
+                    pointerEvents: "none",
+                }} />
             )}
 
-            {/* Three.js burst */}
-            {showBurst && <FullScreenBurst color={rs.hex} onDone={() => { setShowBurst(false); setShowBinder(true); }} />}
+            {/* ── Burst Three.js ── */}
+            {(phase === "emerge" || phase === "info") && !burstDone && (
+                <FullScreenBurst color={rs.hex} onDone={() => setBurstDone(true)} />
+            )}
 
-            {/* Binder */}
-            {showBinder && (
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "clamp(8px,2vh,14px)", width: "100%", maxWidth: "clamp(300px,50vw,520px)", padding: "0 clamp(16px,4vw,32px)", position: "relative", zIndex: 10 }}>
-                    <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <div style={{ position: "absolute", inset: -50, borderRadius: "50%", background: `radial-gradient(circle,${rs.bgR} 0%,transparent 65%)`, animation: "nxGlow 2s ease-in-out infinite" }} />
-                        <img src={mythFrontUrl(result.speciesId, slug)} alt={result.name}
-                            style={{ width: "clamp(110px,22vw,200px)", height: "clamp(130px,26vw,240px)", objectFit: "contain", position: "relative", zIndex: 1, filter: `drop-shadow(0 0 28px ${rs.glow}) drop-shadow(0 0 60px ${rs.glow.replace(/[\d.]+\)$/, "0.35)")})`, animation: "nxBinder 0.85s cubic-bezier(0.34,1.56,0.64,1) both" }}
-                            onError={(e) => { const t = e.target as HTMLImageElement; t.style.display="none"; if(t.parentElement){t.parentElement.style.fontSize="80px";t.parentElement.innerHTML="🔮";} }}
+            {/* ── Aro de energía en torno al mito ── */}
+            {(phase === "emerge" || phase === "info") && (
+                <div style={{
+                    position: "absolute", top: "50%", left: "50%",
+                    transform: "translate(-50%,-50%)",
+                    width: "clamp(260px,40vw,480px)",
+                    height: "clamp(260px,40vw,480px)",
+                    borderRadius: "50%",
+                    border: `2px solid ${rs.border}55`,
+                    boxShadow: `0 0 60px ${rs.glow.replace(/[\d.]+\)$/, "0.25)")}, inset 0 0 40px ${rs.glow.replace(/[\d.]+\)$/, "0.1)")}`,
+                    animation: "rvRing 0.6s cubic-bezier(0.34,1.56,0.64,1) both",
+                    zIndex: 3,
+                    pointerEvents: "none",
+                }} />
+            )}
+
+            {/* ── Mito emerge ── */}
+            {(phase === "emerge" || phase === "info") && (
+                <div style={{
+                    position: "relative", zIndex: 10,
+                    display: "flex", flexDirection: "column", alignItems: "center",
+                    gap: "clamp(8px,2vh,14px)",
+                    animation: "rvEmerge 0.65s cubic-bezier(0.34,1.56,0.64,1) both",
+                }}>
+                    <div style={{ position: "relative" }}>
+                        {/* Aura pulsante */}
+                        <div style={{
+                            position: "absolute", inset: "-clamp(30px,5vw,60px)",
+                            borderRadius: "50%",
+                            background: `radial-gradient(circle, ${rs.bgR} 0%, transparent 70%)`,
+                            animation: "nxGlow 2s ease-in-out infinite",
+                            pointerEvents: "none",
+                        }} />
+                        <img
+                            src={mythFrontUrl(result.speciesId, slug)}
+                            alt={result.name}
+                            style={{
+                                width: "clamp(100px,18vw,180px)",
+                                height: "clamp(120px,22vw,220px)",
+                                objectFit: "contain",
+                                position: "relative", zIndex: 1,
+                                filter: `drop-shadow(0 0 40px ${rs.glow}) drop-shadow(0 0 80px ${rs.glow.replace(/[\d.]+\)$/, "0.4)")})`,
+                            }}
+                            onError={(e) => {
+                                const t = e.target as HTMLImageElement;
+                                t.style.display = "none";
+                                if (t.parentElement) { t.parentElement.style.fontSize = "70px"; t.parentElement.innerHTML = "🔮"; }
+                            }}
                         />
                     </div>
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "clamp(5px,1.2vh,9px)", animation: "nxSlideUp 0.5s 0.3s ease both", opacity: 0 }}>
-                        <div style={{ padding: "4px 18px", borderRadius: 4, fontSize: "var(--font-xs)", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", background: rs.bg, border: `1px solid ${rs.border}`, color: rs.color, boxShadow: `0 0 14px ${rs.glow.replace(/[\d.]+\)$/, "0.45)")}` }}>
-                            ★ {rs.label}{result.isPityGuarantee ? " · ✨" : ""}
+
+                    {/* Info — aparece en fase "info" */}
+                    {isInfo && (
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "clamp(4px,1vh,7px)" }}>
+                            {/* Rarity badge */}
+                            <div style={{
+                                padding: "3px 14px", borderRadius: 4,
+                                fontSize: "var(--font-2xs)", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase",
+                                background: rs.bg, border: `1px solid ${rs.border}`,
+                                color: rs.color, boxShadow: `0 0 14px ${rs.glow.replace(/[\d.]+\)$/, "0.45)")}`,
+                                animation: "rvInfo 0.4s ease both",
+                            }}>
+                                ★ {rs.label}{result.isPityGuarantee ? "  ✨" : ""}
+                            </div>
+                            {/* Name */}
+                            <p style={{
+                                fontFamily: "'Rajdhani',sans-serif", fontWeight: 800,
+                                fontSize: "clamp(20px,4vw,36px)", color: rs.color, lineHeight: 1,
+                                textShadow: `0 0 24px ${rs.glow}, 0 0 6px ${rs.glow}`,
+                                animation: "nxNameRev 0.55s 0.1s ease both", opacity: 0,
+                                letterSpacing: "0.04em",
+                            }}>{result.name}</p>
+                            {/* Affinities */}
+                            <div style={{ display: "flex", gap: 6, animation: "rvInfo 0.4s 0.18s ease both", opacity: 0 }}>
+                                {result.affinities.map(a => (
+                                    <img key={a} src={affinityUrl(a)} alt={a}
+                                        style={{ width: 20, height: 20, objectFit: "contain", filter: "drop-shadow(0 0 4px rgba(255,255,255,0.35))" }}
+                                        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                                ))}
+                            </div>
+                            {/* Stats */}
+                            <div style={{ display: "flex", gap: 5, animation: "rvInfo 0.4s 0.28s ease both", opacity: 0 }}>
+                                {[["HP", result.maxHp], ["ATK", result.attack], ["DEF", result.defense], ["SPD", result.speed]].map(([k, v]) => (
+                                    <div key={k as string} style={{
+                                        background: "rgba(255,255,255,0.05)", border: `1px solid ${rs.border}44`,
+                                        borderRadius: 6, padding: "4px 8px",
+                                        display: "flex", flexDirection: "column", alignItems: "center", minWidth: 38,
+                                    }}>
+                                        <span style={{ fontSize: "var(--font-2xs)", color: "#8892a4", textTransform: "uppercase", letterSpacing: "0.06em" }}>{k}</span>
+                                        <span style={{ fontSize: "var(--font-xs)", fontWeight: 700, color: "#ffffff" }}>{v}</span>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
-                        <p style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 700, fontSize: "clamp(28px,5vw,46px)", color: rs.color, lineHeight: 1, textShadow: `0 0 24px ${rs.glow}`, animation: "nxNameRev 0.55s 0.5s ease both", opacity: 0 }}>{result.name}</p>
-                        <div style={{ display: "flex", gap: 6, animation: "nxSlideUp 0.38s 0.65s ease both", opacity: 0 }}>
-                            {result.affinities.map(a => <img key={a} src={affinityUrl(a)} alt={a} style={{ width: 22, height: 22, objectFit: "contain", filter: "drop-shadow(0 0 4px rgba(255,255,255,0.35))" }} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />)}
-                        </div>
-                        <div style={{ display: "flex", gap: 7, animation: "nxSlideUp 0.38s 0.78s ease both", opacity: 0 }}>
-                            {[["HP", result.maxHp], ["ATK", result.attack], ["DEF", result.defense], ["SPD", result.speed]].map(([k, v]) => (
-                                <div key={k as string} style={{ background: "rgba(255,255,255,0.06)", border: `1px solid ${rs.border}44`, borderRadius: 6, padding: "5px 10px", display: "flex", flexDirection: "column", alignItems: "center", minWidth: 44 }}>
-                                    <span style={{ fontSize: "var(--font-2xs)", color: "#e2e8f0", textTransform: "uppercase" }}>{k}</span>
-                                    <span style={{ fontSize: "var(--font-sm)", fontWeight: 700, color: "#ffffff" }}>{v}</span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+                    )}
                 </div>
+            )}
+
+            {/* ── Botones laterales (fase info) ── */}
+            {isInfo && (
+                <>
+                    <button onClick={onBack} style={{
+                        position: "absolute", left: "clamp(12px,3vw,36px)", top: "50%", transform: "translateY(-50%)",
+                        padding: "12px 20px", borderRadius: 9, fontSize: "var(--font-xs)", fontWeight: 600,
+                        cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.18)",
+                        color: "#e2e8f0", zIndex: 30, animation: "rvInfo 0.4s 0.5s ease both", opacity: 0,
+                    }}>← Back</button>
+                    <button onClick={onBack} style={{
+                        position: "absolute", right: "clamp(12px,3vw,36px)", top: "50%", transform: "translateY(-50%)",
+                        padding: "12px 22px", borderRadius: 9, fontSize: "var(--font-xs)", fontWeight: 700,
+                        cursor: "pointer", letterSpacing: "0.06em",
+                        background: rs.bg, border: `1px solid ${rs.border}`, color: rs.color,
+                        boxShadow: `0 0 18px ${rs.glow.replace(/[\d.]+\)$/, "0.4)")}`,
+                        zIndex: 30, animation: "rvInfo 0.4s 0.55s ease both", opacity: 0,
+                    }}>Collect ✓</button>
+                </>
             )}
         </div>
     );
 }
 
-// ─── Reveal x5 ───────────────────────────────────────────────
+// ─── Reveal x5 — Cinematic sequential ────────────────────────
 
 type CrystalState = "idle" | "cracking" | "revealed";
 
 function RevealMulti({ results, onBack }: { results: PullResult[]; onBack: () => void }) {
     const [states, setStates] = useState<CrystalState[]>(Array(5).fill("idle"));
+    const [activeIdx, setActiveIdx] = useState<number>(-1);
     const [burstInfo, setBurstInfo] = useState<{ color: number; x: number; y: number; key: number } | null>(null);
     const [done, setDone] = useState(false);
     const wrapRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -422,27 +706,25 @@ function RevealMulti({ results, onBack }: { results: PullResult[]; onBack: () =>
             await loadThree();
             for (let i = 0; i < 5; i++) {
                 if (cancelled) return;
-                await new Promise(r => setTimeout(r, 1400)); // pausa más larga entre cristales
+                await new Promise(r => setTimeout(r, i === 0 ? 600 : 1100));
                 if (cancelled) return;
+                setActiveIdx(i);
                 setStates(p => { const n = [...p]; n[i] = "cracking"; return n; });
-
-                // Obtener posición real del cristal para el burst
                 const ref = wrapRefs.current[i];
                 let bx = window.innerWidth / 2, by = window.innerHeight / 2;
                 if (ref) {
                     const rect = ref.getBoundingClientRect();
                     bx = rect.left + rect.width / 2;
                     by = rect.top + rect.height / 2;
-                    cssParticles(ref, RS[results[i].rarity].p, 24);
+                    cssParticles(ref, RS[results[i].rarity].p, 28);
                 }
                 setBurstInfo({ color: RS[results[i].rarity].hex, x: bx, y: by, key: i });
-
-                await new Promise(r => setTimeout(r, 900)); // burst más largo
+                await new Promise(r => setTimeout(r, 750));
                 if (cancelled) return;
                 setStates(p => { const n = [...p]; n[i] = "revealed"; return n; });
-                await new Promise(r => setTimeout(r, 500)); // pausa post-reveal
+                await new Promise(r => setTimeout(r, 380));
             }
-            await new Promise(r => setTimeout(r, 1100));
+            await new Promise(r => setTimeout(r, 900));
             if (!cancelled) setDone(true);
         }
         run();
@@ -451,17 +733,17 @@ function RevealMulti({ results, onBack }: { results: PullResult[]; onBack: () =>
 
     if (done) {
         return (
-            <div style={{ position: "fixed", inset: 0, zIndex: 200, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontFamily: "'Exo 2',sans-serif", overflow: "hidden" }}>
-                {/* Fondo bonito del resumen */}
-                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg,rgba(123,47,255,0.12) 0%,rgba(7,11,20,0.98) 40%,rgba(76,201,240,0.08) 100%)", zIndex: 0 }} />
-                <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(rgba(123,47,255,0.05) 1px, transparent 1px)", backgroundSize: "28px 28px", zIndex: 0 }} />
-                <p style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 700, fontSize: "var(--font-xl)", color: "#ffffff", letterSpacing: "0.14em", marginBottom: 28, position: "relative", zIndex: 1 }}>SUMMONS</p>
+            <div style={{ position: "fixed", inset: 0, zIndex: 200, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontFamily: "'Exo 2',sans-serif", overflow: "hidden", background: "#070b14" }}>
+                {/* Fondo sólido oscuro con acento sutil */}
+                <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 50% 30%, rgba(123,47,255,0.18) 0%, rgba(7,11,20,0) 60%)", zIndex: 0, pointerEvents: "none" }} />
+                <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(rgba(123,47,255,0.04) 1px, transparent 1px)", backgroundSize: "28px 28px", zIndex: 0, pointerEvents: "none" }} />
+                <p style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 800, fontSize: "clamp(22px,3.5vw,34px)", color: "#ffffff", letterSpacing: "0.18em", marginBottom: 28, position: "relative", zIndex: 1, textShadow: "0 0 30px rgba(123,47,255,0.6)" }}>SUMMONS</p>
                 <div style={{ display: "flex", gap: "clamp(10px,2vw,20px)", justifyContent: "center", flexWrap: "wrap", position: "relative", zIndex: 1 }}>
                     {results.map((r, i) => {
                         const rs2 = RS[r.rarity];
                         return (
-                            <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 7, background: rs2.bg, border: `2px solid ${rs2.border}`, borderRadius: 12, padding: "clamp(10px,2vw,16px) clamp(12px,2.5vw,20px)", minWidth: "clamp(82px,10vw,112px)", boxShadow: `0 0 22px ${rs2.glow.replace(/[\d.]+\)$/, "0.32)")}`, animation: `nxSlideUp 0.35s ${i * 0.09}s ease both`, opacity: 0 }}>
-                                <img src={mythFrontUrl(r.speciesId, toSlug(r.name))} alt={r.name} style={{ width: "clamp(52px,7vw,72px)", height: "clamp(65px,9vw,90px)", objectFit: "contain", filter: `drop-shadow(0 0 10px ${rs2.glow})` }} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                            <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, background: rs2.bg, border: `2px solid ${rs2.border}`, borderRadius: 14, padding: "clamp(10px,2vw,16px) clamp(12px,2.5vw,20px)", minWidth: "clamp(82px,10vw,112px)", boxShadow: `0 0 28px ${rs2.glow.replace(/[\d.]+\)$/, "0.35)")}`, animation: `nxSlideUp 0.4s ${i * 0.09}s ease both`, opacity: 0 }}>
+                                <img src={mythFrontUrl(r.speciesId, toSlug(r.name))} alt={r.name} style={{ width: "clamp(52px,7vw,72px)", height: "clamp(65px,9vw,90px)", objectFit: "contain", filter: `drop-shadow(0 0 12px ${rs2.glow})` }} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                                 <span style={{ fontSize: "var(--font-xs)", color: rs2.color, fontWeight: 700, textAlign: "center" }}>{r.name}</span>
                                 <span style={{ fontSize: "var(--font-2xs)", color: rs2.border, letterSpacing: "0.06em", textTransform: "uppercase" }}>{rs2.label}</span>
                                 {r.isPityGuarantee && <span style={{ fontSize: 9, color: "#fbbf24" }}>✨</span>}
@@ -469,52 +751,44 @@ function RevealMulti({ results, onBack }: { results: PullResult[]; onBack: () =>
                         );
                     })}
                 </div>
-                <button onClick={onBack} style={{ marginTop: 32, padding: "11px 36px", borderRadius: 9, fontSize: "var(--font-sm)", fontWeight: 700, cursor: "pointer", letterSpacing: "0.06em", background: "rgba(123,47,255,0.25)", border: "1px solid rgba(123,47,255,0.6)", color: "#c4b5fd", position: "relative", zIndex: 1 }}>
-                    ← Back to Nexus
-                </button>
+                <button onClick={onBack} style={{ marginTop: 32, padding: "12px 40px", borderRadius: 10, fontSize: "var(--font-sm)", fontWeight: 700, cursor: "pointer", letterSpacing: "0.07em", background: "rgba(123,47,255,0.28)", border: "1px solid rgba(123,47,255,0.65)", color: "#c4b5fd", position: "relative", zIndex: 1, boxShadow: "0 0 20px rgba(123,47,255,0.25)" }}>← Back to Nexus</button>
             </div>
         );
     }
 
     return (
-        <div style={{ position: "fixed", inset: 0, zIndex: 200, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "clamp(24px,5vh,48px)", overflow: "hidden", fontFamily: "'Exo 2',sans-serif", background: "#070b14" }}>
-            {/* Fondo bonito opening */}
-            <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 50% 50%, rgba(123,47,255,0.12) 0%, transparent 65%)", zIndex: 0 }} />
-            <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(rgba(123,47,255,0.04) 1px, transparent 1px)", backgroundSize: "36px 36px", zIndex: 0 }} />
-
-            {/* Burst posicionado en el cristal */}
+        <div style={{ position: "fixed", inset: 0, zIndex: 200, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "clamp(20px,4vh,40px)", overflow: "hidden", fontFamily: "'Exo 2',sans-serif", background: "#070b14" }}>
+            <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 50% 50%, rgba(123,47,255,0.1) 0%, transparent 65%)", zIndex: 0, pointerEvents: "none" }} />
             {burstInfo && <FullScreenBurst key={burstInfo.key} color={burstInfo.color} x={burstInfo.x} y={burstInfo.y} onDone={() => setBurstInfo(null)} />}
-
-            <p style={{ fontSize: "var(--font-sm)", color: "#ffffff", textTransform: "uppercase", letterSpacing: "0.18em", fontWeight: 700, animation: "nxPulse 1.5s ease-in-out infinite", position: "relative", zIndex: 1 }}>Opening essences...</p>
-
-            <div style={{ display: "flex", gap: "clamp(28px,5vw,64px)", alignItems: "center", justifyContent: "center", position: "relative", zIndex: 1 }}>
+            <p style={{ fontSize: "var(--font-xs)", color: "#ffffff", textTransform: "uppercase", letterSpacing: "0.2em", fontWeight: 700, animation: "nxPulse 1.5s ease-in-out infinite", position: "relative", zIndex: 2 }}>Opening essences...</p>
+            <div style={{ display: "flex", gap: "clamp(24px,4.5vw,56px)", alignItems: "flex-end", justifyContent: "center", position: "relative", zIndex: 2 }}>
                 {results.map((r, i) => {
                     const rs2 = RS[r.rarity]; const state = states[i]; const slug = toSlug(r.name);
+                    const isActive = activeIdx === i && state === "cracking";
                     return (
                         <div key={i} ref={el => { wrapRefs.current[i] = el; }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, position: "relative" }}>
+                            {isActive && <div style={{ position: "absolute", inset: "-20px", borderRadius: "50%", background: `radial-gradient(circle, ${rs2.bgR} 0%, transparent 70%)`, animation: "nxGlow 0.8s ease-in-out infinite", zIndex: 0, pointerEvents: "none" }} />}
                             {state !== "revealed" ? (
-                                <div style={{ animation: state === "cracking" ? "nxExplode 0.5s ease-in forwards" : undefined }}>
+                                <div style={{ animation: state === "cracking" ? "nxExplode 0.55s ease-in forwards" : undefined, opacity: state === "idle" && i > (activeIdx < 0 ? -1 : activeIdx) ? 0.35 : 1, transition: "opacity 0.3s", position: "relative", zIndex: 1 }}>
                                     <MiniFragment dim={state === "idle"} />
                                 </div>
                             ) : (
-                                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 7, animation: "nxSlideUp 0.42s ease both" }}>
+                                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 7, animation: "nxSlideUp 0.45s ease both", position: "relative", zIndex: 1 }}>
                                     <div style={{ position: "relative" }}>
-                                        <div style={{ position: "absolute", inset: "-22px", borderRadius: "50%", background: `radial-gradient(circle, ${rs2.bgR} 0%, transparent 72%)`, animation: "nxGlow 2s ease-in-out infinite", pointerEvents: "none" }} />
-                                        <img src={mythFrontUrl(r.speciesId, slug)} alt={r.name}
-                                            style={{ width: "clamp(70px,9.5vw,100px)", height: "clamp(88px,12vw,125px)", objectFit: "contain", position: "relative", zIndex: 1, filter: `drop-shadow(0 0 14px ${rs2.glow}) drop-shadow(0 0 28px ${rs2.glow.replace(/[\d.]+\)$/, "0.4)")})` }}
-                                            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                                        <div style={{ position: "absolute", inset: "-18px", borderRadius: "50%", background: `radial-gradient(circle, ${rs2.bgR} 0%, transparent 72%)`, animation: "nxGlow 2s ease-in-out infinite", pointerEvents: "none" }} />
+                                        <img src={mythFrontUrl(r.speciesId, slug)} alt={r.name} style={{ width: "clamp(68px,9vw,98px)", height: "clamp(85px,11.5vw,122px)", objectFit: "contain", position: "relative", zIndex: 1, filter: `drop-shadow(0 0 16px ${rs2.glow}) drop-shadow(0 0 30px ${rs2.glow.replace(/[\d.]+\)$/, "0.4)")})` }} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                                     </div>
-                                    <div style={{ padding: "2px 10px", borderRadius: 3, fontSize: "var(--font-2xs)", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", background: rs2.bg, border: `1px solid ${rs2.border}`, color: rs2.color, boxShadow: `0 0 10px ${rs2.glow.replace(/[\d.]+\)$/, "0.4)")}` }}>{rs2.label}</div>
+                                    <div style={{ padding: "2px 10px", borderRadius: 3, fontSize: "var(--font-2xs)", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", background: rs2.bg, border: `1px solid ${rs2.border}`, color: rs2.color, boxShadow: `0 0 10px ${rs2.glow.replace(/[\d.]+\)$/, "0.45)")}` }}>{rs2.label}</div>
                                     <span style={{ fontSize: "var(--font-xs)", color: rs2.color, fontWeight: 700, textAlign: "center", maxWidth: 100 }}>{r.name}</span>
                                     {r.isPityGuarantee && <span style={{ fontSize: 9, color: "#fbbf24" }}>✨</span>}
                                 </div>
                             )}
-                            <span style={{ fontSize: "var(--font-2xs)", color: state === "revealed" ? rs2.border : "rgba(255,255,255,0.2)", fontFamily: "monospace" }}>{i + 1}</span>
+                            <div style={{ width: 6, height: 6, borderRadius: "50%", background: state === "revealed" ? rs2.border : "rgba(255,255,255,0.2)", boxShadow: state === "revealed" ? `0 0 8px ${rs2.border}` : "none", transition: "all 0.3s", marginTop: 4 }} />
                         </div>
                     );
                 })}
             </div>
-            <button onClick={onBack} style={{ position: "absolute", bottom: 20, left: 20, padding: "8px 18px", borderRadius: 7, fontSize: "var(--font-xs)", fontWeight: 600, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.18)", color: "#e2e8f0", zIndex: 1 }}>← Back</button>
+            <button onClick={onBack} style={{ position: "absolute", bottom: 24, left: 24, padding: "8px 18px", borderRadius: 7, fontSize: "var(--font-xs)", fontWeight: 600, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.18)", color: "#e2e8f0", zIndex: 3 }}>← Skip</button>
         </div>
     );
 }
@@ -523,7 +797,6 @@ function RevealMulti({ results, onBack }: { results: PullResult[]; onBack: () =>
 
 export default function NexusPage() {
     const navigate = useNavigate();
-    const [banner, setBanner]   = useState<Banner | null>(null);
     const [pity, setPity]       = useState<PityData | null>(null);
     const [loading, setLoading] = useState(true);
     const [pulling, setPulling] = useState(false);
@@ -531,11 +804,11 @@ export default function NexusPage() {
     const [singleResult, setSingleResult] = useState<PullResult | null>(null);
     const [multiResults, setMultiResults] = useState<PullResult[] | null>(null);
 
-    const [sphereSize, setSphereSize] = useState(170);
+    const [sphereSize, setSphereSize] = useState(100);
     useEffect(() => {
         function onResize() {
             const w = window.innerWidth;
-            setSphereSize(w < 700 ? 160 : w < 1100 ? 210 : 280);
+            setSphereSize(w < 500 ? 90 : w < 700 ? 110 : w < 1100 ? 150 : 200);
         }
         onResize();
         window.addEventListener("resize", onResize);
@@ -545,7 +818,12 @@ export default function NexusPage() {
     const fetchData = useCallback(async () => {
         try {
             const [br, pr] = await Promise.all([api.nexusBanner(), api.nexusPity()]);
-            setBanner((br as any).banner); setPity(pr as any);
+            const bannerData = (br as any).banner;
+            setPity({
+                ...(pr as any),
+                _boostedId:     bannerData?.boostedMythIds?.[0] ?? null,
+                _boostedRarity: bannerData?.boostedRarity     ?? "LEGENDARY",
+            } as any);
         } catch { setError("Failed to load Nexus"); }
         finally { setLoading(false); }
     }, []);
@@ -565,31 +843,33 @@ export default function NexusPage() {
     }
 
     const essences = pity?.essences ?? 0;
-    const boostedId = banner?.boostedMythIds?.[0] ?? null;
-    const boostedSlug = boostedId ? toSlug(boostedId) : null;
-    // Nombre del boosted: usar el ID directamente (speciesId es el nombre en tu sistema)
-    const boostedName = boostedId ?? null;
+    const boostedId     = (pity as any)?._boostedId     ?? null;
+    const boostedRarity = ((pity as any)?._boostedRarity ?? "LEGENDARY") as Rarity;
+    const boostedRS     = RS[boostedRarity];
+    const boostedSlug   = boostedId ? toSlug(boostedId) : null;
+    const boostedName   = boostedId ?? null;
 
     return (
         <PageShell ambientColor="rgba(123,47,255,0.07)">
             <style>{`
-                @keyframes nxGlow     { 0%,100%{opacity:0.5;transform:scale(0.9)} 50%{opacity:0.18;transform:scale(1.1)} }
-                @keyframes nxFloat    { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+                @keyframes nxGlow     { 0%,100%{opacity:0.5;transform:scale(0.95)} 50%{opacity:0.18;transform:scale(1.06)} }
+                @keyframes nxFloat    { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
                 @keyframes nxMaura    { 0%,100%{opacity:0.4} 50%{opacity:0.9} }
                 @keyframes nxX10      { 0%,100%{box-shadow:0 0 4px rgba(251,191,36,0.3)} 50%{box-shadow:0 0 14px rgba(251,191,36,0.8)} }
                 @keyframes nxSparkle  { 0%,100%{opacity:0;transform:scale(0)} 40%,60%{opacity:1;transform:scale(1)} }
                 @keyframes nxSlideUp  { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
-                @keyframes nxNameRev  { from{letter-spacing:0.55em;opacity:0} to{letter-spacing:0.02em;opacity:1} }
+                @keyframes nxNameRev  { from{letter-spacing:0.55em;opacity:0} to{letter-spacing:0.04em;opacity:1} }
                 @keyframes nxExplode  { 0%{transform:scale(1);opacity:1;filter:blur(0)} 50%{transform:scale(2.1);opacity:0.35;filter:blur(4px)} 100%{transform:scale(0.04);opacity:0;filter:blur(8px)} }
                 @keyframes nxPulse    { 0%,100%{opacity:0.55} 50%{opacity:1} }
                 @keyframes nxPart     { 0%{transform:translate(0,0) scale(1);opacity:1} 100%{transform:translate(var(--tx),var(--ty)) scale(0);opacity:0} }
                 @keyframes nxBinder   { from{transform:scale(0.08) translateY(70px);opacity:0;filter:blur(10px)} 60%{filter:blur(0)} to{transform:scale(1) translateY(0);opacity:1} }
-                /* Órbitas del fragmento 3D — cada una en su plano */
-                @keyframes nxOrb0 { from{transform:rotate(0deg) translateX(var(--rx,60px)) rotate(0deg)} to{transform:rotate(360deg) translateX(var(--rx,60px)) rotate(-360deg)} }
-                @keyframes nxOrb1 { from{transform:rotate(0deg) translateX(var(--rx,50px)) rotate(0deg)} to{transform:rotate(360deg) translateX(var(--rx,50px)) rotate(-360deg)} }
-                @keyframes nxOrb2 { from{transform:rotate(0deg) translateX(var(--rx,40px)) rotate(0deg)} to{transform:rotate(360deg) translateX(var(--rx,40px)) rotate(-360deg)} }
-                @keyframes nxOrb3 { from{transform:rotate(0deg) translateX(var(--rx,68px)) rotate(0deg)} to{transform:rotate(360deg) translateX(var(--rx,68px)) rotate(-360deg)} }
-                @keyframes nxOrb4 { from{transform:rotate(0deg) translateX(var(--rx,30px)) rotate(0deg)} to{transform:rotate(360deg) translateX(var(--rx,30px)) rotate(-360deg)} }
+                /* ── Cinematic reveal keyframes ── */
+                @keyframes rvFlash    { 0%{opacity:1} 100%{opacity:0} }
+                @keyframes rvPillar   { from{opacity:0} to{opacity:1} }
+                @keyframes rvBgReveal { from{opacity:0;transform:scale(0.7)} to{opacity:1;transform:scale(1)} }
+                @keyframes rvRing     { from{opacity:0;transform:translate(-50%,-50%) scale(0.2)} to{opacity:1;transform:translate(-50%,-50%) scale(1)} }
+                @keyframes rvEmerge   { from{opacity:0;transform:translateY(60px) scale(0.5);filter:blur(12px)} 60%{filter:blur(0)} to{opacity:1;transform:translateY(0) scale(1)} }
+                @keyframes rvInfo     { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
             `}</style>
 
             <PageTopbar title="Nexus" onBack={() => navigate(-1)} />
@@ -601,14 +881,75 @@ export default function NexusPage() {
                     </div>
                 ) : (
                     <div style={{ flex: 1, display: "flex", overflow: "hidden", position: "relative" }}>
-                        {/* Fondo bonito de la página principal */}
-                        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 50% 50%, rgba(123,47,255,0.06) 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, rgba(76,201,240,0.04) 0%, transparent 45%)", pointerEvents: "none", zIndex: 0 }} />
-                        <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(rgba(123,47,255,0.035) 1px, transparent 1px)", backgroundSize: "36px 36px", pointerEvents: "none", zIndex: 0 }} />
 
-                        {/* LEFT: 220px */}
-                        <div style={{ width: 220, minWidth: 220, borderRight: "1px solid rgba(255,255,255,0.07)", display: "flex", flexDirection: "column", overflow: "hidden", position: "relative", zIndex: 1 }}>
+                        {/* ── FONDO: nebulosa profunda, no tan negro ── */}
+                        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, #0d0820 0%, #0a0f1e 40%, #080d18 70%, #0e0a1a 100%)", zIndex: 0 }} />
+                        {/* Nebulosa púrpura izquierda */}
+                        <div style={{ position: "absolute", top: "-20%", left: "-10%", width: "55%", height: "80%", background: "radial-gradient(ellipse, rgba(123,47,255,0.09) 0%, rgba(88,28,135,0.05) 45%, transparent 70%)", filter: "blur(40px)", zIndex: 0, pointerEvents: "none" }} />
+                        {/* Nebulosa azul derecha */}
+                        <div style={{ position: "absolute", bottom: "-15%", right: "-5%", width: "50%", height: "75%", background: "radial-gradient(ellipse, rgba(29,78,216,0.07) 0%, rgba(76,29,149,0.04) 50%, transparent 72%)", filter: "blur(50px)", zIndex: 0, pointerEvents: "none" }} />
+                        {/* Nebulosa cian sutil arriba-derecha */}
+                        <div style={{ position: "absolute", top: "0", right: "15%", width: "30%", height: "45%", background: "radial-gradient(ellipse, rgba(56,189,248,0.04) 0%, transparent 65%)", filter: "blur(30px)", zIndex: 0, pointerEvents: "none" }} />
+                        {/* Grid de puntos más sutil */}
+                        <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(rgba(167,139,250,0.025) 1px, transparent 1px)", backgroundSize: "32px 32px", zIndex: 0, pointerEvents: "none" }} />
+
+                        {/* ── PARTÍCULAS flotantes CSS en el centro ── */}
+                        <style>{`
+                            @keyframes nxDrift0 { 0%{transform:translate(0,0) rotate(0deg);opacity:0} 15%{opacity:1} 85%{opacity:0.6} 100%{transform:translate(var(--dx0),var(--dy0)) rotate(360deg);opacity:0} }
+                            @keyframes nxDrift1 { 0%{transform:translate(0,0) scale(1);opacity:0} 20%{opacity:0.8} 80%{opacity:0.4} 100%{transform:translate(var(--dx1),var(--dy1)) scale(0.3);opacity:0} }
+                            @keyframes nxDrift2 { 0%{transform:translate(0,0);opacity:0} 25%{opacity:0.7} 75%{opacity:0.3} 100%{transform:translate(var(--dx2),var(--dy2));opacity:0} }
+                            @keyframes nxStarPulse { 0%,100%{opacity:0.15;transform:scale(0.8)} 50%{opacity:0.55;transform:scale(1.2)} }
+                        `}</style>
+
+                        {/* Partículas pequeñas flotando — posicionadas en el área central */}
+                        {[
+                            { top:"18%",left:"38%", sz:2.5, color:"#c4b5fd", dur:"9s",  delay:"0s",   dx:"-30px", dy:"-55px", anim:0 },
+                            { top:"65%",left:"55%", sz:2,   color:"#a78bfa", dur:"11s", delay:"-3s",  dx:"25px",  dy:"-70px", anim:1 },
+                            { top:"42%",left:"32%", sz:3,   color:"#7c3aed", dur:"8s",  delay:"-5s",  dx:"-20px", dy:"-45px", anim:0 },
+                            { top:"28%",left:"62%", sz:1.8, color:"#ddd6fe", dur:"13s", delay:"-2s",  dx:"35px",  dy:"-60px", anim:2 },
+                            { top:"72%",left:"40%", sz:2.2, color:"#818cf8", dur:"10s", delay:"-7s",  dx:"-25px", dy:"-50px", anim:1 },
+                            { top:"52%",left:"68%", sz:1.5, color:"#c4b5fd", dur:"12s", delay:"-4s",  dx:"20px",  dy:"-65px", anim:2 },
+                            { top:"35%",left:"45%", sz:2,   color:"#ffffff", dur:"7s",  delay:"-1.5s",dx:"-15px", dy:"-40px", anim:0 },
+                            { top:"80%",left:"58%", sz:1.8, color:"#a78bfa", dur:"14s", delay:"-8s",  dx:"30px",  dy:"-55px", anim:1 },
+                            { top:"22%",left:"50%", sz:2.5, color:"#7c3aed", dur:"9.5s",delay:"-6s",  dx:"-40px", dy:"-48px", anim:2 },
+                            { top:"60%",left:"36%", sz:1.5, color:"#ddd6fe", dur:"11.5s",delay:"-2.5s",dx:"22px", dy:"-62px", anim:0 },
+                            { top:"15%",left:"70%", sz:2,   color:"#818cf8", dur:"8.5s",delay:"-9s",  dx:"-18px", dy:"-52px", anim:1 },
+                            { top:"88%",left:"48%", sz:2.2, color:"#c4b5fd", dur:"10.5s",delay:"-3.5s",dx:"28px", dy:"-45px", anim:2 },
+                        ].map((p, i) => (
+                            <div key={i} style={{
+                                position: "absolute",
+                                top: p.top, left: p.left,
+                                width: p.sz, height: p.sz,
+                                borderRadius: "50%",
+                                background: p.color,
+                                boxShadow: `0 0 ${p.sz * 3}px ${p.color}`,
+                                pointerEvents: "none", zIndex: 0,
+                                ["--dx" + p.anim as any]: p.dx,
+                                ["--dy" + p.anim as any]: p.dy,
+                                animation: `nxDrift${p.anim} ${p.dur} ${p.delay} ease-in-out infinite`,
+                            }} />
+                        ))}
+                        {/* Estrellas fijas pulsantes */}
+                        {[
+                            { top:"12%",left:"55%",sz:1.2 }, { top:"45%",left:"72%",sz:1 },
+                            { top:"78%",left:"62%",sz:1.4 }, { top:"30%",left:"38%",sz:1 },
+                            { top:"62%",left:"44%",sz:1.2 }, { top:"20%",left:"65%",sz:0.9 },
+                        ].map((s, i) => (
+                            <div key={i} style={{
+                                position: "absolute", top: s.top, left: s.left,
+                                width: s.sz, height: s.sz, borderRadius: "50%",
+                                background: "#e0d7ff",
+                                boxShadow: `0 0 3px #c4b5fd`,
+                                pointerEvents: "none", zIndex: 0,
+                                animation: `nxStarPulse ${3.5 + i * 0.7}s ${-i * 0.9}s ease-in-out infinite`,
+                            }} />
+                        ))}
+
+                        {/* LEFT: responsive width */}
+                        <div style={{ width: "clamp(120px,22vw,220px)", minWidth: "clamp(120px,22vw,220px)", borderRight: "1px solid rgba(255,255,255,0.07)", display: "flex", flexDirection: "column", overflow: "hidden", position: "relative", zIndex: 1 }}>
                             <div style={{ flex: 1, position: "relative", overflow: "hidden" }}>
-                                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(160deg,rgba(251,191,36,0.22) 0%,rgba(180,83,9,0.3) 45%,rgba(7,11,20,0.95) 100%)" }} />
+                                {/* Gradiente dinámico según rareza del boosted */}
+                                <div style={{ position: "absolute", inset: 0, background: `linear-gradient(160deg,${boostedRS.panelBg} 0%,${boostedRS.panelBg.replace(/[\d.]+\)$/, "0.22)")} 45%,rgba(7,11,20,0.95) 100%)` }} />
                                 {boostedId && boostedSlug ? (
                                     <img src={mythFrontUrl(boostedId, boostedSlug)} alt="Boosted"
                                         style={{ width: "100%", height: "100%", objectFit: "contain", objectPosition: "center 10%", opacity: 0.9, display: "block", position: "relative", zIndex: 1, padding: "8px 8px 90px" }}
@@ -617,77 +958,102 @@ export default function NexusPage() {
                                     <div style={{ width: "100%", height: "calc(100% - 90px)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 80, position: "relative", zIndex: 1 }}>🐉</div>
                                 )}
                                 <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top,rgba(7,11,20,1) 0%,rgba(7,11,20,0.35) 38%,transparent 65%)", zIndex: 2 }} />
-                                <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 50% 28%,rgba(251,191,36,0.2) 0%,transparent 58%)", animation: "nxMaura 2.5s ease-in-out infinite", zIndex: 2, pointerEvents: "none" }} />
+                                {/* Aura dinámica según rareza */}
+                                <div style={{ position: "absolute", inset: 0, background: `radial-gradient(ellipse at 50% 28%,${boostedRS.panelBg.replace(/[\d.]+\)$/, "0.35)")} 0%,transparent 58%)`, animation: "nxMaura 2.5s ease-in-out infinite", zIndex: 2, pointerEvents: "none" }} />
                                 {SPARKLES.map((s, i) => (
-                                    <div key={i} style={{ position: "absolute", zIndex: 3, pointerEvents: "none", color: "#fbbf24", fontSize: s.fs, top: s.top, left: s.left, animation: `nxSparkle 2.2s ease-in-out ${s.delay} infinite` }}>✦</div>
+                                    <div key={i} style={{ position: "absolute", zIndex: 3, pointerEvents: "none", color: boostedRS.border, fontSize: s.fs, top: s.top, left: s.left, animation: `nxSparkle 2.2s ease-in-out ${s.delay} infinite`, textShadow: `0 0 6px ${boostedRS.border}` }}>✦</div>
                                 ))}
                                 <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "8px 10px", zIndex: 4 }}>
-                                    <span style={{ fontSize: "var(--font-2xs)", textTransform: "uppercase", letterSpacing: "0.12em", color: "#fbbf24", fontWeight: 700, display: "block", marginBottom: 4, textShadow: "0 0 8px rgba(251,191,36,0.6)" }}>✦ Featured this week</span>
-                                    <div style={{ display: "inline-flex", alignItems: "center", gap: 3, background: "rgba(251,191,36,0.22)", border: "1px solid rgba(251,191,36,0.65)", borderRadius: 3, fontSize: "var(--font-2xs)", fontWeight: 700, color: "#fbbf24", padding: "2px 6px", marginBottom: 5, animation: "nxX10 1.5s ease-in-out infinite" }}>★ ×10 BOOST</div>
-                                    <div style={{ fontSize: "var(--font-md)", fontFamily: "'Rajdhani',sans-serif", fontWeight: 700, color: "#ffffff", textShadow: "0 0 14px rgba(251,191,36,0.7),0 2px 4px rgba(0,0,0,0.8)", lineHeight: 1, marginBottom: 2 }}>
-                                        {boostedName ?? "No active banner"}
+                                    <span style={{ fontSize: "var(--font-2xs)", textTransform: "uppercase", letterSpacing: "0.12em", color: boostedRS.border, fontWeight: 700, display: "block", marginBottom: 4, textShadow: `0 0 8px ${boostedRS.border}88` }}>✦ Featured this week</span>
+                                    <div style={{ display: "inline-flex", alignItems: "center", gap: 3, background: boostedRS.bg, border: `1px solid ${boostedRS.border}bb`, borderRadius: 3, fontSize: "var(--font-2xs)", fontWeight: 700, color: boostedRS.color, padding: "2px 6px", marginBottom: 5, boxShadow: `0 0 8px ${boostedRS.border}55` }}>★ ×10 BOOST</div>
+                                    <div style={{ fontSize: "var(--font-md)", fontFamily: "'Rajdhani',sans-serif", fontWeight: 700, color: "#ffffff", textShadow: `0 0 14px ${boostedRS.border}88,0 2px 4px rgba(0,0,0,0.8)`, lineHeight: 1, marginBottom: 2 }}>
+                                        {boostedName ?? "Weekly Featured"}
                                     </div>
-                                    {boostedName && <div style={{ fontSize: "var(--font-2xs)", color: "#fcd34d" }}>Legendary</div>}
+                                    {boostedName && <div style={{ fontSize: "var(--font-2xs)", color: boostedRS.color }}>{boostedRS.label}</div>}
                                 </div>
                             </div>
                             {/* Pity */}
                             <div style={{ padding: "8px 12px", borderTop: "1px solid rgba(255,255,255,0.07)", background: "rgba(0,0,0,0.25)" }}>
-                                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 7 }}>
+                                    <EssenceIcon size={13} />
                                     <span style={{ fontSize: "var(--font-2xs)", textTransform: "uppercase", letterSpacing: "0.1em", color: "#ffffff", fontWeight: 700 }}>Pity Tracker</span>
-                                    <div style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(123,47,255,0.18)", border: "1px solid rgba(123,47,255,0.45)", borderRadius: 5, padding: "2px 8px", fontSize: "var(--font-sm)", fontWeight: 700, color: "#c4b5fd" }}>
-                                        🔮 {essences}
-                                    </div>
                                 </div>
                                 {PITY_KEYS.map(({ key, label, color, max }) => {
                                     const cur = (pity as any)?.[key] ?? 0;
                                     const pct = Math.min((cur / max) * 100, 100);
                                     const hot = pct >= 70;
                                     return (
-                                        <div key={key} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-                                            <span style={{ fontSize: "var(--font-xs)", color: hot ? color : "#e2e8f0", minWidth: 54, fontWeight: hot ? 700 : 400 }}>{label}</span>
+                                        <div key={key} style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 3 }}>
+                                            <span style={{ fontSize: "var(--font-2xs)", color: hot ? color : "#a8b5c8", minWidth: 44, fontWeight: hot ? 700 : 400, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{label}</span>
                                             <div style={{ flex: 1, height: 3, borderRadius: 2, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
                                                 <div style={{ height: "100%", width: `${pct}%`, borderRadius: 2, background: color, transition: "width 0.4s ease", boxShadow: hot ? `0 0 6px ${color}` : "none" }} />
                                             </div>
-                                            <span style={{ fontSize: "var(--font-2xs)", color: "#e2e8f0", fontFamily: "monospace", minWidth: 38, textAlign: "right" }}>{cur}/{max}</span>
+                                            <span style={{ fontSize: "var(--font-2xs)", color: "#e2e8f0", fontFamily: "monospace", minWidth: 32, textAlign: "right" }}>{cur}/{max}</span>
                                         </div>
                                     );
                                 })}
                             </div>
                         </div>
 
-                        {/* CENTER: Fragmento + botones */}
-                        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "clamp(10px,2vh,18px)", position: "relative", zIndex: 1 }}>
-                            <div style={{ animation: "nxFloat 3.2s ease-in-out infinite", position: "relative", zIndex: 1 }}>
+                        {/* CENTER: Fragmento + contador essences + botones */}
+                        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "clamp(6px,1.5vh,14px)", position: "relative", zIndex: 1, minWidth: 0 }}>
+                            <div style={{ animation: "nxFloat 5s ease-in-out infinite", position: "relative", zIndex: 1, marginBottom: -sphereSize * 0.15 }}>
                                 <EssenceFragment size={sphereSize} />
                             </div>
                             <div style={{ textAlign: "center", position: "relative", zIndex: 2 }}>
                                 <p style={{ fontSize: "var(--font-sm)", fontWeight: 700, color: "#ffffff", letterSpacing: "0.1em", textTransform: "uppercase" }}>Essence</p>
                                 <p style={{ fontSize: "var(--font-xs)", color: "#67e8f9", marginTop: 2 }}>
-                                    {banner ? `Boost active · ×10` : "No active banner"}
+                                    {boostedName ? `Boost active · ×10` : "Open essences below"}
                                 </p>
                             </div>
-                            {error && <p style={{ fontSize: "var(--font-xs)", color: "#f87171", textAlign: "center", maxWidth: 180, position: "relative", zIndex: 2 }}>{error}</p>}
-                            <div style={{ display: "flex", gap: 10, position: "relative", zIndex: 10 }}>
+
+                            {/* Essence counter — prominente, con icono de fuego */}
+                            <div style={{
+                                display: "flex", alignItems: "center", gap: 7,
+                                background: "rgba(123,47,255,0.16)",
+                                border: "1px solid rgba(167,139,250,0.4)",
+                                borderRadius: 10,
+                                padding: "6px 16px 6px 12px",
+                                position: "relative", zIndex: 2,
+                                boxShadow: "0 0 18px rgba(123,47,255,0.22)",
+                            }}>
+                                <EssenceIcon size={20} />
+                                <span style={{
+                                    fontSize: "var(--font-lg)", fontWeight: 800,
+                                    color: "#e9d5ff", fontFamily: "'Rajdhani',sans-serif",
+                                    letterSpacing: "0.04em", lineHeight: 1,
+                                }}>{essences}</span>
+                                <span style={{ fontSize: "var(--font-xs)", color: "#a78bfa", fontWeight: 500 }}>essences</span>
+                            </div>
+
+                            {error && <p style={{ fontSize: "var(--font-xs)", color: "#f87171", textAlign: "center", maxWidth: 160, position: "relative", zIndex: 2 }}>{error}</p>}
+
+                            {/* Botones — compactos mobile, crecen en desktop */}
+                            <div style={{ display: "flex", gap: "clamp(6px,1.5vw,12px)", position: "relative", zIndex: 10, width: "100%", justifyContent: "center", padding: "0 clamp(8px,3vw,0px)" }}>
                                 {([1, 5] as const).map(n => (
                                     <button key={n} onClick={() => handlePull(n)} disabled={pulling || essences < n} style={{
-                                        padding: "11px clamp(20px,3vw,32px)", borderRadius: 8,
-                                        fontSize: "var(--font-sm)", fontWeight: 700, letterSpacing: "0.05em",
+                                        padding: "clamp(8px,1.5vh,11px) clamp(12px,2.5vw,28px)",
+                                        borderRadius: 8,
+                                        fontSize: "clamp(11px,1.2vw,var(--font-sm))", fontWeight: 700, letterSpacing: "0.04em",
                                         cursor: essences >= n && !pulling ? "pointer" : "not-allowed",
                                         border: `1px solid ${essences >= n ? (n === 5 ? "rgba(123,47,255,0.75)" : "rgba(123,47,255,0.55)") : "rgba(255,255,255,0.1)"}`,
                                         background: essences >= n ? (n === 5 ? "rgba(123,47,255,0.32)" : "rgba(123,47,255,0.18)") : "rgba(255,255,255,0.03)",
-                                        color: essences >= n ? (n === 5 ? "#e2d9ff" : "#c4b5fd") : "#e2e8f0",
-                                        transition: "all 0.15s", position: "relative", zIndex: 10,
+                                        color: essences >= n ? (n === 5 ? "#e2d9ff" : "#c4b5fd") : "#5a6a80",
+                                        transition: "all 0.15s",
                                         boxShadow: essences >= n ? `0 0 14px ${n === 5 ? "rgba(123,47,255,0.4)" : "rgba(123,47,255,0.22)"}` : "none",
+                                        whiteSpace: "nowrap", flexShrink: 0,
+                                        display: "flex", alignItems: "center", gap: 5,
                                     }}>
+                                        <EssenceIcon size={13} style={{ opacity: essences >= n ? 1 : 0.3 }} />
                                         {pulling ? "..." : `Open ×${n}`}
                                     </button>
                                 ))}
                             </div>
                         </div>
 
-                        {/* RIGHT: 148px */}
-                        <div style={{ width: 148, minWidth: 148, borderLeft: "1px solid rgba(255,255,255,0.07)", padding: "12px 13px", display: "flex", flexDirection: "column", gap: 5, position: "relative", zIndex: 1 }}>
-                            <p style={{ fontSize: "var(--font-xs)", textTransform: "uppercase", letterSpacing: "0.12em", color: "#ffffff", fontWeight: 700, marginBottom: 3 }}>Rates</p>
+                        {/* RIGHT: responsive width */}
+                        <div style={{ width: "clamp(90px,15vw,148px)", minWidth: "clamp(90px,15vw,148px)", borderLeft: "1px solid rgba(255,255,255,0.07)", padding: "10px clamp(6px,1vw,13px)", display: "flex", flexDirection: "column", gap: 4, position: "relative", zIndex: 1, overflow: "hidden" }}>
+                            <p style={{ fontSize: "var(--font-2xs)", textTransform: "uppercase", letterSpacing: "0.1em", color: "#ffffff", fontWeight: 700, marginBottom: 3 }}>Rates</p>
                             {([
                                 { l: "Common",    c: "#64748b", tc: "#e2e8f0", r: "60%" },
                                 { l: "Rare",      c: "#6366f1", tc: "#c7d2fe", r: "30%" },
@@ -695,24 +1061,18 @@ export default function NexusPage() {
                                 { l: "Elite",     c: "#94a3b8", tc: "#f1f5f9", r: "2.5%" },
                                 { l: "Legendary", c: "#fbbf24", tc: "#fde68a", r: "0.5%" },
                             ] as const).map(({ l, c, tc, r }) => (
-                                <div key={l} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "3px 0", gap: 4 }}>
-                                    <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                                        <div style={{ width: 7, height: 7, borderRadius: 1, background: c, flexShrink: 0 }} />
-                                        <span style={{ fontSize: "var(--font-xs)", color: tc }}>{l}</span>
+                                <div key={l} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "2px 0", gap: 3 }}>
+                                    <div style={{ display: "flex", alignItems: "center", gap: 4, minWidth: 0 }}>
+                                        <div style={{ width: 6, height: 6, borderRadius: 1, background: c, flexShrink: 0 }} />
+                                        <span style={{ fontSize: "var(--font-2xs)", color: tc, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{l}</span>
                                     </div>
-                                    <span style={{ fontSize: "var(--font-xs)", fontFamily: "monospace", color: "#e2e8f0", flexShrink: 0 }}>{r}</span>
+                                    <span style={{ fontSize: "var(--font-2xs)", fontFamily: "monospace", color: "#e2e8f0", flexShrink: 0 }}>{r}</span>
                                 </div>
                             ))}
-                            <div style={{ marginTop: 6, paddingTop: 7, borderTop: "1px solid rgba(255,255,255,0.07)" }}>
-                                <p style={{ fontSize: "var(--font-xs)", color: "#ffffff", textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 700, marginBottom: 4 }}>Boost ×10</p>
-                                <p style={{ fontSize: "var(--font-2xs)", color: "#e2e8f0", lineHeight: 1.55 }}>If you get the featured myth's rarity, ×10 chance it's them.</p>
+                            <div style={{ marginTop: 5, paddingTop: 6, borderTop: "1px solid rgba(255,255,255,0.07)" }}>
+                                <p style={{ fontSize: "var(--font-2xs)", color: "#ffffff", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700, marginBottom: 3 }}>Boost ×10</p>
+                                <p style={{ fontSize: "var(--font-2xs)", color: "#a8b5c8", lineHeight: 1.5 }}>If you get the featured myth's rarity, ×10 chance it's them.</p>
                             </div>
-                            {banner && (
-                                <div style={{ marginTop: 6, paddingTop: 7, borderTop: "1px solid rgba(255,255,255,0.07)" }}>
-                                    <p style={{ fontSize: "var(--font-2xs)", color: "#ffffff", textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 700, marginBottom: 3 }}>Changes in</p>
-                                    <p style={{ fontSize: "var(--font-sm)", fontWeight: 700, color: "#a78bfa", fontFamily: "monospace" }}>{daysLeft(banner.endsAt)}d</p>
-                                </div>
-                            )}
                         </div>
                     </div>
                 )}
