@@ -15,7 +15,8 @@ import onboardingRouter from "./routes/onboarding.js";
 import sanctumsRouter from "./routes/sanctums.js";
 import guildRouter from "./routes/guild.js";
 import nexusRouter from "./routes/nexus.js";
-import mailRouter from "./routes/mail.js"
+import mailRouter from "./routes/mail.js";
+import arenaRouter from "./routes/arena.js";
 
 export function createApp() {
     const app = express();
@@ -40,7 +41,8 @@ export function createApp() {
     app.use(guildRouter);
     app.use(nexusRouter);
     app.use(mailRouter);
-    
+    app.use(arenaRouter);
+
     // 404 catch-all
     app.use((_req, res) => {
         res.status(404).json({ error: "Not found" });

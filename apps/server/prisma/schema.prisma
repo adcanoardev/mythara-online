@@ -8,7 +8,7 @@ datasource db {
   provider = "postgresql"
 }
 
-// ─── Usuarios y partida ────────────────────────────────────────
+// ─── Users & Auth ─────────────────────────────────────────────
 
 model User {
   id           String   @id @default(cuid())
@@ -25,6 +25,12 @@ model User {
   structures     Structure[]
   creatures      CreatureInstance[]
   battleLogs     BattleLog[]
+  mailMessages   MailMessage[]
+  trainerInventory TrainerInventory[]
+  equipmentInstances EquipmentInstance[]
+  arenaDefense   ArenaDefense?
+  arenaMatches   ArenaMatch[]       @relation("AttackerMatches")
+  arenaDefenses  ArenaMatch[]       @relation("DefenderMatches")
 }
 
 model Game {
@@ -37,7 +43,7 @@ model Game {
   starterId Int
 }
 
-// ─── Perfil del entrenador ─────────────────────────────────────
+// ─── Trainer Profile ──────────────────────────────────────────
 
 model TrainerProfile {
   id     String @id @default(cuid())
@@ -54,78 +60,78 @@ model TrainerProfile {
   gender             String?
   onboardingComplete Boolean @default(false)
 
-  // Monedas
+  // Currency
   gold               Int      @default(0)
   diamonds           Int      @default(0)
 
-  // Cosmético — validado siempre en servidor
+  // Cosmetics — server-validated only
   avatarFrame        String?
   unlockedFrames     String[] @default([])
 
-  // Progresión Sanctums
-  binderLevel        Int      @default(1)   // nivel del Binder (1-40), calculado desde xp
-  sanctumClears      Int[]    @default([])  // índice i = nº victorias en Sanctum i
+  // Sanctums progression
+  binderLevel        Int      @default(1)
+  sanctumClears      Int[]    @default([])
 
-  // Nexus — Essences e invocación
+  // Nexus — Essences
   essences           Int      @default(0)
-  corruptedEssences  Int      @default(0)   // reservado para MYTHIC — desactivado en UI
-  pityRare           Int      @default(0)   // aperturas consecutivas sin RARE+
-  pityEpic           Int      @default(0)   // aperturas consecutivas sin EPIC+
-  pityElite          Int      @default(0)   // aperturas consecutivas sin ELITE+
-  pityLegendary      Int      @default(0)   // aperturas consecutivas sin LEGENDARY
-
-  // Gold Essence — pity independiente del purple
-  pityEliteGold      Int      @default(0)   // aperturas gold consecutivas sin ELITE+
-  pityLegendaryGold  Int      @default(0)   // aperturas gold consecutivas sin LEGENDARY
-
-  // Essences
-  goldEssences       Int      @default(0)
+  corruptedEssences  Int      @default(0)
   mythicEssences     Int      @default(0)
 
-  // Actividad
+  // Nexus — Pity counters (purple)
+  pityRare           Int      @default(0)
+  pityEpic           Int      @default(0)
+  pityElite          Int      @default(0)
+  pityLegendary      Int      @default(0)
+
+  // Nexus — Pity counters (gold — separate from purple)
+  pityEliteGold      Int      @default(0)
+  pityLegendaryGold  Int      @default(0)
+
+  // Gold Essences
+  goldEssences       Int      @default(0)
+
+  // Activity
   lastSeen  DateTime @default(now())
 
   // Guild
   guildId   String?
-  guildRole String?   // "Leader" | "Officer" | "Member"
-  guild     Guild?    @relation(fields: [guildId], references: [id])
+  guildRole String?
+  guild     Guild?   @relation(fields: [guildId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-// ─── Nexus — Banner semanal ────────────────────────────────────
+// ─── Nexus — Weekly Banner ────────────────────────────────────
 
 model NexusBanner {
   id             Int      @id @default(autoincrement())
   startsAt       DateTime
   endsAt         DateTime
-  boostedMythIds String[] // speciesIds de myths con tasa aumentada
+  boostedMythIds String[]
   isActive       Boolean  @default(true)
 
   createdAt DateTime @default(now())
 }
 
-// ─── Guild ─────────────────────────────────────────────────────
+// ─── Guild ────────────────────────────────────────────────────
 
 model Guild {
   id          String   @id @default(cuid())
   name        String   @unique
-  tag         String   @unique   // max 4 chars, uppercase
+  tag         String   @unique
   banner      String   @default("#7b2fff")
   level       Int      @default(1)
   description String   @default("")
-  leaderId    String   // userId del líder (denormalizado para lectura rápida)
+  leaderId    String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  xp      Int @default(0)
-  members TrainerProfile[]
-  quests  GuildQuest[]
+  xp       Int @default(0)
+  members  TrainerProfile[]
+  quests   GuildQuest[]
   messages GuildMessage[]
 }
-
-// ─── Guild Quests ───────────────────────────────────────────────
 
 enum QuestType {
   WIN_BATTLES
@@ -143,11 +149,11 @@ model GuildQuest {
   description String
   target      Int
   progress    Int       @default(0)
-  date        String    // "YYYY-MM-DD" — reset diario
+  date        String
   reward50    String    @default("TOKENS")
   reward100   String    @default("TOKENS_GEMS")
-  claimed50   String[]  @default([])  // userIds que reclamaron 50%
-  claimed100  String[]  @default([])  // userIds que reclamaron 100%
+  claimed50   String[]  @default([])
+  claimed100  String[]  @default([])
 
   contributions GuildQuestContribution[]
 
@@ -163,8 +169,6 @@ model GuildQuestContribution {
   createdAt DateTime   @default(now())
 }
 
-// ─── Guild Chat ─────────────────────────────────────────────────
-
 model GuildMessage {
   id        String   @id @default(cuid())
   guildId   String
@@ -176,8 +180,6 @@ model GuildMessage {
   createdAt DateTime @default(now())
 }
 
-// ─── Global Chat ────────────────────────────────────────────────
-
 model GlobalMessage {
   id        String   @id @default(cuid())
   userId    String
@@ -187,7 +189,7 @@ model GlobalMessage {
   createdAt DateTime @default(now())
 }
 
-// ─── Fichas de combate ─────────────────────────────────────────
+// ─── Combat Tokens ────────────────────────────────────────────
 
 model CombatToken {
   id     String @id @default(cuid())
@@ -203,7 +205,7 @@ model CombatToken {
   updatedAt DateTime @updatedAt
 }
 
-// ─── Estructuras del rancho ────────────────────────────────────
+// ─── Outpost Structures ───────────────────────────────────────
 
 model Structure {
   id     String @id @default(cuid())
@@ -213,13 +215,10 @@ model Structure {
   type          StructureType
   level         Int           @default(1)
   lastCollected DateTime      @default(now())
+  structureXp   Int           @default(0)
 
-  // Progresión de nivel
-  structureXp   Int      @default(0)
-
-  // Mina: cap de diamantes azules por día
-  dailyDiamonds     Int      @default(0)
-  lastDiamondReset  DateTime @default(now())
+  dailyDiamonds    Int      @default(0)
+  lastDiamondReset DateTime @default(now())
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -234,7 +233,7 @@ enum StructureType {
   NURSERY
 }
 
-// ─── Inventario ────────────────────────────────────────────────
+// ─── Legacy Inventory (enum-based) ───────────────────────────
 
 model Inventory {
   id     String @id @default(cuid())
@@ -266,42 +265,41 @@ enum ItemType {
   IRON_COAT
   SOVEREIGN_STONE
   CIPHER_CORE
-  BLUE_DIAMOND    // Mina → moneda futura de tienda (máx 15/día)
-  ROCK_FRAGMENT   // Mina → material para subir nivel de Mina
-  ARCANE_GEAR     // Lab  → material para subir nivel de Forge
-  FLAME_CORE      // Forge → material para subir nivel de Nursery
+  BLUE_DIAMOND
+  ROCK_FRAGMENT
+  ARCANE_GEAR
+  FLAME_CORE
 }
 
-// ─── Myths del jugador ────────────────────────────────────────
+// ─── Myth Instances (existing battle system) ─────────────────
 
 model CreatureInstance {
   id     String @id @default(cuid())
   userId String
   user   User   @relation(fields: [userId], references: [id])
 
-  speciesId String
-  nickname  String?
-  level     Int     @default(1)
-  xp        Int     @default(0)
-  hp        Int
-  maxHp     Int
-  attack    Int
-  defense   Int
-  speed     Int
-  accuracy  Int @default(100)
+  speciesId  String
+  nickname   String?
+  level      Int     @default(1)
+  xp         Int     @default(0)
+  hp         Int
+  maxHp      Int
+  attack     Int
+  defense    Int
+  speed      Int
+  accuracy   Int @default(100)
   critChance Int @default(15)
   critDamage Int @default(150)
 
   isInParty Boolean @default(false)
   slot      Int?
+  inNursery Boolean @default(false)
 
   obtainedAt DateTime @default(now())
   updatedAt  DateTime @updatedAt
-
-  inNursery Boolean @default(false)
 }
 
-// ─── BattleLog ────────────────────────────────────────────────
+// ─── Battle Logs ──────────────────────────────────────────────
 
 model BattleLog {
   id     String @id @default(cuid())
@@ -331,4 +329,119 @@ enum BattleResult {
   WIN
   LOSE
   DRAW
+}
+
+// ─── MailBox ──────────────────────────────────────────────────
+
+model MailMessage {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  type        MailType @default(SYSTEM)
+  title       String
+  body        String
+  isRead      Boolean  @default(false)
+  claimedAt   DateTime?
+  expiresAt   DateTime
+  attachments Json?    // { gold, diamonds, essences, goldEssences, items: [{itemSlug, qty}] }
+  actionData  Json?    // { type: "GUILD_REQUEST", guildId, ... }
+
+  createdAt DateTime @default(now())
+}
+
+enum MailType {
+  SYSTEM
+  GUILD
+  PROMO
+}
+
+// ─── Items (new system) ───────────────────────────────────────
+
+model Item {
+  id          Int    @id @default(autoincrement())
+  slug        String @unique
+  name        String
+  description String
+  category    String // EQUIPMENT | CONSUMABLE | ESSENCE | MATERIAL | KEY | BOOSTER
+  rarity      String // COMMON | RARE | EPIC | LEGENDARY
+  iconUrl     String
+  isActive    Boolean @default(true)
+
+  trainerInventory TrainerInventory[]
+  equipmentInstances EquipmentInstance[]
+
+  createdAt DateTime @default(now())
+}
+
+model TrainerInventory {
+  id        Int    @id @default(autoincrement())
+  userId    String
+  user      User   @relation(fields: [userId], references: [id])
+  itemId    Int
+  item      Item   @relation(fields: [itemId], references: [id])
+  quantity  Int    @default(1)
+
+  @@unique([userId, itemId])
+}
+
+model EquipmentInstance {
+  id        Int    @id @default(autoincrement())
+  userId    String
+  user      User   @relation(fields: [userId], references: [id])
+  itemId    Int
+  item      Item   @relation(fields: [itemId], references: [id])
+
+  level     Int    @default(1)
+  mainStat  String
+  mainValue Float
+  subStat1  String? @map("sub_stat1")
+  subValue1 Float?  @map("sub_value1")
+  subStat2  String? @map("sub_stat2")
+  subValue2 Float?  @map("sub_value2")
+  subStat3  String? @map("sub_stat3")
+  subValue3 Float?  @map("sub_value3")
+  equippedOn String? // creatureInstance id
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── Arena PvP ────────────────────────────────────────────────
+
+model ArenaDefense {
+  id        Int    @id @default(autoincrement())
+  userId    String @unique
+  user      User   @relation(fields: [userId], references: [id])
+
+  // Defense team — speciesIds from CreatureInstance
+  myth1Id   String
+  myth2Id   String
+  myth3Id   String
+
+  // AI strategy per slot: AGGRESSIVE | BALANCED | DEFENSIVE
+  strategy1 String @default("BALANCED")
+  strategy2 String @default("BALANCED")
+  strategy3 String @default("BALANCED")
+
+  // Trophy count (1000 = Silver tier start)
+  trophies  Int    @default(1000)
+
+  updatedAt DateTime @updatedAt
+}
+
+model ArenaMatch {
+  id         Int      @id @default(autoincrement())
+
+  attackerId String
+  attacker   User     @relation("AttackerMatches", fields: [attackerId], references: [id])
+
+  defenderId String
+  defender   User     @relation("DefenderMatches", fields: [defenderId], references: [id])
+
+  winnerId   String   // userId of winner
+  trophyDelta Int     // trophies gained/lost (positive = attacker won)
+  replayData  Json    // full battle state for replay
+
+  createdAt DateTime @default(now())
 }

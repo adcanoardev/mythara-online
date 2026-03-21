@@ -145,4 +145,14 @@ export const api = {
     mailClaim: (id: string) => request<any>(`/mail/${id}/claim`, { method: "POST" }),
     mailDelete: (id: string) => request<any>(`/mail/${id}`, { method: "DELETE" }),
     mailReadAll: () => request<any>("/mail/read-all", { method: "POST" }),
+
+    // Arena PvP
+    arenaDefense: () => request<any>("/arena/defense"),
+    arenaDefenseSave: (slots: { mythId: string; strategy: string }[]) =>
+        request<any>("/arena/defense", { method: "PUT", body: JSON.stringify({ slots }) }),
+    arenaOpponents: () => request<any>("/arena/opponents"),
+    arenaAttack: (defenderId: string, mythIds: string[]) =>
+        request<any>(`/arena/attack/${defenderId}`, { method: "POST", body: JSON.stringify({ mythIds }) }),
+    arenaHistory: () => request<any>("/arena/history"),
+    arenaRanking: () => request<any>("/arena/ranking"),
 };
