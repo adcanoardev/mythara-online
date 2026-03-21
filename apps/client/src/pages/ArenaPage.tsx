@@ -210,6 +210,75 @@ function MythCard({
   );
 }
 
+// ─── Strategy Help Button ─────────────────────────────────────
+function StrategyHelpButton() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="flex items-center justify-center rounded-full transition-all duration-150"
+        style={{
+          width: 16, height: 16,
+          background: open ? "rgba(251,191,36,0.2)" : "rgba(255,255,255,0.08)",
+          border: `1px solid ${open ? "rgba(251,191,36,0.5)" : "rgba(255,255,255,0.15)"}`,
+          color: open ? "#fbbf24" : "var(--text-muted)",
+          fontSize: 10,
+          fontWeight: 900,
+          fontFamily: "monospace",
+          flexShrink: 0,
+        }}
+      >
+        ?
+      </button>
+
+      {open && (
+        <>
+          {/* Backdrop */}
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          {/* Popover */}
+          <div
+            className="absolute z-50 rounded-xl p-3 flex flex-col gap-2.5"
+            style={{
+              top: "calc(100% + 8px)",
+              left: 0,
+              width: 240,
+              background: "#0f1623",
+              border: "1px solid rgba(255,255,255,0.12)",
+              boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
+            }}
+          >
+            <div className="font-mono font-bold" style={{ fontSize: "var(--font-xs)", color: "var(--text-muted)", letterSpacing: "0.1em" }}>
+              AI STRATEGY
+            </div>
+            <p style={{ fontSize: "var(--font-xs)", color: "var(--text-secondary)", lineHeight: 1.5 }}>
+              When a rival attacks your defense, the AI controls each myth automatically using its assigned strategy.
+            </p>
+            {[
+              { key: "AGGRESSIVE", icon: "⚔️", color: "#f87171", desc: "Prioritizes dealing damage. Higher output, lower survivability." },
+              { key: "BALANCED",   icon: "⚖️", color: "#fbbf24", desc: "Neutral behavior. Mixes offense and defense evenly." },
+              { key: "DEFENSIVE",  icon: "🛡️", color: "#67e8f9", desc: "Prioritizes surviving. More conservative, harder to KO." },
+            ].map(s => (
+              <div key={s.key} className="flex gap-2 items-start">
+                <span style={{ fontSize: 14, flexShrink: 0, marginTop: 1 }}>{s.icon}</span>
+                <div>
+                  <span className="font-bold" style={{ fontSize: "var(--font-xs)", color: s.color, fontFamily: "monospace" }}>
+                    {s.key}
+                  </span>
+                  <p style={{ fontSize: "var(--font-xs)", color: "var(--text-secondary)", lineHeight: 1.4, marginTop: 1 }}>
+                    {s.desc}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 // ─── Defense Tab ─────────────────────────────────────────────
 function DefenseTab({ trophies }: { trophies: number | null }) {
   const [defense, setDefense] = useState<MythSlot[] | null>(null);
@@ -287,9 +356,12 @@ function DefenseTab({ trophies }: { trophies: number | null }) {
         style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)" }}
       >
         <div className="flex items-center justify-between mb-3">
-          <span className="text-xs font-mono" style={{ color: "var(--text-muted)", letterSpacing: "0.1em" }}>
-            DEFENSE TEAM
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-mono" style={{ color: "var(--text-muted)", letterSpacing: "0.1em" }}>
+              DEFENSE TEAM
+            </span>
+            <StrategyHelpButton />
+          </div>
           <span style={{ fontSize: "var(--font-xs)", color: "var(--text-secondary)" }}>
             AI controls your defense when attacked
           </span>
